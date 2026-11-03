@@ -1,0 +1,16 @@
+{
+  "extends": "@gst/config/tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["vite/client", "node"],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@gst/domain": ["../../packages/domain/src/index.ts"],
+      "@gst/db": ["../../packages/db/src/index.ts"],
+      "@gst/ui": ["../../packages/ui/src/index.ts"],
+      "@gst/ai": ["../../packages/ai/src/index.ts"],
+      "@gst/i18n": ["../../packages/i18n/src/index.ts"]
+    }
+  },
+  "include": ["src", "e2e", "vite.config.ts", "playwright.config.ts"]
+}

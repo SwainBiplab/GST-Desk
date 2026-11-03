@@ -1,0 +1,22 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "GST Desk",
+  "version": "0.0.0",
+  "identifier": "com.leadergroup.gstdesk",
+  "build": {
+    "beforeDevCommand": "pnpm --filter web dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "pnpm --filter web build",
+    "frontendDist": "../../web/dist"
+  },
+  "app": {
+    "windows": [{ "title": "GST Desk", "width": 1280, "height": 800 }],
+    "security": {
+      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
+    }
+  },
+  "bundle": { "active": true, "targets": "all", "icon": ["icons/icon.png"] },
+  "plugins": {
+    "updater": { "endpoints": [], "pubkey": "" }
+  }
+}

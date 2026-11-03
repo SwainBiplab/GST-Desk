@@ -1,0 +1,16 @@
+{
+  "name": "desktop",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "tauri": "tauri",
+    "build": "echo \"desktop: build via 'pnpm --filter desktop tauri build' (requires Rust)\"",
+    "typecheck": "echo \"desktop: nothing to typecheck\"",
+    "lint": "echo \"desktop: nothing to lint\"",
+    "test": "echo \"desktop: no tests yet\""
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.12.4"
+  }
+}
