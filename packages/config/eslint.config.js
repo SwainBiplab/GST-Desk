@@ -6,7 +6,19 @@ import jsxA11y from 'eslint-plugin-jsx-a11y';
 import importPlugin from 'eslint-plugin-import';
 
 export default tseslint.config(
-  { ignores: ['dist', 'coverage', 'src-tauri', 'playwright-report', 'test-results', '*.config.*'] },
+  {
+    ignores: [
+      'storybook-static',
+      '.storybook',
+      'stories',
+      'dist',
+      'coverage',
+      'src-tauri',
+      'playwright-report',
+      'test-results',
+      '*.config.*',
+    ],
+  },
   js.configs.recommended,
   ...tseslint.configs.strict,
   {
@@ -18,7 +30,14 @@ export default tseslint.config(
       ...react.configs['jsx-runtime'].rules,
       ...reactHooks.configs.recommended.rules,
       ...jsxA11y.flatConfigs.recommended.rules,
+      'react/prop-types': 'off',
+      'jsx-a11y/heading-has-content': 'off',
+      'react-hooks/incompatible-library': 'off',
       'import/order': ['error', { 'newlines-between': 'always', alphabetize: { order: 'asc' } }],
     },
+  },
+  {
+    files: ['**/*.test.{ts,tsx}', '**/*.spec.ts'],
+    rules: { '@typescript-eslint/no-non-null-assertion': 'off' },
   },
 );
