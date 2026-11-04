@@ -235,6 +235,25 @@ describe.each(DIALECTS)('document flow (%s)', (dialect) => {
       expect(ia.document['series_id']).toBeTruthy();
     });
 
+    it('never reuses a number that is already on a document', async () => {
+      // history imported with numbers in the same format the series would produce
+      await new BaseRepo(d, 'documents').create(ctx, {
+        type: 'bill_of_supply',
+        status: 'issued',
+        number: 'BOS/26-27/0001',
+        date: '2026-05-01',
+      });
+      await new BaseRepo(d, 'documents').create(ctx, {
+        type: 'bill_of_supply',
+        status: 'issued',
+        number: 'BOS/26-27/0002',
+        date: '2026-05-01',
+      });
+      const a = await save(draft({ type: 'bill_of_supply', partyId }));
+      const issued = await flow.issueDraft(ctx, a.document['id'], a.document['version']);
+      expect(issued.document['number']).toBe('BOS/26-27/0003');
+    });
+
     it('restarts numbering in a new financial year', async () => {
       const old = await save(draft({ date: '2027-03-31' }));
       const next = await save(draft({ date: '2027-04-01' }));

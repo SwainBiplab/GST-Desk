@@ -10,6 +10,7 @@ import {
   buildDocument,
   isBlankLine,
   isFilledLine,
+  type BuiltDocument,
   type DraftDocument,
   type DraftLine,
 } from './build';
@@ -54,7 +55,12 @@ const ZERO_OK: ReadonlySet<DocumentType> = new Set(['delivery_challan']);
  * Everything that stops a draft being issued. Saving a draft only needs `blank` to be false: a draft
  * may be incomplete. Returns an empty array when the document can be issued.
  */
-export function validateForIssue(d: DraftDocument, ctx: ValidationContext): DraftIssue[] {
+export function validateForIssue(
+  d: DraftDocument,
+  ctx: ValidationContext,
+  /** The draft already priced, when the caller has it: saves pricing every line a second time. */
+  priced?: BuiltDocument,
+): DraftIssue[] {
   const out: DraftIssue[] = [];
   const add = (field: string, code: string, line?: number) =>
     out.push(line === undefined ? { field, code } : { field, code, line });
@@ -99,7 +105,7 @@ export function validateForIssue(d: DraftDocument, ctx: ValidationContext): Draf
   if (!allowed.ok) add('type', 'composition_blocked');
 
   if (kept.length > 0 && out.every((i) => i.field !== 'lines')) {
-    const built = buildDocument(d);
+    const built = priced ?? buildDocument(d);
     if (built.totals.totalPaise <= 0n && !ZERO_OK.has(d.type)) add('lines', 'zero_total');
     const above = ctx.gstinRequiredAbovePaise ?? 0n;
     if (

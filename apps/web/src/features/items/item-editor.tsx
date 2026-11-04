@@ -10,7 +10,14 @@ import {
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { draftToValues, rowToDraft, serverErrorsToForm, type Errors, type ItemDraft } from './form';
+import {
+  draftToValues,
+  emptyItemDraft,
+  rowToDraft,
+  serverErrorsToForm,
+  type Errors,
+  type ItemDraft,
+} from './form';
 import { ItemForm } from './item-form';
 
 import { useAppDb } from '@/app/db';
@@ -21,10 +28,13 @@ import { useAppDb } from '@/app/db';
  */
 export function ItemEditor({
   existing,
+  prefill,
   onDone,
   onCancel,
 }: {
   existing?: Row;
+  /** Starting values for a new item (quick-create from a document line). */
+  prefill?: Partial<ItemDraft>;
   onDone: (saved: Row) => void;
   onCancel: () => void;
 }) {
@@ -75,7 +85,11 @@ export function ItemEditor({
   return (
     <>
       <ItemForm
-        {...(existing ? { initial: rowToDraft(existing) } : {})}
+        {...(existing
+          ? { initial: rowToDraft(existing) }
+          : prefill
+            ? { initial: emptyItemDraft(prefill) }
+            : {})}
         isEdit={!!existing}
         busy={busy}
         serverErrors={serverErrors}

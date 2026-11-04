@@ -146,6 +146,29 @@ describe('buildDocument', () => {
     expect(buildDocument(d).totals).toEqual(direct.result.totals);
   });
 
+  it('reprices 200 lines in under 20 ms', () => {
+    const d = draft({
+      placeOfSupply: '29',
+      invoiceDiscount: { mode: 'percent', bp: 250 },
+      lines: Array.from({ length: 200 }, (_, i) =>
+        line({
+          description: `Line ${i}`,
+          qtyMicros: BigInt(((i % 9) + 1) * 1_000_000),
+          ratePaise: BigInt(10_000 + i),
+        }),
+      ),
+    });
+    buildDocument(d); // warm up
+    const times: number[] = [];
+    for (let i = 0; i < 20; i++) {
+      const t0 = performance.now();
+      buildDocument(d);
+      times.push(performance.now() - t0);
+    }
+    times.sort((a, b) => a - b);
+    expect(times[Math.floor(times.length / 2)]!).toBeLessThan(20);
+  });
+
   it('never loses a paisa: rows add up to the totals for any draft', () => {
     const arbLine = fc.record({
       qty: fc.integer({ min: 1, max: 500_000_000 }),

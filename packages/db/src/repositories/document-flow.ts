@@ -14,7 +14,7 @@ import {
   type AccountKey,
   type DocumentType,
 } from '@gst/domain';
-import { and, desc, eq, isNull } from 'drizzle-orm';
+import { and, desc, eq, gte, isNull, lte } from 'drizzle-orm';
 
 import type { Database } from '../database';
 import type { NewRow, Row } from '../schema';
@@ -275,17 +275,36 @@ export class DocumentFlowRepo extends BaseRepo {
         fy: label,
         next_number: 1,
       }));
-    const taken = takeNext(
-      {
-        prefix: row['prefix'],
-        suffix: row['suffix'],
-        padding: row['padding'],
-        reset: row['reset'],
-      },
+    const spec = {
+      prefix: row['prefix'],
+      suffix: row['suffix'],
+      padding: row['padding'],
+      reset: row['reset'],
+    };
+    let taken = takeNext(
+      spec,
       { next: Number(row['next_number']), fy: (row['fy'] as string | null) ?? null },
       date,
       fyStartMonth,
     );
+    // A number that is already on a document (imported history, an earlier series, numbers typed by
+    // hand) is never reused: skip past it.
+    const docs = this.d.schema.documents;
+    for (let tries = 0; tries < 100_000; tries++) {
+      const [clash]: Row[] = await tx
+        .select({ id: docs.id })
+        .from(docs)
+        .where(
+          and(
+            eq(docs.business_id, ctx.businessId),
+            eq(docs.type, type),
+            eq(docs.number, taken.number),
+          ),
+        )
+        .limit(1);
+      if (!clash) break;
+      taken = takeNext(spec, taken.state, date, fyStartMonth);
+    }
     await (this.series as any).updateIn(
       tx,
       ctx,
@@ -459,6 +478,69 @@ export class DocumentFlowRepo extends BaseRepo {
       await (this.lineRepo as any).createIn(tx, ctx, { ...strip(l), document_id: copy['id'] });
     }
     return copy;
+  }
+
+  /**
+   * What a party has been invoiced, and what we have bought from it, in a date range (a financial
+   * year). Feeds the TCS 206C(1H) and TDS 194Q threshold checks. Sales include GST (that is the base
+   * for TCS); purchases are taxable value (the base for TDS). Credit notes and returns reduce them.
+   */
+  async fyTotals(
+    ctx: Ctx,
+    partyId: string,
+    from: string,
+    to: string,
+    excludeId?: string,
+  ): Promise<{ salesPaise: bigint; purchasesTaxablePaise: bigint }> {
+    return runInTx(this.d, ctx, async (tx) => {
+      const t = this.t;
+      const rows: Row[] = await tx
+        .select({
+          id: t.id,
+          type: t.type,
+          total: t.total_paise,
+          taxable: t.total_taxable_paise,
+          date: t.date,
+        })
+        .from(t)
+        .where(
+          and(
+            eq(t.business_id, ctx.businessId),
+            eq(t.party_id, partyId),
+            eq(t.status, 'issued'),
+            isNull(t.deleted_at),
+            gte(t.date, from),
+            lte(t.date, to),
+          ),
+        );
+      let sales = 0n;
+      let purchases = 0n;
+      for (const r of rows) {
+        if (r['id'] === excludeId) continue;
+        const total = BigInt(Number(r['total']));
+        const taxable = BigInt(Number(r['taxable']));
+        switch (r['type']) {
+          case 'tax_invoice':
+          case 'bill_of_supply':
+          case 'debit_note':
+            sales += total;
+            break;
+          case 'credit_note':
+            sales -= total;
+            break;
+          case 'purchase_bill':
+            purchases += taxable;
+            break;
+          case 'purchase_return':
+            purchases -= taxable;
+            break;
+        }
+      }
+      return {
+        salesPaise: sales > 0n ? sales : 0n,
+        purchasesTaxablePaise: purchases > 0n ? purchases : 0n,
+      };
+    });
   }
 
   /** Delete a draft (soft delete; issued documents are cancelled, never deleted). */

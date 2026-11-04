@@ -308,11 +308,14 @@ test.describe('presets and the composition scheme', () => {
     await page.getByTestId('go-dashboard').click();
 
     await page.getByTestId('nav-sell').click();
-    await expect(page.getByTestId('sale-type-name')).toHaveText('Bill of supply');
-    await expect(page.getByTestId('sale-blocked')).toContainText('cannot issue tax invoices');
-    await expect(page.getByTestId('sale-declaration')).toContainText(
+    await expect(page.getByTestId('preview-title')).toHaveText('Bill of supply');
+    await expect(page.getByTestId('preview-sheet')).toContainText(
       'Composition taxable person, not eligible to collect tax on supplies',
     );
+    // a tax invoice cannot be issued, and the reason is shown
+    await page.goto('/books/documents/new?type=tax_invoice');
+    await page.getByTestId('doc-issue').click();
+    await expect(page.getByTestId('doc-problems')).toContainText('cannot issue a tax invoice');
 
     await settings(page, 'features');
     await expect(page.getByTestId('flag-taxInvoice')).toBeDisabled();
@@ -332,7 +335,7 @@ test.describe('presets and the composition scheme', () => {
     await page.getByTestId('confirm-dialog').getByRole('button', { name: 'Cancel' }).click();
     await page.getByTestId('nav-sell').click();
     await page.getByTestId('confirm-dialog').getByRole('button', { name: 'Leave' }).click();
-    await expect(page.getByTestId('sale-type-name')).toHaveText('Tax invoice');
+    await expect(page.getByTestId('preview-title')).toHaveText('Tax invoice');
   });
 });
 

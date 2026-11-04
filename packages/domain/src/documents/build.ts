@@ -47,6 +47,8 @@ export interface DraftDocument {
   partyId: string | null;
   partyName: string;
   partyGstin: string | null;
+  /** The party's own state code, so the place of supply can go back to it. */
+  partyState: string | null;
   /** State code of the business for sales, of the supplier for purchases. */
   supplierState: string;
   /** State code of the place of supply, or `96` for an export. */
@@ -104,6 +106,7 @@ export const emptyDraft = (
   partyId: null,
   partyName: '',
   partyGstin: null,
+  partyState: null,
   supplierState: base.supplierState,
   placeOfSupply: base.supplierState,
   sez: false,

@@ -36,6 +36,7 @@ export interface DraftMeta {
   composition: boolean;
   supplierState: string;
   partyGstin: string | null;
+  partyState: string | null;
   refs: Record<string, string>;
   supplierInvoiceNo: string;
   supplierInvoiceDate: string | null;
@@ -71,6 +72,7 @@ export function metaOf(d: DraftDocument): DraftMeta {
     composition: d.composition,
     supplierState: d.supplierState,
     partyGstin: d.partyGstin,
+    partyState: d.partyState,
     refs: d.refs,
     supplierInvoiceNo: d.supplierInvoiceNo,
     supplierInvoiceDate: d.supplierInvoiceDate,
@@ -160,6 +162,7 @@ export function draftFromRows(
     partyId: (doc['party_id'] as string | null) ?? null,
     partyName: str(doc['party_name']),
     partyGstin: meta.partyGstin ?? null,
+    partyState: meta.partyState ?? null,
     placeOfSupply: str(doc['place_of_supply_state']),
     sez: meta.sez ?? false,
     export: meta.export ?? false,

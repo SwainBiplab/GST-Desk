@@ -1,4 +1,3 @@
-import { canIssue, declarationFor, defaultSaleType } from '@gst/domain';
 import { formatPaise } from '@gst/ui';
 import { Button, Card, CardTitle, EmptyState, PageHeader } from '@gst/ui';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +10,8 @@ import type { Shell } from '../store';
 
 import { ChecklistCard } from '@/features/business/checklist-card';
 import { SettingsPage } from '@/features/business/settings-page';
+import { DocumentsPage } from '@/features/documents/documents-page';
+import { EditorRoute } from '@/features/documents/editor-route';
 import { ItemsPage } from '@/features/items/items-page';
 import { PartiesPage } from '@/features/parties/parties-page';
 
@@ -73,36 +74,6 @@ function describeIntent(search: Record<string, unknown>): string | null {
   return null;
 }
 
-/** What kind of sale this business can make: composition businesses get a bill of supply and a declaration. */
-function SaleTypeNotice() {
-  const { t } = useTranslation();
-  const { business } = useAppDb();
-  const scheme = business?.['scheme'] === 'composition' ? 'composition' : 'regular';
-  const type = defaultSaleType(scheme);
-  const declaration = declarationFor(type, scheme);
-  const blocked = canIssue('tax_invoice', scheme);
-  return (
-    <div className="mb-3 rounded-md border border-border bg-surface-1 p-3" data-testid="sale-type">
-      <p>
-        {t('sale.title')}:{' '}
-        <strong data-testid="sale-type-name">
-          {t(type === 'bill_of_supply' ? 'sale.billOfSupply' : 'sale.taxInvoice')}
-        </strong>
-      </p>
-      {!blocked.ok && (
-        <p className="pt-1 text-sm" data-testid="sale-blocked">
-          {t('sale.composition')} {blocked.reason}
-        </p>
-      )}
-      {declaration && (
-        <p className="pt-1 text-sm text-fg-muted" data-testid="sale-declaration">
-          {t('sale.declaration')} {declaration}
-        </p>
-      )}
-    </div>
-  );
-}
-
 /** Placeholder body for pages built in later prompts. */
 export function PlaceholderPage({ page, shell }: { page: PageId; shell: Shell }) {
   const { t } = useTranslation();
@@ -113,6 +84,20 @@ export function PlaceholderPage({ page, shell }: { page: PageId; shell: Shell })
     return (
       <div data-shell={shell} className="h-full">
         <PartiesPage shell={shell} />
+      </div>
+    );
+  }
+  if (page === 'sell' && ctx) {
+    return (
+      <div data-shell={shell}>
+        <EditorRoute shell={shell} />
+      </div>
+    );
+  }
+  if (page === 'documents' && ctx) {
+    return (
+      <div data-shell={shell}>
+        <DocumentsPage shell={shell} />
       </div>
     );
   }
@@ -143,7 +128,6 @@ export function PlaceholderPage({ page, shell }: { page: PageId; shell: Shell })
         )
       ) : (
         <>
-          {page === 'sell' && ctx && <SaleTypeNotice />}
           {intent && (
             <p
               data-testid="intent"

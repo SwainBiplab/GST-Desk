@@ -12,3 +12,10 @@
 | B-008 | Item pictures are stored by hash with no clean-up: delete the file when no item refers to it, and sync pictures with the database                                 | P3                 | open   |
 | B-009 | Import: choose an encoding and delimiter by hand when the guess is wrong; update existing items by SKU instead of only creating                                   | P2                 | open   |
 | B-010 | Reconcile the UQC list against the current GST Network list at each release                                                                                       | every release      | open   |
+| B-011 | Editor: payments at the point of sale in Shop (Shop's editor has no payment field yet)                                                                            | prompt 16          | open   |
+| B-012 | Editor: series and template pickers in the header (stubs today; the default series and plain preview are used)                                                    | prompts 15 and 17  | open   |
+| B-013 | Editor: lines and totals in languages other than English                                                                                                          | prompt 22          | open   |
+| B-014 | Engine and editor: tax rates are whole basis points, so 0.25% cannot be entered                                                                                   | P2                 | open   |
+| B-015 | Editor: attachments live in the browser database only; sync them and clean up when a document is deleted                                                          | P3                 | open   |
+| B-016 | Web: a Reset local data button on the Could not open the local database screen                                                                                    | P1                 | open   |
+| B-017 | Editor: column visibility is saved per business in this browser, not with the business settings                                                                   | P2                 | open   |

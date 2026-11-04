@@ -19,6 +19,7 @@ import { Route as BooksCrashRouteImport } from './routes/books/[_]crash'
 import { Route as BooksKitRouteImport } from './routes/books/[_]kit'
 import { Route as ShopIndexRouteImport } from './routes/shop/index'
 import { Route as ShopPageRouteImport } from './routes/shop/$page'
+import { Route as BooksDocumentsNewRouteImport } from './routes/books/documents/new'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -70,6 +71,11 @@ const ShopPageRoute = ShopPageRouteImport.update({
   path: '/$page',
   getParentRoute: () => ShopRouteRoute,
 } as any)
+const BooksDocumentsNewRoute = BooksDocumentsNewRouteImport.update({
+  id: '/documents/new',
+  path: '/documents/new',
+  getParentRoute: () => BooksRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/shop/$page': typeof ShopPageRoute
   '/books/': typeof BooksIndexRoute
   '/shop/': typeof ShopIndexRoute
+  '/books/documents/new': typeof BooksDocumentsNewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -92,6 +99,7 @@ export interface FileRoutesByTo {
   '/shop/$page': typeof ShopPageRoute
   '/books': typeof BooksIndexRoute
   '/shop': typeof ShopIndexRoute
+  '/books/documents/new': typeof BooksDocumentsNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -105,6 +113,7 @@ export interface FileRoutesById {
   '/shop/$page': typeof ShopPageRoute
   '/books/': typeof BooksIndexRoute
   '/shop/': typeof ShopIndexRoute
+  '/books/documents/new': typeof BooksDocumentsNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -119,6 +128,7 @@ export interface FileRouteTypes {
     | '/shop/$page'
     | '/books/'
     | '/shop/'
+    | '/books/documents/new'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -129,6 +139,7 @@ export interface FileRouteTypes {
     | '/shop/$page'
     | '/books'
     | '/shop'
+    | '/books/documents/new'
   id:
     | '__root__'
     | '/'
@@ -141,6 +152,7 @@ export interface FileRouteTypes {
     | '/shop/$page'
     | '/books/'
     | '/shop/'
+    | '/books/documents/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -222,6 +234,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShopPageRouteImport
       parentRoute: typeof ShopRouteRoute
     }
+    '/books/documents/new': {
+      id: '/books/documents/new'
+      path: '/documents/new'
+      fullPath: '/books/documents/new'
+      preLoaderRoute: typeof BooksDocumentsNewRouteImport
+      parentRoute: typeof BooksRouteRoute
+    }
   }
 }
 
@@ -230,6 +249,7 @@ interface BooksRouteRouteChildren {
   BooksCrashRoute: typeof BooksCrashRoute
   BooksKitRoute: typeof BooksKitRoute
   BooksIndexRoute: typeof BooksIndexRoute
+  BooksDocumentsNewRoute: typeof BooksDocumentsNewRoute
 }
 
 const BooksRouteRouteChildren: BooksRouteRouteChildren = {
@@ -237,6 +257,7 @@ const BooksRouteRouteChildren: BooksRouteRouteChildren = {
   BooksCrashRoute: BooksCrashRoute,
   BooksKitRoute: BooksKitRoute,
   BooksIndexRoute: BooksIndexRoute,
+  BooksDocumentsNewRoute: BooksDocumentsNewRoute,
 }
 
 const BooksRouteRouteWithChildren = BooksRouteRoute._addFileChildren(

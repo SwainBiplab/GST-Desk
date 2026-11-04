@@ -18,3 +18,15 @@ Measured in Chrome with SQLite on OPFS (`pnpm --filter web perf`, `perf/items.pe
 | Rows in the DOM for the grid             | under 100 | 24       |
 
 Database level (`packages/db`, both dialects, in `items.test.ts`): HSN lookup among 10,000 codes under 50 ms on SQLite FTS5 (150 ms allowed on PGlite, which is Postgres compiled to WebAssembly); 10,000-item import under 30 s.
+
+## Document editor (prompt 14)
+
+Measured in Chrome (`pnpm --filter web perf`, `perf/documents.perf.ts`) with 200 lines pasted into the grid. Keystroke handling is the time from the input event to the end of the resulting task (pricing and React commit; paint excluded).
+
+| Measure                                | Budget | Full speed           | At 4x CPU throttle |
+| -------------------------------------- | ------ | -------------------- | ------------------ |
+| Keystroke handling, p95, 200 lines     | 16 ms  | 12 ms (median 10 ms) | 89 ms              |
+| Preview shows the change after an edit | 300 ms | 271 ms               | not measured       |
+| Engine reprices 200 lines              | 20 ms  | about 1 ms           | not measured       |
+
+The 16 ms budget is checked at full speed on the development machine. Preview includes its 150 ms debounce. The engine figure is also asserted in `packages/domain/test/documents.test.ts`.

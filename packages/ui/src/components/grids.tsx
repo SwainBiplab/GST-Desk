@@ -1,4 +1,10 @@
-import { DataEditor, type DataEditorProps, type Theme } from '@glideapps/glide-data-grid';
+import '@glideapps/glide-data-grid/dist/index.css';
+import {
+  DataEditor,
+  type DataEditorProps,
+  type DataEditorRef,
+  type Theme,
+} from '@glideapps/glide-data-grid';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import * as React from 'react';
 
@@ -22,32 +28,48 @@ function readTheme(): Partial<Theme> {
   };
 }
 
+export {
+  CompactSelection,
+  GridCellKind,
+  type CellClickedEventArgs,
+  type DataEditorRef,
+  type EditableGridCell,
+  type GridCell,
+  type GridColumn,
+  type GridKeyEventArgs,
+  type GridSelection,
+  type Item,
+  type Theme,
+} from '@glideapps/glide-data-grid';
+
 export type DataGridProps = Omit<DataEditorProps, 'theme'>;
 
 /** Glide Data Grid with theme bridging. Row height follows `--row-h`. */
-export function DataGrid(props: DataGridProps) {
-  const [theme, setTheme] = React.useState<Partial<Theme>>(() => readTheme());
-  const [rowHeight, setRowHeight] = React.useState(32);
+export const DataGrid = React.forwardRef<DataEditorRef, DataGridProps>(
+  function DataGrid(props, ref) {
+    const [theme, setTheme] = React.useState<Partial<Theme>>(() => readTheme());
+    const [rowHeight, setRowHeight] = React.useState(32);
 
-  React.useEffect(() => {
-    const sync = () => {
-      setTheme(readTheme());
-      const rem = parseFloat(
-        getComputedStyle(document.documentElement).getPropertyValue('--row-h'),
-      );
-      if (!Number.isNaN(rem)) setRowHeight(Math.round(rem * 16));
-    };
-    sync();
-    const obs = new MutationObserver(sync);
-    obs.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['data-theme', 'data-density', 'lang'],
-    });
-    return () => obs.disconnect();
-  }, []);
+    React.useEffect(() => {
+      const sync = () => {
+        setTheme(readTheme());
+        const rem = parseFloat(
+          getComputedStyle(document.documentElement).getPropertyValue('--row-h'),
+        );
+        if (!Number.isNaN(rem)) setRowHeight(Math.round(rem * 16));
+      };
+      sync();
+      const obs = new MutationObserver(sync);
+      obs.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['data-theme', 'data-density', 'lang'],
+      });
+      return () => obs.disconnect();
+    }, []);
 
-  return <DataEditor rowHeight={rowHeight} theme={theme} {...props} />;
-}
+    return <DataEditor ref={ref} rowHeight={rowHeight} theme={theme} {...props} />;
+  },
+);
 
 export interface VirtualListProps<T> {
   items: readonly T[];

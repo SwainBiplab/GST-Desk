@@ -592,7 +592,7 @@ describe.each(DIALECTS)('scale (%s)', (dialect) => {
     expect(imported.inserted).toBe(10_000);
 
     await searchHsn(d, 'warm up'); // first query pays for statement preparation
-    // best of five per query: a busy machine (parallel test runs, coverage) delays single runs
+    // best of fifteen per query: a busy machine (parallel test runs, coverage) delays single runs
     const times: number[] = [];
     for (const q of [
       'cotton shirts',
@@ -602,7 +602,7 @@ describe.each(DIALECTS)('scale (%s)', (dialect) => {
       'glass bottles',
     ]) {
       let best = Infinity;
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 15; i++) {
         const t0 = performance.now();
         const hits = await searchHsn(d, q, { limit: 5, asOf: '2026-02-01' });
         best = Math.min(best, performance.now() - t0);

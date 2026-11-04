@@ -4,3 +4,4 @@ target
 pnpm-lock.yaml
 .changeset
 packages/domain/data/hsn-v*.json
+apps/web/src/routeTree.gen.ts

@@ -10,6 +10,10 @@ const shellOf = (c: ActionContext) => c.shell ?? 'shop';
 const go = (page: PageId, search?: Record<string, unknown>) => (c: ActionContext) =>
   c.navigate(`/${shellOf(c)}/${page}`, search);
 
+/** Open the editor on a new document. Books has its own route; Shop's editor is the Sell page. */
+const newDoc = (type: string) => (c: ActionContext) =>
+  c.navigate(shellOf(c) === 'shop' ? '/shop/sell' : '/books/documents/new', { type });
+
 const KEYWORDS: Record<PageId, string[]> = {
   dashboard: ['home', 'overview'],
   sell: ['bill', 'invoice', 'checkout', 'pos'],
@@ -51,7 +55,7 @@ export function registerDefaultActions(): void {
     section: section('new'),
     keywords: ['sale', 'bill', 'sell'],
     shortcut: 'N',
-    run: go('sell'),
+    run: newDoc('tax_invoice'),
   });
   registerAction({
     id: 'new.quotation',
@@ -59,7 +63,7 @@ export function registerDefaultActions(): void {
     section: section('new'),
     keywords: ['quote', 'estimate'],
     when: (c) => c.flags.quotations,
-    run: go('sell', { kind: 'quotation' }),
+    run: newDoc('quotation'),
   });
   registerAction({
     id: 'new.purchase',
@@ -67,7 +71,7 @@ export function registerDefaultActions(): void {
     section: section('new'),
     keywords: ['buy', 'supplier bill'],
     when: (c) => c.flags.purchases,
-    run: go('documents', { kind: 'purchases', new: '1' }),
+    run: newDoc('purchase_bill'),
   });
   registerAction({
     id: 'new.party',
