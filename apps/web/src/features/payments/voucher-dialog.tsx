@@ -79,7 +79,9 @@ export function VoucherDialog({ row, onClose }: { row: PaymentListRow; onClose: 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-h-[92vh] max-w-2xl overflow-auto" data-testid="voucher-dialog">
-        <DialogTitle className="text-lg font-semibold">{t('voucher.title')}</DialogTitle>
+        <DialogTitle className="text-lg font-semibold print:hidden">
+          {t('voucher.title')}
+        </DialogTitle>
         <DialogDescription className="sr-only">{row.voucherNumber}</DialogDescription>
         {voucher && (
           <article

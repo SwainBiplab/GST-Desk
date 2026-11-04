@@ -41,4 +41,40 @@
   @page {
     margin: 0;
   }
+
+  /*
+   * A document shown in a pop-up (a receipt): print the sheet on its own page. The pop-up is centred,
+   * size-limited and scrollable on screen; in print it is just a box that flows, with the app hidden
+   * behind it, and nothing around the sheet takes up room.
+   */
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+  }
+  body:has([role='dialog'] #print-area) > #root {
+    display: none !important;
+  }
+  [role='dialog']:has(#print-area) {
+    position: static !important;
+    transform: none !important;
+    /* Tailwind centres a pop-up with these two variables, not with `transform` */
+    --tw-translate-x: 0 !important;
+    --tw-translate-y: 0 !important;
+    left: auto !important;
+    top: auto !important;
+    width: auto !important;
+    max-width: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+  }
+  [role='dialog'] #print-area {
+    position: static;
+    max-width: 190mm;
+    margin: 10mm auto;
+  }
 }

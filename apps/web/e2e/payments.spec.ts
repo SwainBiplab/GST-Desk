@@ -119,6 +119,35 @@ test.describe('receiving money', () => {
     expect(await page.evaluate(() => (window as unknown as { printed: number }).printed)).toBe(1);
   });
 
+  test('the receipt prints whole, from the top of the page, with the app hidden behind it', async ({
+    page,
+  }) => {
+    await openSeeded(page, '/books/payments');
+    const row = page
+      .locator('[data-testid="payment-row"][data-direction="received"]')
+      .filter({ has: page.getByTestId('pay-create-receipt') })
+      .first();
+    await row.getByTestId('pay-create-receipt').click();
+    await expect(page.getByTestId('voucher-sheet')).toBeVisible();
+
+    await page.emulateMedia({ media: 'print' });
+    // the app behind the pop-up takes no room, and the receipt starts at the top-left of the page
+    await expect(page.locator('#root')).toBeHidden();
+    const box = (await page.getByTestId('voucher-sheet').boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.y).toBeGreaterThanOrEqual(0);
+    expect(box.y).toBeLessThan(80);
+    // every part of it is on the page: the number, the amount, the allocation and the signature
+    for (const id of ['voucher-number', 'voucher-amount', 'voucher-towards']) {
+      const b = (await page.getByTestId(id).boundingBox())!;
+      expect(b.x, id).toBeGreaterThanOrEqual(0);
+      expect(b.y, id).toBeGreaterThanOrEqual(0);
+      expect(b.x + b.width, id).toBeLessThanOrEqual(1280);
+    }
+    await expect(page.getByTestId('voucher-print')).toBeHidden();
+    await page.emulateMedia({ media: 'screen' });
+  });
+
   test('an overpayment is kept as credit and offered on the next invoice', async ({ page }) => {
     await openSeeded(page, '/books/dashboard');
     const { number } = await buyerWithInvoice(page, 'Credit Buyer');
