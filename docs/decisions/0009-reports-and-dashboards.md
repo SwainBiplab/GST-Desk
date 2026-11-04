@@ -20,3 +20,10 @@ Status: accepted. Context: prompt 18, PRD FR-070 to FR-073, UX-06, NFR-01.
 - The documents summary (GSTR-1 table 13) orders numbers by their trailing digits, so `INV/9` comes before `INV/10`.
 - Expense summary groups by the line description, because expenses have no category field yet (B-045). Stock summary reads the item's opening stock plus its movements, which prompt 19 may refine (B-044).
 - A CA reviewer signs `docs/compliance/reports-review.md` for the sales register, HSN summary and documents summary against three seeded months.
+
+## Charts on the dashboards
+
+- **Drawn by hand, no chart library.** Four chart forms are enough (grouped columns, lines, ranked bars, a stacked ageing bar), the app already ships a virtualiser and a zip writer, and a library would add weight and its own theme to keep in step with the design tokens. `features/reports/charts.tsx` follows the usual rules for thin marks, a flat baseline, a 2 px gap between bars, one axis, text in text colours, a legend for two or more series, a hover tooltip and a table view.
+- **Colours were checked, not chosen by eye.** The two series colours are the first two slots of a categorical palette that passes the colour-blind separation and contrast checks (`validate_palette.js`), stepped separately for the dark theme.
+- **The figures are the reports' figures.** `getDashboard` returns the chart data: six months of sales, spend, money in and out, the last 14 days, and the top five customers. A test holds every month and day to the matching report for the same dates, and an end-to-end test checks that the value a bar shows is the total of the report it opens.
+- **A quiet book still draws.** When nothing was sold in the last six months the charts run to the most recent day with a sale and say so on each card, instead of showing empty axes (the demo data ends in March 2026).

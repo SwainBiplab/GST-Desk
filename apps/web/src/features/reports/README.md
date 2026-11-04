@@ -4,15 +4,16 @@ Reports and the question-led dashboards (prompt 18, FR-070 to FR-073, UX-06). Th
 
 ## What is here
 
-| File               | What it does                                                                                                                                                              |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `reports-page.tsx` | The report list, and one report at a time. Reads which report from the address.                                                                                           |
-| `report-view.tsx`  | The shared report page: filter bar, virtualised table that loads pages as it is scrolled, totals row, grouping, column chooser, saved views, CSV and Excel export, print. |
-| `model.ts`         | No React: the address to state and back, how a cell is shown and exported, grouping with subtotals. Unit tested.                                                          |
-| `xlsx.ts`          | A small .xlsx writer over `fflate`. Text is always an inline string, so a spreadsheet never runs it as a formula.                                                         |
-| `hooks.ts`         | `useReportData` (paged query, refreshed when the data under it changes), `useReportExport`, `useSavedViews`, `useDashboard`.                                              |
-| `dashboard.tsx`    | The Shop and Books dashboard cards. Every number is a button that opens its report with the same filters.                                                                 |
-| `download.ts`      | Hands a file to the browser.                                                                                                                                              |
+| File               | What it does                                                                                                                                                                                                                                           |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `reports-page.tsx` | The report list, and one report at a time. Reads which report from the address.                                                                                                                                                                        |
+| `report-view.tsx`  | The shared report page: filter bar, virtualised table that loads pages as it is scrolled, totals row, grouping, column chooser, saved views, CSV and Excel export, print.                                                                              |
+| `model.ts`         | No React: the address to state and back, how a cell is shown and exported, grouping with subtotals. Unit tested.                                                                                                                                       |
+| `xlsx.ts`          | A small .xlsx writer over `fflate`. Text is always an inline string, so a spreadsheet never runs it as a formula.                                                                                                                                      |
+| `hooks.ts`         | `useReportData` (paged query, refreshed when the data under it changes), `useReportExport`, `useSavedViews`, `useDashboard`.                                                                                                                           |
+| `dashboard.tsx`    | The Shop and Books dashboard cards. Every number is a button that opens its report with the same filters.                                                                                                                                              |
+| `charts.tsx`       | The dashboard charts, drawn as SVG with no chart library: grouped columns, lines, a ranked bar list, a legend, a hover tooltip and a table view of the same numbers. Series colours are `--viz-1` and `--viz-2` in `index.css`, stepped for dark mode. |
+| `download.ts`      | Hands a file to the browser.                                                                                                                                                                                                                           |
 
 ## Public surface
 

@@ -92,6 +92,92 @@ test.describe('reports and dashboards', () => {
     await expect(page).toHaveURL(/\/shop\/reports\?.*preset=today/);
   });
 
+  test('the Books dashboard charts show the same figures as the reports they open', async ({
+    page,
+  }) => {
+    await openSeeded(page, '/books/dashboard');
+    for (const id of ['chart-trend', 'chart-cash', 'chart-customers']) {
+      await expect(page.getByTestId(id)).toBeVisible();
+    }
+    // the demo book ends in March 2026, so the charts run to its latest sale and say so
+    await expect(page.getByTestId('chart-trend')).toContainText('runs to');
+    const legend = page.getByTestId('chart-trend').getByTestId('chart-legend');
+    await expect(legend).toContainText('Sales');
+    await expect(legend).toContainText('Spend');
+    await expect(page.getByTestId('chart-cash').getByTestId('chart-legend')).toContainText(
+      'Money in',
+    );
+    expect(await page.getByTestId('chart-trend').getByTestId('bar-sales').count()).toBeGreaterThan(
+      3,
+    );
+    await expect(page.getByTestId('chart-cash').getByTestId('line-receipts')).toBeVisible();
+
+    // hovering the last month's sales bar names the month and the amount
+    const bar = page.getByTestId('chart-trend').getByTestId('bar-sales').last();
+    await bar.hover();
+    const tip = page.getByTestId('chart-tooltip');
+    await expect(tip).toBeVisible();
+    const month = ((await tip.locator('p').first().textContent()) ?? '').trim();
+    expect(month).toMatch(/^[A-Z][a-z]{2} \d{4}$/);
+    const shown = ((await tip.getByText('₹').first().textContent()) ?? '').replace('₹', '').trim();
+
+    // clicking it opens the sales register for that month, whose total is the bar
+    await bar.click();
+    await expect(page.getByTestId('report-view')).toHaveAttribute('data-report', 'sales_register');
+    await expect(page).toHaveURL(/preset=custom/);
+    await expect(page.getByTestId('report-summary')).not.toHaveText(/Loading/, { timeout: 30_000 });
+    expect(await totalOf(page, 'total')).toBe(shown);
+  });
+
+  test('a chart can be read as a table, and the top customers open their party', async ({
+    page,
+  }) => {
+    await openSeeded(page, '/books/dashboard');
+    await page.getByTestId('chart-trend-switch').click();
+    const table = page.getByTestId('chart-trend').getByTestId('chart-table');
+    await expect(table).toBeVisible();
+    await expect(table.locator('tbody tr')).toHaveCount(6);
+    await page.getByTestId('chart-trend-switch').click();
+    await expect(page.getByTestId('chart-columns').first()).toBeVisible();
+
+    const rows = page.getByTestId('chart-customers').getByTestId('chart-bar-row');
+    expect(await rows.count()).toBeGreaterThan(0);
+    expect(await rows.count()).toBeLessThanOrEqual(5);
+    await rows.first().click();
+    await expect(page).toHaveURL(/\/books\/parties\?open=/);
+  });
+
+  test('the Shop dashboard charts the last 14 days and the best customers, in dark mode too', async ({
+    page,
+  }) => {
+    await openSeeded(page, '/shop/dashboard');
+    await expect(page.getByTestId('chart-days')).toBeVisible();
+    await expect(page.getByTestId('chart-customers')).toBeVisible();
+    expect(await page.getByTestId('chart-days').getByTestId('bar-sales').count()).toBeGreaterThan(
+      0,
+    );
+    // one series: the title names it, so there is no legend box
+    await expect(page.getByTestId('chart-days').getByTestId('chart-legend')).toHaveCount(0);
+
+    const fill = (await page
+      .getByTestId('chart-days')
+      .getByTestId('bar-sales')
+      .first()
+      .getAttribute('fill'))!;
+    expect(fill).toBe('var(--viz-1)');
+    const light = await page
+      .getByTestId('chart-days')
+      .locator('.viz')
+      .evaluate((el) => getComputedStyle(el).getPropertyValue('--viz-1').trim());
+    await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'dark'));
+    const dark = await page
+      .getByTestId('chart-days')
+      .locator('.viz')
+      .evaluate((el) => getComputedStyle(el).getPropertyValue('--viz-1').trim());
+    expect(light).toBe('#2a78d6');
+    expect(dark).toBe('#3987e5');
+  });
+
   test('the report list opens each report', async ({ page }) => {
     await openSeeded(page, '/books/reports');
     await expect(page.getByTestId('reports-list')).toBeVisible();

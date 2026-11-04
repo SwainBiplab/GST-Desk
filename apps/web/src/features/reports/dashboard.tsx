@@ -3,6 +3,15 @@ import { Card, CardTitle, MoneyText } from '@gst/ui';
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import {
+  BarList,
+  ChartCard,
+  ColumnChart,
+  DataTable,
+  LineChart,
+  type Group,
+  type Series,
+} from './charts';
 import { useDashboard } from './hooks';
 import { qtyText } from './model';
 
@@ -124,6 +133,170 @@ function Big({ paise, testId }: { paise: number; testId: string }) {
     <p className="pt-1 text-2xl font-semibold" data-testid={testId}>
       <MoneyText paise={paise} negativeRed />
     </p>
+  );
+}
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const monthShort = (m: string) => MONTHS[Number(m.slice(5, 7)) - 1]!;
+const lastDayOf = (m: string) =>
+  new Date(Date.UTC(Number(m.slice(0, 4)), Number(m.slice(5, 7)), 0)).getUTCDate();
+
+/** The charts under the cards: what the numbers above add up to, over time and by customer. */
+function ChartsSection({ d, shell }: { d: Dashboard; shell: Shell }) {
+  const { t } = useTranslation();
+  const navigate = useAppNavigate();
+  const c = d.charts;
+  const custom = (id: string, from: string, to: string) =>
+    navigate(`/${shell}/reports`, { report: id, preset: 'custom', from, to });
+  const monthRange = (m: string) => {
+    const end = `${m}-${String(lastDayOf(m)).padStart(2, '0')}`;
+    return { from: `${m}-01`, to: end > c.anchorDate ? c.anchorDate : end };
+  };
+
+  const months: Group[] = c.months.map((m) => ({
+    label: monthShort(m.month),
+    title: `${monthShort(m.month)} ${m.month.slice(0, 4)}`,
+    values: {
+      sales: m.salesPaise,
+      spend: m.spendPaise,
+      receipts: m.receiptsPaise,
+      payments: m.paymentsPaise,
+    },
+  }));
+  const trend: Series[] = [
+    { key: 'sales', label: t('dash.chart.sales'), color: '--viz-1' },
+    { key: 'spend', label: t('dash.chart.spend'), color: '--viz-2' },
+  ];
+  const cash: Series[] = [
+    { key: 'receipts', label: t('dash.chart.moneyIn'), color: '--viz-1' },
+    { key: 'payments', label: t('dash.chart.moneyOut'), color: '--viz-2' },
+  ];
+  const days: Group[] = c.days.map((x) => ({
+    label: String(Number(x.date.slice(8, 10))),
+    title: `${Number(x.date.slice(8, 10))} ${monthShort(x.date.slice(0, 7))} ${x.date.slice(0, 4)}`,
+    values: { sales: x.salesPaise },
+  }));
+  const daySeries: Series[] = [{ key: 'sales', label: t('dash.chart.sales'), color: '--viz-1' }];
+  const note = c.anchored ? t('dash.chart.anchored', { date: c.anchorDate }) : undefined;
+
+  const trendCard = (
+    <ChartCard
+      key="trend"
+      testId="chart-trend"
+      title={t('dash.chart.trendTitle')}
+      note={note}
+      table={
+        <DataTable
+          caption={t('dash.chart.trendTitle')}
+          groups={months}
+          series={trend}
+          first={t('dash.chart.month')}
+        />
+      }
+    >
+      <ColumnChart
+        groups={months}
+        series={trend}
+        caption={t('dash.chart.trendTitle')}
+        onSelect={(i, key) => {
+          const r = monthRange(c.months[i]!.month);
+          custom(key === 'sales' ? 'sales_register' : 'purchase_register', r.from, r.to);
+        }}
+      />
+    </ChartCard>
+  );
+  const cashCard = (
+    <ChartCard
+      key="cash"
+      testId="chart-cash"
+      title={t('dash.chart.cashTitle')}
+      note={note}
+      table={
+        <DataTable
+          caption={t('dash.chart.cashTitle')}
+          groups={months}
+          series={cash}
+          first={t('dash.chart.month')}
+        />
+      }
+    >
+      <LineChart groups={months} series={cash} caption={t('dash.chart.cashTitle')} />
+    </ChartCard>
+  );
+  const daysCard = (
+    <ChartCard
+      key="days"
+      testId="chart-days"
+      title={t('dash.chart.daysTitle')}
+      note={note}
+      table={
+        <DataTable
+          caption={t('dash.chart.daysTitle')}
+          groups={days}
+          series={daySeries}
+          first={t('dash.chart.day')}
+        />
+      }
+    >
+      <ColumnChart
+        groups={days}
+        series={daySeries}
+        caption={t('dash.chart.daysTitle')}
+        onSelect={(i) => custom('sales_register', c.days[i]!.date, c.days[i]!.date)}
+      />
+    </ChartCard>
+  );
+  const customersCard = (
+    <ChartCard
+      key="customers"
+      testId="chart-customers"
+      title={t('dash.chart.customersTitle')}
+      note={note}
+    >
+      {c.topParties.length === 0 ? (
+        <p className="text-sm text-fg-muted">{t('dash.chart.noCustomers')}</p>
+      ) : (
+        <BarList
+          caption={t('dash.chart.customersTitle')}
+          rows={c.topParties.map((p, i) => ({
+            key: `${p.partyId ?? 'walk-in'}-${i}`,
+            label: p.name || t('reports.walkIn'),
+            paise: p.paise,
+            ...(p.partyId
+              ? { onOpen: () => navigate(`/${shell}/parties`, { open: p.partyId }) }
+              : {}),
+          }))}
+        />
+      )}
+    </ChartCard>
+  );
+
+  const AGE_KEYS = ['notDue', 'd1_30', 'd31_60', 'd61_90', 'd90plus'] as const;
+  const ageingCard = (
+    <ChartCard key="ageing" testId="chart-ageing" title={t('dash.chart.ageingTitle')}>
+      {d.receivablesPaise <= 0 ? (
+        <p className="text-sm text-fg-muted">{t('dash.chart.noReceivables')}</p>
+      ) : (
+        <BarList
+          caption={t('dash.chart.ageingTitle')}
+          rows={AGE_KEYS.map((k) => ({
+            key: k,
+            label: t(`reports.bucket.${k}`),
+            paise: Math.max(0, d.receivablesAgeing[k]),
+            onOpen: () =>
+              navigate(`/${shell}/reports`, { report: 'party_outstanding', side: 'receivable' }),
+          }))}
+        />
+      )}
+    </ChartCard>
+  );
+
+  return (
+    <div className="grid gap-3 pt-3 md:grid-cols-2" data-testid="dashboard-charts">
+      {shell === 'shop'
+        ? [daysCard, customersCard]
+        : [trendCard, cashCard, customersCard, ageingCard]}
+    </div>
   );
 }
 
@@ -327,13 +500,15 @@ export function DashboardCards({ shell }: { shell: Shell }) {
                 {t('dash.gstInput')} <MoneyText paise={d.gstEstimate.inputPaise} />
               </Drill>
             </p>
-            <ul className="pt-2 text-sm" data-testid="dash-filing">
+            <ul className="space-y-1 pt-2 text-sm" data-testid="dash-filing">
               {d.filing.slice(0, 3).map((f) => (
-                <li key={`${f.form}${f.period}`} className="flex justify-between gap-2">
-                  <span>
+                <li key={`${f.form}${f.period}`}>
+                  <span className="block">
                     {t(`dash.form.${f.form}`)} · {monthName(f.period)}
                   </span>
-                  <span className={f.inDays < 0 ? 'text-danger' : 'text-fg-muted'}>
+                  <span
+                    className={`block text-xs ${f.inDays < 0 ? 'text-danger' : 'text-fg-muted'}`}
+                  >
                     {dayName(f.due)} ·{' '}
                     {f.inDays < 0
                       ? t('dash.late', { count: -f.inDays })
@@ -363,18 +538,18 @@ export function DashboardCards({ shell }: { shell: Shell }) {
               <p className="text-sm text-fg-muted">
                 {t('dash.overdueCount', { count: d.overdueCount })}
               </p>
-              <ul className="pt-2 text-sm" data-testid="dash-overdue-list">
+              <ul className="space-y-2 pt-2 text-sm" data-testid="dash-overdue-list">
                 {d.overdue.map((o) => (
-                  <li key={o.id} className="flex justify-between gap-2">
+                  <li key={o.id}>
                     <Drill
                       testId="dash-overdue-row"
                       onOpen={() =>
                         o.partyId ? navigate(`/${shell}/parties`, { open: o.partyId }) : undefined
                       }
                     >
-                      {o.partyName || o.number}
+                      <span className="block truncate">{o.partyName || o.number}</span>
                     </Drill>
-                    <span className="tabular text-fg-muted">
+                    <span className="tabular block text-xs text-fg-muted">
                       <MoneyText paise={o.balancePaise} /> ·{' '}
                       {t('dash.daysLate', { count: o.daysOverdue })}
                     </span>
@@ -441,6 +616,7 @@ export function DashboardCards({ shell }: { shell: Shell }) {
     <div data-testid="dashboard-frame">
       <ChecklistCard />
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{keys.map(render)}</div>
+      {d && <ChartsSection d={d} shell={shell} />}
     </div>
   );
 }

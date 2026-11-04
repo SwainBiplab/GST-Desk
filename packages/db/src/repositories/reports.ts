@@ -11,6 +11,7 @@
  * documents; their totals come from one aggregate query over the whole filtered set.
  */
 import {
+  addDays,
   PURCHASE_MINUS,
   PURCHASE_PLUS,
   TURNOVER_MINUS,
@@ -1374,6 +1375,34 @@ export interface Dashboard {
   };
   drafts: number;
   inbox: number;
+  charts: DashboardCharts;
+}
+
+export interface MonthPoint {
+  /** `YYYY-MM`. */
+  month: string;
+  salesPaise: number;
+  spendPaise: number;
+  receiptsPaise: number;
+  paymentsPaise: number;
+}
+
+/** What the dashboard charts draw. Every figure is the one the matching report shows for the same dates. */
+export interface DashboardCharts {
+  /**
+   * The last date the charts run to: today, or, when nothing was sold in the last six months, the most
+   * recent day with a sale, so a quiet book still shows its latest picture instead of an empty chart.
+   */
+  anchorDate: string;
+  anchored: boolean;
+  /** Six months ending with the anchor's month, oldest first. */
+  months: MonthPoint[];
+  /** The 14 days ending on the anchor, oldest first. */
+  days: { date: string; salesPaise: number }[];
+  /** Top customers by net taxable sales over the six months. */
+  topParties: { partyId: string | null; name: string; paise: number }[];
+  /** First day of the six-month window. */
+  from: string;
 }
 
 async function salesBetween(d: Database, tx: any, ctx: Ctx, from: string, to: string) {
@@ -1390,6 +1419,120 @@ async function salesBetween(d: Database, tx: any, ctx: Ctx, from: string, to: st
     taxable: n(rows[0]?.['taxable']),
     total: n(rows[0]?.['total']),
     bills: n(rows[0]?.['bills']),
+  };
+}
+
+const monthKey = (iso: string) => iso.slice(0, 7);
+
+/** Six month starts ending with the month of `anchor`, oldest first, as `YYYY-MM-01`. */
+function lastSixMonthStarts(anchor: string): string[] {
+  const y = Number(anchor.slice(0, 4));
+  const m = Number(anchor.slice(5, 7));
+  const out: string[] = [];
+  for (let back = 5; back >= 0; back--) {
+    const idx = y * 12 + (m - 1) - back;
+    out.push(
+      `${String(Math.floor(idx / 12)).padStart(4, '0')}-${String((idx % 12) + 1).padStart(2, '0')}-01`,
+    );
+  }
+  return out;
+}
+
+async function chartsIn(d: Database, tx: any, ctx: Ctx, today: string): Promise<DashboardCharts> {
+  const b = ctx.businessId;
+  // anchor: today when there was a sale in the last six months, else the latest day with one
+  const latest = await queryRows(
+    d,
+    tx,
+    sql`SELECT max(d.date) AS v FROM documents d
+        WHERE d.business_id = ${b} AND d.deleted_at IS NULL AND d.status = 'issued'
+          AND d.type IN (${list(TURNOVER_PLUS)}) AND d.date <= ${today}`,
+  );
+  const last = latest[0]?.['v'] ? s(latest[0]['v']) : null;
+  const anchorDate = last && last < addDays(today, -183) ? last : today;
+
+  const starts = lastSixMonthStarts(anchorDate);
+  const from = starts[0]!;
+  const months: MonthPoint[] = starts.map((x) => ({
+    month: monthKey(x),
+    salesPaise: 0,
+    spendPaise: 0,
+    receiptsPaise: 0,
+    paymentsPaise: 0,
+  }));
+  const at = new Map(months.map((m) => [m.month, m]));
+  const span: ReportParams = { from, to: anchorDate, today };
+  const MONTH = sql`substr(CAST(d.date AS text), 1, 7)`;
+
+  for (const r of await queryRows(
+    d,
+    tx,
+    sql`SELECT ${MONTH} AS m, sum(${signOf(TURNOVER_MINUS)} * d.total_paise) AS v FROM documents d
+        WHERE ${docWhere(ctx, span, [...TURNOVER_PLUS, ...TURNOVER_MINUS])} GROUP BY ${MONTH}`,
+  )) {
+    const m = at.get(s(r['m']));
+    if (m) m.salesPaise = n(r['v']);
+  }
+  for (const r of await queryRows(
+    d,
+    tx,
+    sql`SELECT ${MONTH} AS m, sum(${signOf(PURCHASE_MINUS)} * d.total_paise) AS v FROM documents d
+        WHERE ${docWhere(ctx, span, [...PURCHASE_PLUS, ...PURCHASE_MINUS, 'expense'])} GROUP BY ${MONTH}`,
+  )) {
+    const m = at.get(s(r['m']));
+    if (m) m.spendPaise = n(r['v']);
+  }
+  const PMONTH = sql`substr(CAST(p.date AS text), 1, 7)`;
+  for (const r of await queryRows(
+    d,
+    tx,
+    sql`SELECT ${PMONTH} AS m, p.direction AS dir, sum(p.amount_paise) AS v FROM payments p
+        WHERE p.business_id = ${b} AND p.deleted_at IS NULL AND p.status = 'cleared'
+          AND p.date >= ${from} AND p.date <= ${anchorDate} GROUP BY ${PMONTH}, p.direction`,
+  )) {
+    const m = at.get(s(r['m']));
+    if (!m) continue;
+    if (r['dir'] === 'received') m.receiptsPaise = n(r['v']);
+    else m.paymentsPaise = n(r['v']);
+  }
+
+  const dayFrom = addDays(anchorDate, -13);
+  const daily = new Map<string, number>();
+  for (const r of await queryRows(
+    d,
+    tx,
+    sql`SELECT d.date AS day, sum(${signOf(TURNOVER_MINUS)} * d.total_paise) AS v FROM documents d
+        WHERE ${docWhere(ctx, { from: dayFrom, to: anchorDate, today }, [...TURNOVER_PLUS, ...TURNOVER_MINUS])}
+        GROUP BY d.date`,
+  )) {
+    daily.set(s(r['day']), n(r['v']));
+  }
+  const days = Array.from({ length: 14 }, (_, i) => {
+    const date = addDays(dayFrom, i);
+    return { date, salesPaise: daily.get(date) ?? 0 };
+  });
+
+  const top = await queryRows(
+    d,
+    tx,
+    sql`SELECT d.party_id AS pid, coalesce(max(d.party_name), '') AS name,
+               sum(${signOf(TURNOVER_MINUS)} * d.total_taxable_paise) AS v
+        FROM documents d WHERE ${docWhere(ctx, span, [...TURNOVER_PLUS, ...TURNOVER_MINUS])}
+        GROUP BY d.party_id ORDER BY v DESC LIMIT 5`,
+  );
+  return {
+    anchorDate,
+    anchored: anchorDate !== today,
+    from,
+    months,
+    days,
+    topParties: top
+      .filter((r) => n(r['v']) > 0)
+      .map((r) => ({
+        partyId: r['pid'] == null ? null : s(r['pid']),
+        name: s(r['name']),
+        paise: n(r['v']),
+      })),
   };
 }
 
@@ -1529,6 +1672,7 @@ export async function getDashboard(d: Database, ctx: Ctx, today: string): Promis
       },
       drafts: n(counts[0]?.['drafts']),
       inbox: n(counts[0]?.['inbox']),
+      charts: await chartsIn(d, tx, ctx, today),
     };
   });
 }

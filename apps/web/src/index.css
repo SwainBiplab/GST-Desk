@@ -18,6 +18,17 @@
  * A dashboard card's answer easing in after "Working it out". Transform and opacity only, 220 ms
  * ease-out, staggered 40 ms a card; with reduced motion it is a plain fade.
  */
+/* Chart series colours: the first two slots of the validated categorical palette, stepped per theme. */
+.viz {
+  --viz-1: #2a78d6;
+  --viz-2: #eb6834;
+  --viz-3: #1baf7a;
+}
+[data-theme='dark'] .viz {
+  --viz-1: #3987e5;
+  --viz-2: #d95926;
+  --viz-3: #199e70;
+}
 @keyframes dash-in {
   from {
     opacity: 0;

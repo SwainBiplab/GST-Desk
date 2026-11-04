@@ -295,6 +295,80 @@ describe.each(DIALECTS)('reports on the seeded book (%s)', (dialect) => {
     expect(r.totals['total']).toBe(0);
   });
 
+  it('the dashboard charts draw the same figures as the reports, month by month', async () => {
+    const day = '2025-09-15';
+    const charts = (await getDashboard(d, ctx, day)).charts;
+    expect(charts.anchored).toBe(false);
+    expect(charts.anchorDate).toBe(day);
+    expect(charts.months.map((m) => m.month)).toEqual([
+      '2025-04',
+      '2025-05',
+      '2025-06',
+      '2025-07',
+      '2025-08',
+      '2025-09',
+    ]);
+    const lastDay = (m: string) =>
+      m === '2025-09' ? day : `${m}-${m === '2025-04' || m === '2025-06' ? '30' : '31'}`;
+    for (const m of charts.months) {
+      const range = { from: `${m.month}-01`, to: lastDay(m.month), today: day };
+      const sales = await runReport(d, ctx, 'sales_register', range);
+      expect(m.salesPaise, `sales ${m.month}`).toBe(sales.totals['total']);
+      const purchases = await runReport(d, ctx, 'purchase_register', range);
+      const expenseDocs = docs.filter(
+        (x) =>
+          x['status'] === 'issued' &&
+          x['type'] === 'expense' &&
+          x['date'] >= range.from &&
+          x['date'] <= range.to,
+      );
+      expect(m.spendPaise, `spend ${m.month}`).toBe(
+        purchases.totals['total']! + expenseDocs.reduce((a, x) => a + Number(x['total_paise']), 0),
+      );
+      const money = await runReport(d, ctx, 'receipts_payments', range);
+      expect(m.receiptsPaise, `receipts ${m.month}`).toBe(money.totals['receipt']);
+      expect(m.paymentsPaise, `payments ${m.month}`).toBe(money.totals['payment']);
+    }
+    // the 14 days
+    expect(charts.days).toHaveLength(14);
+    expect(charts.days.at(-1)!.date).toBe(day);
+    const fortnight = await runReport(d, ctx, 'sales_register', {
+      from: charts.days[0]!.date,
+      to: day,
+      today: day,
+    });
+    expect(charts.days.reduce((a, x) => a + x.salesPaise, 0)).toBe(fortnight.totals['total']);
+    // top customers equal the party-wise report for the same six months
+    const parties = await runReport(d, ctx, 'party_sales', {
+      from: charts.from,
+      to: day,
+      today: day,
+    });
+    const expected = [...parties.rows]
+      .sort((a, b) => Number(b['sales']) - Number(a['sales']))
+      .slice(0, 5)
+      .filter((r) => Number(r['sales']) > 0)
+      .map((r) => Number(r['sales']));
+    expect(charts.topParties.map((x) => x.paise)).toEqual(expected);
+  });
+
+  it('a quiet book shows its latest picture: the charts anchor to the last sale', async () => {
+    const dash = await getDashboard(d, ctx, '2030-01-15');
+    const issued = docs.filter(
+      (x) =>
+        x['status'] === 'issued' &&
+        ['tax_invoice', 'bill_of_supply', 'debit_note'].includes(x['type']),
+    );
+    const latest = issued
+      .map((x) => String(x['date']))
+      .sort()
+      .at(-1)!;
+    expect(dash.charts.anchored).toBe(true);
+    expect(dash.charts.anchorDate).toBe(latest);
+    expect(dash.charts.months.at(-1)!.month).toBe(latest.slice(0, 7));
+    expect(dash.charts.months.some((m) => m.salesPaise > 0)).toBe(true);
+  });
+
   it('the dashboard numbers match the reports they open', async () => {
     const day = '2025-09-15';
     const dash = await getDashboard(d, ctx, day);
