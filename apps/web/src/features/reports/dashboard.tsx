@@ -1,6 +1,6 @@
 import type { Dashboard } from '@gst/db';
 import { Card, CardTitle, MoneyText } from '@gst/ui';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useDashboard } from './hooks';
@@ -54,6 +54,31 @@ const dayName = (iso: string): string => {
     timeZone: 'UTC',
   });
 };
+
+/**
+ * Eases a card's answer in when it arrives after a "Working it out" state. A card that already had
+ * its data when it appeared (cached, or a refresh after a payment) shows it at once: numbers the
+ * user reads never move for style, and arriving by keyboard shortcut stays instant.
+ */
+function Reveal({
+  ready,
+  order,
+  children,
+}: {
+  ready: boolean;
+  order: number;
+  children: ReactNode;
+}) {
+  const [arrivedLate] = useState(!ready);
+  return (
+    <div
+      className={ready && arrivedLate ? 'dash-in' : undefined}
+      style={{ ['--dash-delay' as string]: `${order * 40}ms` }}
+    >
+      {children}
+    </div>
+  );
+}
 
 const BUCKETS = ['notDue', 'd1_30', 'd31_60', 'd61_90', 'd90plus'] as const;
 
@@ -111,17 +136,19 @@ export function DashboardCards({ shell }: { shell: Shell }) {
   const report = (id: string, extra: Search = {}) =>
     navigate(`/${shell}/reports`, { report: id, ...extra });
 
-  const card = (key: string, children: ReactNode) => (
-    <Card key={key} data-testid={`card-${key}`} className="min-h-32">
-      <CardTitle>{t(`dash.${shell === 'shop' ? 'shop' : 'books'}.${key}`)}</CardTitle>
-      {d ? children : <p className="pt-2 text-fg-muted">{t('dash.loading')}</p>}
-    </Card>
-  );
-
   const keys =
     shell === 'shop'
       ? ['sold', 'owed', 'low', 'attention']
       : ['gst', 'cash', 'overdue', 'spend', 'month', 'review'];
+
+  const card = (key: string, children: ReactNode) => (
+    <Card key={key} data-testid={`card-${key}`} className="min-h-32">
+      <CardTitle>{t(`dash.${shell === 'shop' ? 'shop' : 'books'}.${key}`)}</CardTitle>
+      <Reveal ready={!!d} order={keys.indexOf(key)}>
+        {d ? children : <p className="pt-2 text-fg-muted">{t('dash.loading')}</p>}
+      </Reveal>
+    </Card>
+  );
 
   const render = (key: string): ReactNode => {
     if (!d) return card(key, null);
