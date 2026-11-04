@@ -27,6 +27,8 @@ export interface AppDbValue {
   kind: 'opfs' | 'memory' | 'tauri' | null;
   error: Error | null;
   businesses: Row[];
+  /** True once the list of businesses has been read (so "none" really means none). */
+  businessesReady: boolean;
   business: Row | null;
   /** Repository context for the current business, or null until one exists. */
   ctx: Ctx | null;
@@ -37,7 +39,7 @@ export interface AppDbValue {
 const Context = createContext<AppDbValue | null>(null);
 
 /** Read once at load: router redirects drop the query string. */
-const DEMO_REQUESTED = new URLSearchParams(location.search).get('demo') === '1';
+export const DEMO_REQUESTED = new URLSearchParams(location.search).get('demo') === '1';
 
 const TABLES_ALL = [
   'businesses',
@@ -115,14 +117,20 @@ export function AppDbProvider({ children }: { children: ReactNode }) {
     queryFn: () => listBusinesses(database!),
   });
   const businesses = useMemo(() => businessesQuery.data ?? [], [businessesQuery.data]);
+  // `settled` = the list is loaded and no refetch is pending. Right after a business is created the stored id is
+  // ahead of the list, so only fall back to another business once the list has caught up.
+  const settled =
+    businessesQuery.isSuccess && !businessesQuery.isFetching && !businessesQuery.isStale;
   const business = useMemo(
-    () => businesses.find((b) => b['id'] === businessId) ?? businesses[0] ?? null,
-    [businesses, businessId],
+    () =>
+      businesses.find((b) => b['id'] === businessId) ??
+      (settled || !businessId ? (businesses[0] ?? null) : null),
+    [businesses, businessId, settled],
   );
 
   useEffect(() => {
-    if (business && business['id'] !== businessId) setBusinessId(business['id']);
-  }, [business, businessId, setBusinessId]);
+    if (settled && business && business['id'] !== businessId) setBusinessId(business['id']);
+  }, [settled, business, businessId, setBusinessId]);
 
   const ctx = useMemo<Ctx | null>(
     () =>
@@ -152,8 +160,15 @@ export function AppDbProvider({ children }: { children: ReactNode }) {
   }, [state.status, businessesQuery.isSuccess, businesses.length, loadDemoData]);
 
   const value = useMemo<AppDbValue>(
-    () => ({ ...state, businesses, business, ctx, loadDemoData }),
-    [state, businesses, business, ctx, loadDemoData],
+    () => ({
+      ...state,
+      businesses,
+      businessesReady: businessesQuery.isSuccess,
+      business,
+      ctx,
+      loadDemoData,
+    }),
+    [state, businesses, businessesQuery.isSuccess, business, ctx, loadDemoData],
   );
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }

@@ -2,11 +2,15 @@
  * Action registry for the command bar. Features register actions; the command bar filters and runs them.
  * This file is pure (no React, no DOM) so the filtering rules are unit-testable.
  */
+import type { FeatureFlags } from '@gst/domain';
+
 import type { Shell } from './store';
 
 export interface ActionContext {
   shell: Shell | null;
   businessId: string | null;
+  /** Feature flags of the current business: actions for switched-off features are hidden. */
+  flags: FeatureFlags;
   navigate: (to: string, search?: Record<string, unknown>) => void;
   /** Open another UI surface (command bar prefilled, shortcut sheet, ...). */
   ui: {

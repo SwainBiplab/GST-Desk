@@ -8,6 +8,7 @@ test.describe('routing and shells', () => {
   test('/ opens the last used shell, /shop and /books land on the dashboard, bad pages 404', async ({
     page,
   }) => {
+    await openSeeded(page, '/shop/dashboard');
     await page.goto('/');
     await expect(page).toHaveURL(/\/shop\/dashboard$/);
     await page.goto('/books');
@@ -20,6 +21,7 @@ test.describe('routing and shells', () => {
   });
 
   test('every page deep-links inside its shell', async ({ page }) => {
+    await openSeeded(page, '/books/dashboard');
     for (const shell of ['shop', 'books']) {
       for (const p of [
         'dashboard',
@@ -58,7 +60,7 @@ test.describe('routing and shells', () => {
   test('shell defaults: Shop is comfortable with 44 px targets, Books is compact; density is remembered per shell', async ({
     page,
   }) => {
-    await page.goto('/shop/dashboard');
+    await openSeeded(page, '/shop/dashboard');
     await expect(page.locator('html')).toHaveAttribute('data-density', 'comfortable');
     for (const id of ['nav-parties', 'action-new-bill']) {
       const box = await page.getByTestId(id).boundingBox();
@@ -76,7 +78,7 @@ test.describe('routing and shells', () => {
   });
 
   test('theme toggle persists across reloads', async ({ page }) => {
-    await page.goto('/books/dashboard');
+    await openSeeded(page, '/books/dashboard');
     await page.getByRole('button', { name: 'Switch to dark theme' }).click();
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
     await page.reload();
@@ -86,15 +88,6 @@ test.describe('routing and shells', () => {
 });
 
 test.describe('data', () => {
-  test('first run shows the empty state and loads demo data on request', async ({ page }) => {
-    await page.goto('/books/dashboard');
-    await expect(page.getByText('No business set up yet')).toBeVisible();
-    await expect(page.getByTestId('sync-pill')).toHaveText('Local');
-    await page.getByTestId('load-demo').click();
-    await expect(page.getByTestId('dashboard-frame')).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByTestId('badge-parties')).toHaveText('50');
-  });
-
   test('nav badges show the seeded counts in both shells', async ({ page }) => {
     await openSeeded(page, '/books/dashboard');
     await expect(page.getByTestId('badge-parties')).toHaveText('50');
@@ -337,6 +330,7 @@ test.describe('chrome', () => {
     context,
   }) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await openSeeded(page, '/books/dashboard');
     await page.goto('/books/_crash');
     await expect(page.getByTestId('error-screen')).toBeVisible();
     await page.getByTestId('copy-diagnostics').click();

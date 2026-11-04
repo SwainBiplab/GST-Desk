@@ -121,3 +121,27 @@ export async function getRecent(d: Database, ctx: Ctx, limit = 8): Promise<Recen
     }));
   });
 }
+
+export interface OnboardingFacts {
+  parties: number;
+  items: number;
+  /** Issued sales documents (tax invoices and bills of supply). */
+  issuedSales: number;
+  payments: number;
+}
+
+/** What the getting-started checklist needs from the data. */
+export async function getOnboardingFacts(d: Database, ctx: Ctx): Promise<OnboardingFacts> {
+  const c = await getCounts(d, ctx);
+  const sales = await runInTx(d, ctx, async (tx) => {
+    const rows = await queryRows(
+      d,
+      tx,
+      sql`SELECT count(*) AS c FROM documents
+          WHERE business_id = ${ctx.businessId} AND deleted_at IS NULL AND status = 'issued'
+            AND type IN ('tax_invoice', 'bill_of_supply')`,
+    );
+    return n(rows[0]?.['c']);
+  });
+  return { parties: c.parties, items: c.items, issuedSales: sales, payments: c.payments };
+}

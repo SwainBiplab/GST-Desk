@@ -58,6 +58,7 @@ export function registerDefaultActions(): void {
     title: t('act.newQuotation'),
     section: section('new'),
     keywords: ['quote', 'estimate'],
+    when: (c) => c.flags.quotations,
     run: go('sell', { kind: 'quotation' }),
   });
   registerAction({
@@ -65,6 +66,7 @@ export function registerDefaultActions(): void {
     title: t('act.newPurchase'),
     section: section('new'),
     keywords: ['buy', 'supplier bill'],
+    when: (c) => c.flags.purchases,
     run: go('documents', { kind: 'purchases', new: '1' }),
   });
   registerAction({

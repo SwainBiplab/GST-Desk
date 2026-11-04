@@ -1,3 +1,4 @@
+import { canIssue, type DocumentType } from '@gst/domain';
 import { and, desc, eq, gte, isNull, lte, sql } from 'drizzle-orm';
 
 import type { Database } from '../database';
@@ -18,11 +19,15 @@ import { arithmeticValidator, type LineValidator } from './line-math';
 
 /* ------------------------------------------------------------------ organisations & users */
 
-export async function createOrganisation(d: Database, name: string): Promise<Row> {
+export async function createOrganisation(
+  d: Database,
+  name: string,
+  opts: { id?: string; tx?: any } = {},
+): Promise<Row> {
   const now = Date.now();
-  const [row] = await d.db
+  const [row] = await (opts.tx ?? d.db)
     .insert(d.schema.organisations)
-    .values({ id: newId(), name, created_at: now, updated_at: now })
+    .values({ id: opts.id ?? newId(), name, created_at: now, updated_at: now })
     .returning();
   return row;
 }
@@ -42,11 +47,25 @@ export async function createUser(
 /** All live businesses (optionally of one organisation), oldest first. */
 export async function listBusinesses(d: Database, orgId?: string): Promise<Row[]> {
   const t = d.schema.businesses;
-  return d.db
-    .select()
-    .from(t)
-    .where(and(isNull(t.deleted_at), orgId ? eq(t.org_id, orgId) : undefined))
-    .orderBy(t.created_at);
+  const query = (db: any) =>
+    db
+      .select()
+      .from(t)
+      .where(and(isNull(t.deleted_at), orgId ? eq(t.org_id, orgId) : undefined))
+      .orderBy(t.created_at);
+  if (d.dialect === 'pg') {
+    // row-level security needs an organisation to scope to
+    if (!orgId) throw new RuleError('orgId is required to list businesses on Postgres');
+    return runInTx(
+      d,
+      { orgId, businessId: '', actor: 'system', deviceId: 'system' },
+      async (tx) => query(tx),
+      {
+        allowNoBusiness: true,
+      },
+    );
+  }
+  return query(d.db);
 }
 
 /* ------------------------------------------------------------------ business */
@@ -84,24 +103,70 @@ export class BusinessRepo {
   async create(ctx: Ctx, values: NewRow, opts: { withDefaults?: boolean } = {}): Promise<Row> {
     const id = values['id'] ?? newId();
     const bctx: Ctx = { ...ctx, businessId: id };
+    return runInTx(
+      this.d,
+      ctx,
+      async (tx) => {
+        const now = Date.now();
+        const [row] = await tx
+          .insert(this.d.schema.businesses)
+          .values({
+            ...values,
+            id,
+            org_id: ctx.orgId,
+            version: 1,
+            created_at: now,
+            updated_at: now,
+            created_by: ctx.actor,
+            updated_by: ctx.actor,
+          })
+          .returning();
+        await writeAudit(this.d, tx, bctx, 'businesses', id, 'insert', null, row);
+        if (opts.withDefaults !== false) await this.seedDefaults(tx, bctx);
+        return row;
+      },
+      { allowNoBusiness: true },
+    );
+  }
+
+  /** Archive (soft delete). The last live business of an organisation cannot be archived. */
+  async archive(ctx: Ctx, id: string, expectedVersion: number): Promise<Row> {
     return runInTx(this.d, ctx, async (tx) => {
+      const t = this.d.schema.businesses;
+      const live: Row[] = await tx
+        .select({ id: t.id })
+        .from(t)
+        .where(and(eq(t.org_id, ctx.orgId), isNull(t.deleted_at)));
+      if (live.length <= 1) throw new RuleError('the last business cannot be archived');
+      const [before] = await tx
+        .select()
+        .from(t)
+        .where(and(eq(t.id, id), eq(t.org_id, ctx.orgId), isNull(t.deleted_at)))
+        .limit(1);
+      if (!before) throw new NotFoundError('businesses', id);
       const now = Date.now();
-      const [row] = await tx
-        .insert(this.d.schema.businesses)
-        .values({
-          ...values,
-          id,
-          org_id: ctx.orgId,
-          version: 1,
-          created_at: now,
+      const [after] = await tx
+        .update(t)
+        .set({
+          deleted_at: now,
+          version: sql`${t.version} + 1`,
           updated_at: now,
-          created_by: ctx.actor,
           updated_by: ctx.actor,
         })
+        .where(and(eq(t.id, id), eq(t.version, expectedVersion), isNull(t.deleted_at)))
         .returning();
-      await writeAudit(this.d, tx, bctx, 'businesses', id, 'insert', null, row);
-      if (opts.withDefaults !== false) await this.seedDefaults(tx, bctx);
-      return row;
+      if (!after) throw new ConflictError('businesses', id, expectedVersion);
+      await writeAudit(
+        this.d,
+        tx,
+        { ...ctx, businessId: id },
+        'businesses',
+        id,
+        'soft_delete',
+        before,
+        after,
+      );
+      return after;
     });
   }
 
@@ -263,6 +328,14 @@ export class DocumentRepo extends BaseRepo {
       .orderBy(t.line_no);
   }
 
+  /** Hard block (CGST s.10): a composition business cannot create or issue tax invoices. */
+  private async assertCanIssue(tx: any, ctx: Ctx, type: string): Promise<void> {
+    const business = await new BusinessRepo(this.d).get({ ...ctx, tx });
+    const scheme = business?.['scheme'] === 'composition' ? 'composition' : 'regular';
+    const check = canIssue(type as DocumentType, scheme);
+    if (!check.ok) throw new RuleError(check.reason);
+  }
+
   /** Create a document and its lines atomically. Totals must match recomputation. */
   async createWithLines(ctx: Ctx, doc: NewRow, lines: NewRow[]): Promise<DocumentWithLines> {
     this.check(doc, lines);
@@ -270,6 +343,7 @@ export class DocumentRepo extends BaseRepo {
       throw new RuleError('issued documents need a number');
     }
     return runInTx(this.d, ctx, async (tx) => {
+      await this.assertCanIssue(tx, ctx, String(doc['type']));
       const document = await this.createIn(tx, ctx, doc);
       return { document, lines: await this.insertLines(tx, ctx, document['id'], lines) };
     });
@@ -314,6 +388,7 @@ export class DocumentRepo extends BaseRepo {
       const current = await this.getIn(tx, ctx, id);
       if (!current) throw new NotFoundError('documents', id);
       if (current['status'] !== 'draft') throw new RuleError('only draft documents can be issued');
+      await this.assertCanIssue(tx, ctx, String(current['type']));
       return this.updateIn(
         tx,
         ctx,
@@ -581,6 +656,64 @@ export class SettingsRepo extends BaseRepo {
         { value_json: value },
         expectedVersion ?? existing['version'],
       );
+    });
+  }
+}
+
+/* ------------------------------------------------------------------ attachments */
+
+/** File metadata (name, type, size, sha256, where the bytes live). Bytes never go in a row. */
+export class AttachmentRepo extends BaseRepo {
+  constructor(d: Database) {
+    super(d, 'attachments');
+  }
+
+  /** Register a stored file. Re-uploading identical bytes for the same owner returns the existing row. */
+  async register(
+    ctx: Ctx,
+    file: {
+      ownerTable: string;
+      ownerId: string;
+      fileName: string;
+      mime: string;
+      sizeBytes: number;
+      sha256: string;
+      storagePath: string;
+    },
+  ): Promise<Row> {
+    if (!/^[0-9a-f]{64}$/.test(file.sha256))
+      throw new RuleError('sha256 must be 64 hex characters');
+    return runInTx(this.d, ctx, async (tx) => {
+      const t = this.t;
+      const [existing] = await tx
+        .select()
+        .from(t)
+        .where(
+          and(
+            eq(t.business_id, ctx.businessId),
+            eq(t.owner_table, file.ownerTable),
+            eq(t.owner_id, file.ownerId),
+            eq(t.sha256, file.sha256),
+            isNull(t.deleted_at),
+          ),
+        )
+        .limit(1);
+      if (existing) return existing;
+      return this.createIn(tx, ctx, {
+        owner_table: file.ownerTable,
+        owner_id: file.ownerId,
+        file_name: file.fileName,
+        mime: file.mime,
+        size_bytes: file.sizeBytes,
+        sha256: file.sha256,
+        storage_path: file.storagePath,
+      });
+    });
+  }
+
+  forOwner(ctx: Ctx, ownerTable: string, ownerId: string): Promise<Row[]> {
+    return this.list(ctx, {
+      where: and(eq(this.t.owner_table, ownerTable), eq(this.t.owner_id, ownerId)),
     });
   }
 }

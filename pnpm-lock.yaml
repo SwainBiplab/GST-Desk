@@ -205,6 +205,9 @@ importers:
       '@electric-sql/pglite':
         specifier: ^0.5.15
         version: 0.5.15
+      '@gst/domain':
+        specifier: workspace:*
+        version: link:../domain
       '@libsql/client':
         specifier: ^0.18.0
         version: 0.18.0

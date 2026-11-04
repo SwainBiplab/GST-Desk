@@ -44,7 +44,11 @@ export function BusinessSwitcher({ large = false }: { large?: boolean }) {
             {b['trade_name'] ?? b['legal_name']}
           </DropdownMenuItem>
         ))}
-        <DropdownMenuItem disabled>{t('chrome.addBusiness')}</DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link to="/welcome" search={{ add: true }} data-testid="switcher-add">
+            {t('chrome.addBusiness')}
+          </Link>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

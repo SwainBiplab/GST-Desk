@@ -49,7 +49,18 @@ const PROTECTED = new Set([
  * Run `fn` in a transaction scoped to the tenant. On Postgres this sets `app.org_id`
  * (transaction-local) so row-level security applies. Reuses `ctx.tx` when present.
  */
-export async function runInTx<T>(d: Database, ctx: Ctx, fn: (tx: any) => Promise<T>): Promise<T> {
+export async function runInTx<T>(
+  d: Database,
+  ctx: Ctx,
+  fn: (tx: any) => Promise<T>,
+  opts: { allowNoBusiness?: boolean } = {},
+): Promise<T> {
+  // FR-004: every repository call is scoped to a business. Only creating one may run without it.
+  if (!opts.allowNoBusiness && (!ctx.businessId || !ctx.orgId)) {
+    throw new RuleError(
+      'businessId and orgId are required: every repository call is scoped to a business',
+    );
+  }
   if (ctx.tx) return fn(ctx.tx);
   let owned: any;
   try {

@@ -1,5 +1,6 @@
 import { Toaster, TooltipProvider } from '@gst/ui';
-import { Link, Outlet, createRootRoute } from '@tanstack/react-router';
+import { Link, Outlet, createRootRoute, useNavigate, useRouterState } from '@tanstack/react-router';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ErrorBoundary, RouteError } from '@/app/components/boundary';
@@ -7,7 +8,7 @@ import { CommandBar } from '@/app/components/command-bar';
 import { ConfirmProvider } from '@/app/components/confirm';
 import { Hotkeys, KeymapDialog } from '@/app/components/keymap';
 import { UpdateBar } from '@/app/components/update-bar';
-import { AppDbProvider } from '@/app/db';
+import { AppDbProvider, DEMO_REQUESTED, useAppDb } from '@/app/db';
 import { registerDefaultActions } from '@/app/default-actions';
 import { lastShell } from '@/app/store';
 
@@ -31,11 +32,24 @@ function NotFound() {
   );
 }
 
+/** With no business yet, the only useful place is the setup wizard. */
+function FirstRunGuard() {
+  const { status, businessesReady, businesses } = useAppDb();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (status !== 'ready' || !businessesReady || businesses.length > 0 || DEMO_REQUESTED) return;
+    if (!pathname.startsWith('/welcome')) void navigate({ to: '/welcome', replace: true });
+  }, [status, businessesReady, businesses.length, pathname, navigate]);
+  return null;
+}
+
 function Root() {
   return (
     <AppDbProvider>
       <ConfirmProvider>
         <TooltipProvider>
+          <FirstRunGuard />
           <ErrorBoundary>
             <Outlet />
           </ErrorBoundary>

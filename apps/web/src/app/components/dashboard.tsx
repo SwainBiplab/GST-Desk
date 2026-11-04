@@ -1,5 +1,6 @@
-import { Button, Card, CardTitle, EmptyState, PageHeader } from '@gst/ui';
+import { canIssue, declarationFor, defaultSaleType } from '@gst/domain';
 import { formatPaise } from '@gst/ui';
+import { Button, Card, CardTitle, EmptyState, PageHeader } from '@gst/ui';
 import { useTranslation } from 'react-i18next';
 
 import { useAppDb } from '../db';
@@ -7,6 +8,9 @@ import { parseCommand } from '../grammar';
 import { useLocationInfo } from '../hooks';
 import type { PageId } from '../nav';
 import type { Shell } from '../store';
+
+import { ChecklistCard } from '@/features/business/checklist-card';
+import { SettingsPage } from '@/features/business/settings-page';
 
 /** Question-led card slots. Reports (prompt 18) fill them in. */
 export function DashboardFrame({ shell }: { shell: Shell }) {
@@ -16,13 +20,16 @@ export function DashboardFrame({ shell }: { shell: Shell }) {
       ? ['sold', 'owed', 'low', 'attention']
       : ['gst', 'cash', 'overdue', 'spend', 'review'];
   return (
-    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3" data-testid="dashboard-frame">
-      {keys.map((k) => (
-        <Card key={k} data-testid={`card-${k}`} className="min-h-32">
-          <CardTitle>{t(`dash.${shell}.${k}`)}</CardTitle>
-          <p className="pt-2 text-fg-muted">{t('dash.frame')}</p>
-        </Card>
-      ))}
+    <div data-testid="dashboard-frame">
+      <ChecklistCard />
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {keys.map((k) => (
+          <Card key={k} data-testid={`card-${k}`} className="min-h-32">
+            <CardTitle>{t(`dash.${shell}.${k}`)}</CardTitle>
+            <p className="pt-2 text-fg-muted">{t('dash.frame')}</p>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }
@@ -64,12 +71,49 @@ function describeIntent(search: Record<string, unknown>): string | null {
   return null;
 }
 
+/** What kind of sale this business can make: composition businesses get a bill of supply and a declaration. */
+function SaleTypeNotice() {
+  const { t } = useTranslation();
+  const { business } = useAppDb();
+  const scheme = business?.['scheme'] === 'composition' ? 'composition' : 'regular';
+  const type = defaultSaleType(scheme);
+  const declaration = declarationFor(type, scheme);
+  const blocked = canIssue('tax_invoice', scheme);
+  return (
+    <div className="mb-3 rounded-md border border-border bg-surface-1 p-3" data-testid="sale-type">
+      <p>
+        {t('sale.title')}:{' '}
+        <strong data-testid="sale-type-name">
+          {t(type === 'bill_of_supply' ? 'sale.billOfSupply' : 'sale.taxInvoice')}
+        </strong>
+      </p>
+      {!blocked.ok && (
+        <p className="pt-1 text-sm" data-testid="sale-blocked">
+          {t('sale.composition')} {blocked.reason}
+        </p>
+      )}
+      {declaration && (
+        <p className="pt-1 text-sm text-fg-muted" data-testid="sale-declaration">
+          {t('sale.declaration')} {declaration}
+        </p>
+      )}
+    </div>
+  );
+}
+
 /** Placeholder body for pages built in later prompts. */
 export function PlaceholderPage({ page, shell }: { page: PageId; shell: Shell }) {
   const { t } = useTranslation();
   const { search } = useLocationInfo();
   const { ctx, status } = useAppDb();
   const intent = describeIntent(search);
+  if (page === 'settings' && ctx) {
+    return (
+      <div data-shell={shell}>
+        <SettingsPage key={String(search['tab'] ?? '')} />
+      </div>
+    );
+  }
   return (
     <div data-shell={shell}>
       <PageHeader title={t(`nav.${page}`)} />
@@ -83,6 +127,7 @@ export function PlaceholderPage({ page, shell }: { page: PageId; shell: Shell })
         )
       ) : (
         <>
+          {page === 'sell' && ctx && <SaleTypeNotice />}
           {intent && (
             <p
               data-testid="intent"

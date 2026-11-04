@@ -12,6 +12,8 @@ import { BusinessSwitcher, ChromeControls, applyDensity } from './chrome';
 import { NavEntry } from './nav';
 import { RightPanel, RightPanelProvider } from './panel';
 
+import { useFeatureFlags } from '@/features/business/hooks';
+
 function useShell(shell: Shell) {
   const setShell = useAppStore((s) => s.setShell);
   useEffect(() => {
@@ -137,6 +139,11 @@ function Breadcrumb() {
 export function BooksLayout() {
   const { t } = useTranslation();
   useShell('books');
+  const flags = useFeatureFlags();
+  const sections = BOOKS_NAV.map((s) => ({
+    ...s,
+    items: s.items.filter((i) => !i.flag || flags[i.flag]),
+  })).filter((s) => s.items.length > 0);
   return (
     <RightPanelProvider>
       <div className="flex h-screen flex-col" data-shell="books">
@@ -153,7 +160,7 @@ export function BooksLayout() {
             aria-label={t('nav.label')}
             className="w-56 shrink-0 overflow-auto border-r border-border p-2"
           >
-            {BOOKS_NAV.map((section) => (
+            {sections.map((section) => (
               <div key={section.id} className="pb-2">
                 <p className="px-2 pb-0.5 text-xs font-medium uppercase tracking-wide text-fg-muted">
                   {t(section.label)}

@@ -1,4 +1,5 @@
 import type { Counts } from '@gst/db';
+import type { FlagKey } from '@gst/domain';
 import {
   BookOpen,
   Boxes,
@@ -51,6 +52,8 @@ export interface NavItem {
   search?: Record<string, string>;
   /** Books go-to hint shown beside the label, e.g. `G P`. */
   hint?: string;
+  /** Hidden when this feature flag is off for the business. */
+  flag?: FlagKey;
 }
 
 const item = (page: PageId, icon: NavItem['icon'], extra: Partial<NavItem> = {}): NavItem => ({
@@ -101,6 +104,7 @@ export const BOOKS_NAV: NavSection[] = [
         id: 'purchases',
         label: 'nav.purchases',
         search: { kind: 'purchases' },
+        flag: 'purchases',
       }),
     ],
   },

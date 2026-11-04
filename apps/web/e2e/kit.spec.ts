@@ -25,6 +25,6 @@ for (const theme of ['light', 'dark']) {
 }
 
 test('GSTIN input shows validity', async ({ page }) => {
-  await page.goto('/books/_kit');
+  await openSeeded(page, '/books/_kit');
   await expect(page.getByText('Valid GSTIN')).toBeVisible();
 });

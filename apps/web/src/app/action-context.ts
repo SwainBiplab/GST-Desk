@@ -6,6 +6,8 @@ import { useAppDb } from './db';
 import { useAppNavigate, useLocationInfo } from './hooks';
 import { useAppStore, type Shell } from './store';
 
+import { useFeatureFlags } from '@/features/business/hooks';
+
 /** Toggle light/dark the same way `ThemeToggle` does, so both stay in sync and persist. */
 export function toggleTheme() {
   const root = document.documentElement;
@@ -21,6 +23,7 @@ export function toggleTheme() {
 /** Everything an action may need, built from the current route and stores. */
 export function useActionContext(): ActionContext {
   const navigate = useAppNavigate();
+  const flags = useFeatureFlags();
   const { shell, page } = useLocationInfo();
   const { ctx, loadDemoData } = useAppDb();
   const setCommandOpen = useAppStore((s) => s.setCommandOpen);
@@ -32,6 +35,7 @@ export function useActionContext(): ActionContext {
     () => ({
       shell,
       businessId: ctx?.businessId ?? null,
+      flags,
       navigate,
       ui: {
         openCommandBar: (prefill) => setCommandOpen(true, prefill ?? ''),
@@ -50,6 +54,7 @@ export function useActionContext(): ActionContext {
       page,
       stored,
       ctx?.businessId,
+      flags,
       navigate,
       setCommandOpen,
       setKeymapOpen,

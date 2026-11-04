@@ -95,7 +95,7 @@ export const SelectContent = React.forwardRef<
       ref={ref}
       position="popper"
       className={cn(
-        'z-(--z-dropdown) min-w-(--radix-select-trigger-width) rounded-md border border-border bg-surface-1 p-1 text-fg shadow-md',
+        'z-(--z-dropdown) max-h-72 min-w-(--radix-select-trigger-width) overflow-y-auto rounded-md border border-border bg-surface-1 p-1 text-fg shadow-md',
         className,
       )}
       {...props}
