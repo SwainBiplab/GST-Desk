@@ -1,0 +1,9 @@
+{
+  "note": "CPU throttled 4x (baseline device profile, docs/perf-baseline.md). DB-backed budgets (50,000-document list, PDF render) arrive with prompts 14, 17 and 18.",
+  "cpuThrottle": 4,
+  "routes": {
+    "/shop": { "fcpMs": 2500, "loadMs": 4000 },
+    "/books": { "fcpMs": 2500, "loadMs": 4000 },
+    "/books/_kit": { "fcpMs": 3000, "loadMs": 5000 }
+  }
+}

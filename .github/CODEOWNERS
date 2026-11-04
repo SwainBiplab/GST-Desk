@@ -1,0 +1,15 @@
+# Every path needs a reviewer. Replace the placeholder teams with real GitHub handles.
+*                                  @leadergroup/engineering
+
+# Tax logic, rate data and return formats need CA sign-off (CR-08)
+/packages/domain/                  @leadergroup/engineering @leadergroup/ca-reviewers
+/docs/compliance/                  @leadergroup/ca-reviewers
+
+# Data model and migrations
+/packages/db/                      @leadergroup/engineering
+
+# Release, signing and CI
+/.github/                          @leadergroup/release
+/scripts/                          @leadergroup/release
+/docs/runbooks/                    @leadergroup/release
+/apps/desktop/src-tauri/           @leadergroup/release

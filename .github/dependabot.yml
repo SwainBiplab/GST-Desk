@@ -1,0 +1,42 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+      eslint:
+        patterns: ['eslint*', '@eslint/*', 'typescript-eslint']
+      tauri-js:
+        patterns: ['@tauri-apps/*']
+      storybook:
+        patterns: ['storybook', '@storybook/*']
+    ignore:
+      # typescript-eslint and eslint-plugin-react do not support these yet (see ADR 0001 notes)
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
+      - dependency-name: eslint
+        update-types: [version-update:semver-major]
+  - package-ecosystem: cargo
+    directory: /apps/desktop/src-tauri
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      tauri-rust:
+        patterns: ['tauri*']
+      other:
+        patterns: ['*']
+        exclude-patterns: ['tauri*']
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      actions:
+        patterns: ['*']

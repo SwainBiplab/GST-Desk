@@ -10,13 +10,33 @@
     "frontendDist": "../../web/dist"
   },
   "app": {
-    "windows": [{ "title": "GST Desk", "width": 1280, "height": 800 }],
+    "windows": [
+      {
+        "title": "GST Desk",
+        "width": 1280,
+        "height": 800
+      }
+    ],
     "security": {
       "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
     }
   },
-  "bundle": { "active": true, "targets": "all", "icon": ["icons/icon.png"] },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "shortDescription": "GST billing and books"
+  },
   "plugins": {
-    "updater": { "endpoints": [], "pubkey": "" }
+    "updater": {
+      "endpoints": [],
+      "pubkey": ""
+    }
   }
 }

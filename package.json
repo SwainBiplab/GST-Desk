@@ -16,7 +16,19 @@
     "perf": "turbo run perf",
     "format": "prettier --write .",
     "prepare": "husky",
-    "ai:eval": "pnpm --filter @gst/ai run ai:eval"
+    "ai:eval": "pnpm --filter @gst/ai run ai:eval",
+    "test:coverage": "turbo run test:coverage",
+    "ci:static": "pnpm lint && pnpm typecheck",
+    "ci:audit": "pnpm audit --prod --audit-level high",
+    "ci:test": "pnpm test:coverage && pnpm --filter @gst/scripts test",
+    "ci:e2e": "turbo run e2e",
+    "ci:storybook": "pnpm --filter @gst/ui build-storybook",
+    "ci:size": "pnpm --filter web build && pnpm --filter web size",
+    "ci:local": "node scripts/ci-local.mjs",
+    "release:sync-version": "node scripts/sync-version.mjs",
+    "release:version": "changeset version && node scripts/sync-version.mjs",
+    "release:tag": "node scripts/release-tag.mjs",
+    "release:verify": "node scripts/verify-release.mjs"
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.3",

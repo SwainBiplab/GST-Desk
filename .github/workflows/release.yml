@@ -1,0 +1,106 @@
+name: release
+
+# Changesets version-PR flow. Merging the "Version Packages" PR tags the release, builds installers,
+# writes latest.json for the updater and attaches everything to a DRAFT GitHub release.
+# Nothing is published automatically: a person reviews and publishes the draft (docs/runbooks/release.md).
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  version:
+    name: version PR or tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      tagged: ${{ steps.changesets.outputs.published }}
+      version: ${{ steps.read.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - id: changesets
+        uses: changesets/action@v1
+        with:
+          # open or update the version PR; keep Tauri and Cargo versions in step with package.json
+          version: pnpm release:version
+          # runs only when no changesets are pending, i.e. after the version PR merged
+          publish: pnpm release:tag
+          title: 'chore: version packages'
+          commit: 'chore: version packages'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - id: read
+        run: echo "version=$(node -p "require('./apps/desktop/package.json').version")" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: version
+    if: needs.version.outputs.tagged == 'true'
+    uses: ./.github/workflows/desktop.yml
+    with:
+      sign: true
+    secrets: inherit
+    permissions:
+      contents: read
+
+  draft:
+    name: draft GitHub release
+    needs: [version, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+      # Where installers will be hosted for the updater. Set it as a repository variable.
+      UPDATE_BASE_URL: ${{ vars.UPDATE_BASE_URL }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: bundles-*
+          path: release-bundles
+          merge-multiple: true
+      - name: Updater manifest
+        run: |
+          node scripts/make-updater-manifest.mjs \
+            --version "$VERSION" \
+            --dir release-bundles \
+            --base-url "${UPDATE_BASE_URL:-https://github.com/${{ github.repository }}/releases/download/v$VERSION}" \
+            --notes "Release v$VERSION" \
+            --out release-bundles/latest.json
+      - name: Verify release
+        env:
+          UPDATER_PUBKEY: ${{ vars.TAURI_UPDATER_PUBKEY }}
+        run: |
+          node scripts/verify-release.mjs \
+            --bundle-dir release-bundles \
+            --manifest release-bundles/latest.json \
+            --pubkey "$UPDATER_PUBKEY" \
+            --version "$VERSION"
+      - name: Create draft release
+        run: |
+          gh release create "v$VERSION" release-bundles/* \
+            --draft --verify-tag \
+            --title "GST Desk v$VERSION" \
+            --notes "Draft. Review the checklist in docs/runbooks/release.md before publishing."

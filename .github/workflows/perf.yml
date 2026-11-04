@@ -1,0 +1,48 @@
+name: perf
+
+# Budgets live in apps/web/perf/budgets.json and packages/db/perf/budgets.json (NFR-01).
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: perf-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  perf:
+    name: budgets on the throttled profile
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # 50,000 documents on main and the weekly run; the local default is 5,000.
+      PERF_DOCS: '50000'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm --filter web exec playwright install --with-deps chromium
+      - run: pnpm perf
+      - name: Store results as the run history
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: perf-history-${{ github.run_id }}
+          path: perf-results/*.json
+          if-no-files-found: warn
+          retention-days: 90
