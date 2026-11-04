@@ -26,3 +26,4 @@ export * from './documents/build';
 export * from './documents/rules';
 export * from './documents/richtext';
 export * from './documents/rows';
+export * from './reports';

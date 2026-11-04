@@ -6,18 +6,18 @@ micro-units; rates are basis points. Every calculation returns `{ result, trace 
 
 ## Functions and the rules behind them
 
-| Function                                                                           | Rule                                                                                                                            |
-| ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `supplyType`, `taxHeadsFor` (`tax/supply.ts`)                                      | IGST Act s.7, 8, 10-13 (place of supply); CGST s.8-9 and UTGST Act s.7-8 (heads); IGST Act s.16 (zero rating: export, SEZ, LUT) |
-| `priceLine`, `computeLine` (`tax/line.ts`)                                         | CGST s.15 (value of supply, discounts), s.9(3)/(4) (reverse charge), s.10 (composition); Compensation Cess Act s.8              |
-| `computeDocument` (`tax/document.ts`)                                              | CGST s.15(3) (invoice-level discount, allocated pro rata), s.34 (credit notes); round-off to nearest rupee                      |
-| TCS inside `computeDocument`                                                       | Income-tax Act s.206C(1H); omitted for receipts on or after 1 Oct 2024 (`TCS_206C1H_SUNSET`)                                    |
-| TDS inside `computeDocument`                                                       | Income-tax Act s.194Q; when the buyer deducts it the seller collects no TCS                                                     |
-| `formatDocumentNumber`, `takeNext`, `reserve`/`consume`/`release` (`numbering.ts`) | Rule 46(b) CGST Rules: max 16 characters, `A-Z a-z 0-9 - /`                                                                     |
-| `turnoverSign`, `gstr1Table` (`turnover.ts`)                                       | GSTR-1 tables 4, 5, 7, 8, 9B; B2CL threshold Rs 1 lakh from 1 Aug 2024 (Rs 2.5 lakh before)                                     |
-| `postDocument`, `postPayment` (`ledger/posting.ts`)                                | Double entry; output tax by head; RCM self-assessment                                                                           |
-| `amountToWordsEn/Hi` (`words.ts`)                                                  | Indian grouping (thousand, lakh, crore)                                                                                         |
-| `fyOf`, `financialYear`, `today` (`fy.ts`)                                         | Financial year 1 April to 31 March (configurable start month), IST                                                              |
+| Function                                                                                                      | Rule                                                                                                                            |
+| ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `supplyType`, `taxHeadsFor` (`tax/supply.ts`)                                                                 | IGST Act s.7, 8, 10-13 (place of supply); CGST s.8-9 and UTGST Act s.7-8 (heads); IGST Act s.16 (zero rating: export, SEZ, LUT) |
+| `priceLine`, `computeLine` (`tax/line.ts`)                                                                    | CGST s.15 (value of supply, discounts), s.9(3)/(4) (reverse charge), s.10 (composition); Compensation Cess Act s.8              |
+| `computeDocument` (`tax/document.ts`)                                                                         | CGST s.15(3) (invoice-level discount, allocated pro rata), s.34 (credit notes); round-off to nearest rupee                      |
+| TCS inside `computeDocument`                                                                                  | Income-tax Act s.206C(1H); omitted for receipts on or after 1 Oct 2024 (`TCS_206C1H_SUNSET`)                                    |
+| TDS inside `computeDocument`                                                                                  | Income-tax Act s.194Q; when the buyer deducts it the seller collects no TCS                                                     |
+| `formatDocumentNumber`, `takeNext`, `reserve`/`consume`/`release` (`numbering.ts`)                            | Rule 46(b) CGST Rules: max 16 characters, `A-Z a-z 0-9 - /`                                                                     |
+| `turnoverSign`, `purchaseSign`, `netTurnoverPaise`, `TURNOVER_PLUS` and friends, `gstr1Table` (`turnover.ts`) | GSTR-1 tables 4, 5, 7, 8, 9B; B2CL threshold Rs 1 lakh from 1 Aug 2024 (Rs 2.5 lakh before)                                     |
+| `postDocument`, `postPayment` (`ledger/posting.ts`)                                                           | Double entry; output tax by head; RCM self-assessment                                                                           |
+| `amountToWordsEn/Hi` (`words.ts`)                                                                             | Indian grouping (thousand, lakh, crore)                                                                                         |
+| `fyOf`, `financialYear`, `today` (`fy.ts`)                                                                    | Financial year 1 April to 31 March (configurable start month), IST                                                              |
 
 ## Items, units, CSV and the HSN master (prompt 13)
 
@@ -66,3 +66,7 @@ micro-units; rates are basis points. Every calculation returns `{ result, trace 
 ## Series, period lock and cancellation rules (prompt 15)
 
 `series.ts` holds the pure rules behind numbering settings and after-issue changes: `validateSeries` and `previewSeries` (GST character set, worst-case 16-character width with each `{FY}`, `{YYYY}`, `{MM}` token at its widest), `seriesClash`, `provisionalNumber`, `isLockedDate`, `classifyEdit` (which fields can change after issue without a new revision), `reverseEntries` and `cancelBlocker`. The repositories in `@gst/db` apply them; see `docs/compliance/numbering-and-cancellation.md`.
+
+## Reports (prompt 18)
+
+`reports.ts`: `resolvePeriod` and `PERIOD_PRESETS` (today, this and last month, this and last quarter, this and last financial year, in the business's financial-year start month), `presetOf`, `sameDaysLastMonth`, ageing (`ageingBucket`, `ageInto`, `daysPastDue`: not yet due, 1 to 30, 31 to 60, 61 to 90, over 90) and `filingCalendar` (the usual GSTR-1 and GSTR-3B dates for monthly filers). Tests: `test/reports.test.ts`.

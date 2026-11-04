@@ -52,6 +52,8 @@
     height: auto !important;
     overflow: visible !important;
   }
+  /* a report prints from a sheet placed beside the app, which then takes no room */
+  body:has(> .print-area) > #root,
   body:has([role='dialog'] #print-area) > #root {
     display: none !important;
   }

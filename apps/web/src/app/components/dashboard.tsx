@@ -1,5 +1,5 @@
 import { formatPaise } from '@gst/ui';
-import { Button, Card, CardTitle, EmptyState, PageHeader } from '@gst/ui';
+import { Button, EmptyState, PageHeader } from '@gst/ui';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -12,35 +12,14 @@ import type { Shell } from '../store';
 
 import { useConfirm } from './confirm';
 
-import { ChecklistCard } from '@/features/business/checklist-card';
 import { SettingsPage } from '@/features/business/settings-page';
 import { DocumentsPage } from '@/features/documents/documents-page';
 import { EditorRoute } from '@/features/documents/editor-route';
 import { ItemsPage } from '@/features/items/items-page';
 import { PartiesPage } from '@/features/parties/parties-page';
 import { PaymentsPage } from '@/features/payments/payments-page';
-
-/** Question-led card slots. Reports (prompt 18) fill them in. */
-export function DashboardFrame({ shell }: { shell: Shell }) {
-  const { t } = useTranslation();
-  const keys =
-    shell === 'shop'
-      ? ['sold', 'owed', 'low', 'attention']
-      : ['gst', 'cash', 'overdue', 'spend', 'review'];
-  return (
-    <div data-testid="dashboard-frame">
-      <ChecklistCard />
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {keys.map((k) => (
-          <Card key={k} data-testid={`card-${k}`} className="min-h-32">
-            <CardTitle>{t(`dash.${shell}.${k}`)}</CardTitle>
-            <p className="pt-2 text-fg-muted">{t('dash.frame')}</p>
-          </Card>
-        ))}
-      </div>
-    </div>
-  );
-}
+import { DashboardCards } from '@/features/reports/dashboard';
+import { ReportsPage } from '@/features/reports/reports-page';
 
 /** The way out of a database that will not open: clear this browser's copy and start again. */
 function ResetLocalData() {
@@ -160,6 +139,13 @@ export function PlaceholderPage({ page, shell }: { page: PageId; shell: Shell })
       </div>
     );
   }
+  if (page === 'reports' && ctx) {
+    return (
+      <div data-shell={shell} className="h-full">
+        <ReportsPage shell={shell} />
+      </div>
+    );
+  }
   if (page === 'settings' && ctx) {
     return (
       <div data-shell={shell}>
@@ -172,7 +158,7 @@ export function PlaceholderPage({ page, shell }: { page: PageId; shell: Shell })
       <PageHeader title={t(`nav.${page}`)} />
       {page === 'dashboard' ? (
         ctx ? (
-          <DashboardFrame shell={shell} />
+          <DashboardCards shell={shell} />
         ) : status === 'ready' ? (
           <NoBusiness />
         ) : (

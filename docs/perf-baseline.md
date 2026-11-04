@@ -46,3 +46,28 @@ Measured in Node at full speed (`packages/print/test/pdf.test.ts` and `perf.test
 | Keystroke handling with the new preview open, p95, 200 lines   | 16 ms  | 14 to 15 ms                       | 71 ms               |
 
 The preview redraws only the pages whose content changed and runs at a lower priority than typing (`useDeferredValue`); before that, the keystroke p95 rose to 18 ms. The PDF runs in a Web Worker, so the page does not freeze while it is made.
+
+## Reports and dashboards (prompt 18)
+
+Measured in Node at full speed on a seeded SQLite file of 50,000 documents (about 150,000 lines, 18,000 payments) with `PERF_DOCS=50000 pnpm --filter @gst/db perf` (`perf/reports.perf.ts`). The period is the whole two-year seed, the widest a user would pick; each figure is the median of three runs after a warm-up. Budget for every report: first page under 1 s (NFR-01 and the prompt). A register's first page is 100 rows with the totals of the whole filtered set.
+
+| Report                                  | Rows in the set | First page          |
+| --------------------------------------- | --------------- | ------------------- |
+| Sales register                          | 29,124          | 168 ms              |
+| Purchase register                       | 6,382           | 50 ms               |
+| Credit and debit notes                  | 3,397           | 38 ms               |
+| Party outstanding                       | 200             | 496 ms              |
+| Receivables and payables                | 7               | 450 ms              |
+| GST summary by rate                     | 10              | 511 ms              |
+| HSN summary                             | 50              | 526 ms              |
+| Documents issued                        | 5               | 342 ms              |
+| Expense summary                         | 500             | 40 ms               |
+| Receipts and payments                   | 18,002          | 45 ms               |
+| Day book                                | 54,821          | 352 ms              |
+| Stock summary                           | 450             | 131 ms              |
+| Party-wise sales and purchases          | 200             | 146 ms              |
+| Item-wise sales                         | 500             | 412 ms              |
+| Export of the sales register (all rows) | 29,124          | 1.4 s (budget 10 s) |
+| Dashboard, every number in one read     |                 | about 0.8 s         |
+
+The line-level reports (HSN, GST summary, item-wise) read every line of the period and are the slowest; the first measurement of HSN was 0.9 s before its description came from the item master instead of from each line. The browser's SQLite on OPFS is slower than Node's; the report page shows how long each report took beside its row count. Writing a 50,000-row workbook takes about 1 s (`apps/web/src/features/reports/reports.test.ts`).

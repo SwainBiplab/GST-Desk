@@ -17,3 +17,4 @@ export * from './repositories/numbering';
 export * from './repositories/period-lock';
 export * from './repositories/payment-flow';
 export * from './repositories/templates';
+export * from './repositories/reports';

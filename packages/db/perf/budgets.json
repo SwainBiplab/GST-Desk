@@ -2,5 +2,8 @@
   "note": "NFR-01: search under 300 ms; the first page of an invoice list must leave most of the 1 s render budget to the UI.",
   "listFirstPageMs": 250,
   "searchMs": 300,
-  "p": 95
+  "p": 95,
+  "reportFirstPageMs": 1000,
+  "reportExportMs": 10000,
+  "dashboardMs": 1000
 }

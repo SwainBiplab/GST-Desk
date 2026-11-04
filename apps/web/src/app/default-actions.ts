@@ -1,3 +1,5 @@
+import { REPORTS, REPORT_IDS } from '@gst/db';
+
 import i18n from '../lib/i18n';
 
 import { registerAction, type ActionContext } from './actions';
@@ -117,6 +119,18 @@ export function registerDefaultActions(): void {
     keywords: ['supplier', 'paid'],
     run: go('payments', { intent: 'pay' }),
   });
+  // every report is one keystroke away: "Open report: Sales register"
+  for (const id of REPORT_IDS) {
+    const def = REPORTS[id];
+    registerAction({
+      id: `report.${id}`,
+      title: t('act.openReport', { name: t(`reports.r.${id}.title`) }),
+      section: section('reports'),
+      keywords: ['report', def.section, id.replace(/_/g, ' ')],
+      ...(def.flag ? { when: (c: ActionContext) => c.flags[def.flag!] } : {}),
+      run: go('reports', { report: id }),
+    });
+  }
   registerAction({
     id: 'inbox.scan',
     title: t('act.scan'),

@@ -21,19 +21,41 @@ export type DocumentType =
 
 export type DocumentStatus = 'draft' | 'issued' | 'cancelled';
 
+/** Documents that add to outward turnover (FR-072). Proformas, quotations and challans are not here. */
+export const TURNOVER_PLUS: readonly DocumentType[] = [
+  'tax_invoice',
+  'bill_of_supply',
+  'debit_note',
+];
+/** Documents that reduce it. */
+export const TURNOVER_MINUS: readonly DocumentType[] = ['credit_note'];
+/** Inward supplies that add to purchases, and the ones that reduce them. Expenses have their own report. */
+export const PURCHASE_PLUS: readonly DocumentType[] = ['purchase_bill'];
+export const PURCHASE_MINUS: readonly DocumentType[] = ['purchase_return'];
+
 /** +1 adds to outward turnover, -1 reduces it, 0 is ignored. */
 export function turnoverSign(type: DocumentType, status: DocumentStatus): 1 | -1 | 0 {
   if (status !== 'issued') return 0;
-  switch (type) {
-    case 'tax_invoice':
-    case 'bill_of_supply':
-    case 'debit_note':
-      return 1;
-    case 'credit_note':
-      return -1;
-    default:
-      return 0;
-  }
+  if (TURNOVER_PLUS.includes(type)) return 1;
+  if (TURNOVER_MINUS.includes(type)) return -1;
+  return 0;
+}
+
+/** The same for purchases: +1 a bill, -1 a return, 0 anything else. */
+export function purchaseSign(type: DocumentType, status: DocumentStatus): 1 | -1 | 0 {
+  if (status !== 'issued') return 0;
+  if (PURCHASE_PLUS.includes(type)) return 1;
+  if (PURCHASE_MINUS.includes(type)) return -1;
+  return 0;
+}
+
+/** Net outward turnover of a set of documents: issued tax documents, less credit notes. */
+export function netTurnoverPaise(
+  docs: readonly { type: DocumentType; status: DocumentStatus; taxablePaise: bigint }[],
+): bigint {
+  let sum = 0n;
+  for (const d of docs) sum += BigInt(turnoverSign(d.type, d.status)) * d.taxablePaise;
+  return sum;
 }
 
 /** Documents that report inward supplies (GSTR-2B reconciliation, ITC). */

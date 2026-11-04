@@ -20,7 +20,7 @@
     "db:migrations": "tsx scripts/build-migrations.ts",
     "db:seed": "tsx scripts/seed.ts",
     "test:coverage": "vitest run --coverage",
-    "perf": "tsx perf/search.perf.ts"
+    "perf": "tsx perf/search.perf.ts && tsx perf/reports.perf.ts"
   },
   "devDependencies": {
     "@gst/config": "workspace:*",

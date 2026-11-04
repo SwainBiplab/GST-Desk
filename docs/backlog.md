@@ -43,3 +43,14 @@
 | B-039 | Print: client portal link in the share flow (a disabled placeholder today)                                                                                        | prompt 47          | open   |
 | B-040 | Print: preview the designer with one of the business's real documents, not only the sample                                                                        | P2                 | open   |
 | B-041 | Print: a Rust sidecar for bulk PDF on the desktop app, if the worker is too slow for thousands of documents                                                       | P3                 | open   |
+| B-042 | Reports: a summary table per business and month for one report, if the browser database proves too slow on a very large book (not needed at 50,000 documents)     | P3                 | open   |
+| B-043 | Reports: print through a report template in the designer (a plain report sheet prints today)                                                                      | P2                 | open   |
+| B-044 | Reports: stock summary with value, godowns and batches (it reads opening stock plus movements today; prompt 19 may change how stock is kept)                      | prompt 19          | open   |
+| B-045 | Reports: expense summary by a real expense category (expenses are grouped by their line description today)                                                        | P2                 | open   |
+| B-046 | Reports: GSTR-1 preview by table (B2B, B2CL, B2CS, CDNR, EXP) and HSN split into B2B and B2C                                                                      | prompt 33          | open   |
+| B-047 | Reports: GST summary separates ineligible credit, reverse-charge inward supplies and ITC reversals (all purchase tax counts as credit today)                      | P2                 | open   |
+| B-048 | Reports and dashboards: Hindi, Tamil, Marathi, Bengali and Gujarati strings (English only for now)                                                                | prompt 22          | open   |
+| B-049 | Dashboard: filing due dates follow government extensions and the business's QRMP choice (the usual 11th and 20th are shown today)                                 | prompt 33          | open   |
+| B-050 | Reports: stream a very large export to a file on the desktop app instead of building it in memory                                                                 | prompt 23          | open   |
+| B-051 | Dashboard: a trend chart of the last six months of sales and spend (the cards show this month against last month)                                                 | P2                 | open   |
+| B-052 | Reports: opening and closing balance on the cash book and the bank book (movements only today)                                                                    | P2                 | open   |
