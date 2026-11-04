@@ -1,0 +1,704 @@
+[
+  {
+    "name": "exempt #1",
+    "category": "exempt",
+    "rule": "exempt / nil / non-GST",
+    "input": {
+      "lines": [
+        {
+          "qtyMicros": "6250000n",
+          "ratePaise": "886516n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 1200,
+          "taxability": "nil_rated"
+        },
+        {
+          "qtyMicros": "7000000n",
+          "ratePaise": "2533n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 250,
+          "taxability": "exempt"
+        },
+        {
+          "qtyMicros": "6750000n",
+          "ratePaise": "161216n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 300,
+          "taxability": "non_gst"
+        }
+      ],
+      "options": {
+        "supply": "intra",
+        "supplierState": "29"
+      }
+    },
+    "expect": {
+      "totals": {
+        "taxablePaise": "6646664n",
+        "cgstPaise": "0n",
+        "sgstPaise": "0n",
+        "utgstPaise": "0n",
+        "igstPaise": "0n",
+        "cessPaise": "0n",
+        "taxPaise": "0n",
+        "rcmTaxPaise": "0n",
+        "invoiceDiscountPaise": "0n",
+        "linesTotalPaise": "6646664n",
+        "tcsPaise": "0n",
+        "roundOffPaise": "0n",
+        "totalPaise": "6646664n",
+        "tdsPaise": "0n",
+        "netReceivablePaise": "6646664n"
+      },
+      "lines": [
+        {
+          "taxablePaise": "5540725n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "0n",
+          "cessPaise": "0n",
+          "totalPaise": "5540725n"
+        },
+        {
+          "taxablePaise": "17731n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "0n",
+          "cessPaise": "0n",
+          "totalPaise": "17731n"
+        },
+        {
+          "taxablePaise": "1088208n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "0n",
+          "cessPaise": "0n",
+          "totalPaise": "1088208n"
+        }
+      ]
+    }
+  },
+  {
+    "name": "exempt #2",
+    "category": "exempt",
+    "rule": "exempt / nil / non-GST",
+    "input": {
+      "lines": [
+        {
+          "qtyMicros": "2500000n",
+          "ratePaise": "521672n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 1800,
+          "taxability": "nil_rated"
+        },
+        {
+          "qtyMicros": "750000n",
+          "ratePaise": "380207n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 250,
+          "taxability": "non_gst"
+        },
+        {
+          "qtyMicros": "5250000n",
+          "ratePaise": "195845n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 300,
+          "taxability": "exempt"
+        }
+      ],
+      "options": {
+        "supply": "inter",
+        "supplierState": "36"
+      }
+    },
+    "expect": {
+      "totals": {
+        "taxablePaise": "2617521n",
+        "cgstPaise": "0n",
+        "sgstPaise": "0n",
+        "utgstPaise": "0n",
+        "igstPaise": "0n",
+        "cessPaise": "0n",
+        "taxPaise": "0n",
+        "rcmTaxPaise": "0n",
+        "invoiceDiscountPaise": "0n",
+        "linesTotalPaise": "2617521n",
+        "tcsPaise": "0n",
+        "roundOffPaise": "0n",
+        "totalPaise": "2617521n",
+        "tdsPaise": "0n",
+        "netReceivablePaise": "2617521n"
+      },
+      "lines": [
+        {
+          "taxablePaise": "1304180n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "0n",
+          "cessPaise": "0n",
+          "totalPaise": "1304180n"
+        },
+        {
+          "taxablePaise": "285155n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "0n",
+          "cessPaise": "0n",
+          "totalPaise": "285155n"
+        },
+        {
+          "taxablePaise": "1028186n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "0n",
+          "cessPaise": "0n",
+          "totalPaise": "1028186n"
+        }
+      ]
+    }
+  },
+  {
+    "name": "exempt #3",
+    "category": "exempt",
+    "rule": "exempt / nil / non-GST",
+    "input": {
+      "lines": [
+        {
+          "qtyMicros": "7250000n",
+          "ratePaise": "789604n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 250,
+          "taxability": "non_gst"
+        },
+        {
+          "qtyMicros": "1250000n",
+          "ratePaise": "890351n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 300,
+          "taxability": "exempt"
+        }
+      ],
+      "options": {
+        "supply": "intra",
+        "supplierState": "29"
+      }
+    },
+    "expect": {
+      "totals": {
+        "taxablePaise": "6837568n",
+        "cgstPaise": "0n",
+        "sgstPaise": "0n",
+        "utgstPaise": "0n",
+        "igstPaise": "0n",
+        "cessPaise": "0n",
+        "taxPaise": "0n",
+        "rcmTaxPaise": "0n",
+        "invoiceDiscountPaise": "0n",
+        "linesTotalPaise": "6837568n",
+        "tcsPaise": "0n",
+        "roundOffPaise": "0n",
+        "totalPaise": "6837568n",
+        "tdsPaise": "0n",
+        "netReceivablePaise": "6837568n"
+      },
+      "lines": [
+        {
+          "taxablePaise": "5724629n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "0n",
+          "cessPaise": "0n",
+          "totalPaise": "5724629n"
+        },
+        {
+          "taxablePaise": "1112939n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "0n",
+          "cessPaise": "0n",
+          "totalPaise": "1112939n"
+        }
+      ]
+    }
+  },
+  {
+    "name": "exempt #4",
+    "category": "exempt",
+    "rule": "exempt / nil / non-GST",
+    "input": {
+      "lines": [
+        {
+          "qtyMicros": "2000000n",
+          "ratePaise": "619485n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 250,
+          "taxability": "non_gst"
+        },
+        {
+          "qtyMicros": "9250000n",
+          "ratePaise": "187753n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 1200,
+          "taxability": "exempt"
+        },
+        {
+          "qtyMicros": "3250000n",
+          "ratePaise": "578096n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 1200,
+          "taxability": "non_gst"
+        }
+      ],
+      "options": {
+        "supply": "inter",
+        "supplierState": "07"
+      }
+    },
+    "expect": {
+      "totals": {
+        "taxablePaise": "4854497n",
+        "cgstPaise": "0n",
+        "sgstPaise": "0n",
+        "utgstPaise": "0n",
+        "igstPaise": "0n",
+        "cessPaise": "0n",
+        "taxPaise": "0n",
+        "rcmTaxPaise": "0n",
+        "invoiceDiscountPaise": "0n",
+        "linesTotalPaise": "4854497n",
+        "tcsPaise": "0n",
+        "roundOffPaise": "0n",
+        "totalPaise": "4854497n",
+        "tdsPaise": "0n",
+        "netReceivablePaise": "4854497n"
+      },
+      "lines": [
+        {
+          "taxablePaise": "1238970n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "0n",
+          "cessPaise": "0n",
+          "totalPaise": "1238970n"
+        },
+        {
+          "taxablePaise": "1736715n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "0n",
+          "cessPaise": "0n",
+          "totalPaise": "1736715n"
+        },
+        {
+          "taxablePaise": "1878812n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "0n",
+          "cessPaise": "0n",
+          "totalPaise": "1878812n"
+        }
+      ]
+    }
+  },
+  {
+    "name": "exempt #5",
+    "category": "exempt",
+    "rule": "exempt / nil / non-GST",
+    "input": {
+      "lines": [
+        {
+          "qtyMicros": "3750000n",
+          "ratePaise": "589749n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 300,
+          "taxability": "nil_rated"
+        },
+        {
+          "qtyMicros": "9250000n",
+          "ratePaise": "376309n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 1800,
+          "taxability": "exempt"
+        }
+      ],
+      "options": {
+        "supply": "intra",
+        "supplierState": "24"
+      }
+    },
+    "expect": {
+      "totals": {
+        "taxablePaise": "5692417n",
+        "cgstPaise": "0n",
+        "sgstPaise": "0n",
+        "utgstPaise": "0n",
+        "igstPaise": "0n",
+        "cessPaise": "0n",
+        "taxPaise": "0n",
+        "rcmTaxPaise": "0n",
+        "invoiceDiscountPaise": "0n",
+        "linesTotalPaise": "5692417n",
+        "tcsPaise": "0n",
+        "roundOffPaise": "0n",
+        "totalPaise": "5692417n",
+        "tdsPaise": "0n",
+        "netReceivablePaise": "5692417n"
+      },
+      "lines": [
+        {
+          "taxablePaise": "2211559n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "0n",
+          "cessPaise": "0n",
+          "totalPaise": "2211559n"
+        },
+        {
+          "taxablePaise": "3480858n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "0n",
+          "cessPaise": "0n",
+          "totalPaise": "3480858n"
+        }
+      ]
+    }
+  },
+  {
+    "name": "exempt #6",
+    "category": "exempt",
+    "rule": "exempt / nil / non-GST",
+    "input": {
+      "lines": [
+        {
+          "qtyMicros": "9250000n",
+          "ratePaise": "619665n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 0,
+          "taxability": "exempt"
+        },
+        {
+          "qtyMicros": "3250000n",
+          "ratePaise": "757531n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 50,
+          "taxability": "non_gst"
+        }
+      ],
+      "options": {
+        "supply": "inter",
+        "supplierState": "24"
+      }
+    },
+    "expect": {
+      "totals": {
+        "taxablePaise": "8193877n",
+        "cgstPaise": "0n",
+        "sgstPaise": "0n",
+        "utgstPaise": "0n",
+        "igstPaise": "0n",
+        "cessPaise": "0n",
+        "taxPaise": "0n",
+        "rcmTaxPaise": "0n",
+        "invoiceDiscountPaise": "0n",
+        "linesTotalPaise": "8193877n",
+        "tcsPaise": "0n",
+        "roundOffPaise": "0n",
+        "totalPaise": "8193877n",
+        "tdsPaise": "0n",
+        "netReceivablePaise": "8193877n"
+      },
+      "lines": [
+        {
+          "taxablePaise": "5731901n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "0n",
+          "cessPaise": "0n",
+          "totalPaise": "5731901n"
+        },
+        {
+          "taxablePaise": "2461976n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "0n",
+          "cessPaise": "0n",
+          "totalPaise": "2461976n"
+        }
+      ]
+    }
+  },
+  {
+    "name": "exempt #7",
+    "category": "exempt",
+    "rule": "exempt / nil / non-GST",
+    "input": {
+      "lines": [
+        {
+          "qtyMicros": "2250000n",
+          "ratePaise": "122608n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 50,
+          "taxability": "nil_rated"
+        },
+        {
+          "qtyMicros": "9500000n",
+          "ratePaise": "609949n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 500,
+          "taxability": "nil_rated"
+        }
+      ],
+      "options": {
+        "supply": "intra",
+        "supplierState": "33"
+      }
+    },
+    "expect": {
+      "totals": {
+        "taxablePaise": "6070384n",
+        "cgstPaise": "0n",
+        "sgstPaise": "0n",
+        "utgstPaise": "0n",
+        "igstPaise": "0n",
+        "cessPaise": "0n",
+        "taxPaise": "0n",
+        "rcmTaxPaise": "0n",
+        "invoiceDiscountPaise": "0n",
+        "linesTotalPaise": "6070384n",
+        "tcsPaise": "0n",
+        "roundOffPaise": "0n",
+        "totalPaise": "6070384n",
+        "tdsPaise": "0n",
+        "netReceivablePaise": "6070384n"
+      },
+      "lines": [
+        {
+          "taxablePaise": "275868n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "0n",
+          "cessPaise": "0n",
+          "totalPaise": "275868n"
+        },
+        {
+          "taxablePaise": "5794516n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "0n",
+          "cessPaise": "0n",
+          "totalPaise": "5794516n"
+        }
+      ]
+    }
+  },
+  {
+    "name": "exempt #8",
+    "category": "exempt",
+    "rule": "exempt / nil / non-GST",
+    "input": {
+      "lines": [
+        {
+          "qtyMicros": "7750000n",
+          "ratePaise": "103437n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 0,
+          "taxability": "non_gst"
+        },
+        {
+          "qtyMicros": "1250000n",
+          "ratePaise": "561657n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 250,
+          "taxability": "non_gst"
+        }
+      ],
+      "options": {
+        "supply": "inter",
+        "supplierState": "27"
+      }
+    },
+    "expect": {
+      "totals": {
+        "taxablePaise": "1503708n",
+        "cgstPaise": "0n",
+        "sgstPaise": "0n",
+        "utgstPaise": "0n",
+        "igstPaise": "0n",
+        "cessPaise": "0n",
+        "taxPaise": "0n",
+        "rcmTaxPaise": "0n",
+        "invoiceDiscountPaise": "0n",
+        "linesTotalPaise": "1503708n",
+        "tcsPaise": "0n",
+        "roundOffPaise": "0n",
+        "totalPaise": "1503708n",
+        "tdsPaise": "0n",
+        "netReceivablePaise": "1503708n"
+      },
+      "lines": [
+        {
+          "taxablePaise": "801637n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "0n",
+          "cessPaise": "0n",
+          "totalPaise": "801637n"
+        },
+        {
+          "taxablePaise": "702071n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "0n",
+          "cessPaise": "0n",
+          "totalPaise": "702071n"
+        }
+      ]
+    }
+  },
+  {
+    "name": "exempt #9",
+    "category": "exempt",
+    "rule": "exempt / nil / non-GST",
+    "input": {
+      "lines": [
+        {
+          "qtyMicros": "4000000n",
+          "ratePaise": "188641n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 50,
+          "taxability": "non_gst"
+        },
+        {
+          "qtyMicros": "9500000n",
+          "ratePaise": "523029n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 1800,
+          "taxability": "exempt"
+        },
+        {
+          "qtyMicros": "5000000n",
+          "ratePaise": "5276n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 300,
+          "taxability": "nil_rated"
+        }
+      ],
+      "options": {
+        "supply": "intra",
+        "supplierState": "19"
+      }
+    },
+    "expect": {
+      "totals": {
+        "taxablePaise": "5749720n",
+        "cgstPaise": "0n",
+        "sgstPaise": "0n",
+        "utgstPaise": "0n",
+        "igstPaise": "0n",
+        "cessPaise": "0n",
+        "taxPaise": "0n",
+        "rcmTaxPaise": "0n",
+        "invoiceDiscountPaise": "0n",
+        "linesTotalPaise": "5749720n",
+        "tcsPaise": "0n",
+        "roundOffPaise": "0n",
+        "totalPaise": "5749720n",
+        "tdsPaise": "0n",
+        "netReceivablePaise": "5749720n"
+      },
+      "lines": [
+        {
+          "taxablePaise": "754564n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "0n",
+          "cessPaise": "0n",
+          "totalPaise": "754564n"
+        },
+        {
+          "taxablePaise": "4968776n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "0n",
+          "cessPaise": "0n",
+          "totalPaise": "4968776n"
+        },
+        {
+          "taxablePaise": "26380n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "0n",
+          "cessPaise": "0n",
+          "totalPaise": "26380n"
+        }
+      ]
+    }
+  }
+]

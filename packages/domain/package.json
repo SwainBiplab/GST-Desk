@@ -12,12 +12,21 @@
     "build": "tsc -p tsconfig.json --noEmit",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "vectors": "tsx scripts/build-hand-vectors.ts && tsx scripts/gen-vectors.ts",
+    "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
     "@gst/config": "workspace:*",
+    "@types/node": "^26.6.6",
+    "@vitest/coverage-v8": "^5.1.0",
     "eslint": "^9.39.0",
+    "fast-check": "^4.10.2",
+    "tsx": "^4.23.15",
     "typescript": "~6.0.0",
     "vitest": "^5.1.0"
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
   }
 }

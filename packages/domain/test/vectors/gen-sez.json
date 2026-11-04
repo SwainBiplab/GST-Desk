@@ -1,0 +1,550 @@
+[
+  {
+    "name": "sez #1",
+    "category": "sez",
+    "rule": "IGST Act s.16",
+    "input": {
+      "lines": [
+        {
+          "qtyMicros": "5250000n",
+          "ratePaise": "717152n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 2800
+        },
+        {
+          "qtyMicros": "1750000n",
+          "ratePaise": "484945n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 0
+        },
+        {
+          "qtyMicros": "9000000n",
+          "ratePaise": "342299n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 300
+        }
+      ],
+      "options": {
+        "supply": "sez_with_tax",
+        "supplierState": "24"
+      }
+    },
+    "expect": {
+      "totals": {
+        "taxablePaise": "7694393n",
+        "cgstPaise": "0n",
+        "sgstPaise": "0n",
+        "utgstPaise": "0n",
+        "igstPaise": "1146634n",
+        "cessPaise": "0n",
+        "taxPaise": "1146634n",
+        "rcmTaxPaise": "0n",
+        "invoiceDiscountPaise": "0n",
+        "linesTotalPaise": "8841027n",
+        "tcsPaise": "0n",
+        "roundOffPaise": "0n",
+        "totalPaise": "8841027n",
+        "tdsPaise": "0n",
+        "netReceivablePaise": "8841027n"
+      },
+      "lines": [
+        {
+          "taxablePaise": "3765048n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "1054213n",
+          "cessPaise": "0n",
+          "totalPaise": "4819261n"
+        },
+        {
+          "taxablePaise": "848654n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "0n",
+          "cessPaise": "0n",
+          "totalPaise": "848654n"
+        },
+        {
+          "taxablePaise": "3080691n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "92421n",
+          "cessPaise": "0n",
+          "totalPaise": "3173112n"
+        }
+      ]
+    }
+  },
+  {
+    "name": "sez #2",
+    "category": "sez",
+    "rule": "IGST Act s.16",
+    "input": {
+      "lines": [
+        {
+          "qtyMicros": "9500000n",
+          "ratePaise": "33678n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 500
+        },
+        {
+          "qtyMicros": "1250000n",
+          "ratePaise": "541557n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 250
+        },
+        {
+          "qtyMicros": "8500000n",
+          "ratePaise": "560494n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 0
+        }
+      ],
+      "options": {
+        "supply": "sez_without_tax",
+        "supplierState": "07",
+        "lut": true
+      }
+    },
+    "expect": {
+      "totals": {
+        "taxablePaise": "5761086n",
+        "cgstPaise": "0n",
+        "sgstPaise": "0n",
+        "utgstPaise": "0n",
+        "igstPaise": "0n",
+        "cessPaise": "0n",
+        "taxPaise": "0n",
+        "rcmTaxPaise": "0n",
+        "invoiceDiscountPaise": "0n",
+        "linesTotalPaise": "5761086n",
+        "tcsPaise": "0n",
+        "roundOffPaise": "0n",
+        "totalPaise": "5761086n",
+        "tdsPaise": "0n",
+        "netReceivablePaise": "5761086n"
+      },
+      "lines": [
+        {
+          "taxablePaise": "319941n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "0n",
+          "cessPaise": "0n",
+          "totalPaise": "319941n"
+        },
+        {
+          "taxablePaise": "676946n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "0n",
+          "cessPaise": "0n",
+          "totalPaise": "676946n"
+        },
+        {
+          "taxablePaise": "4764199n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "0n",
+          "cessPaise": "0n",
+          "totalPaise": "4764199n"
+        }
+      ]
+    }
+  },
+  {
+    "name": "sez #3",
+    "category": "sez",
+    "rule": "IGST Act s.16",
+    "input": {
+      "lines": [
+        {
+          "qtyMicros": "3750000n",
+          "ratePaise": "256074n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 1200
+        },
+        {
+          "qtyMicros": "5000000n",
+          "ratePaise": "548153n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 500
+        }
+      ],
+      "options": {
+        "supply": "sez_with_tax",
+        "supplierState": "36"
+      }
+    },
+    "expect": {
+      "totals": {
+        "taxablePaise": "3701043n",
+        "cgstPaise": "0n",
+        "sgstPaise": "0n",
+        "utgstPaise": "0n",
+        "igstPaise": "252271n",
+        "cessPaise": "0n",
+        "taxPaise": "252271n",
+        "rcmTaxPaise": "0n",
+        "invoiceDiscountPaise": "0n",
+        "linesTotalPaise": "3953314n",
+        "tcsPaise": "0n",
+        "roundOffPaise": "0n",
+        "totalPaise": "3953314n",
+        "tdsPaise": "0n",
+        "netReceivablePaise": "3953314n"
+      },
+      "lines": [
+        {
+          "taxablePaise": "960278n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "115233n",
+          "cessPaise": "0n",
+          "totalPaise": "1075511n"
+        },
+        {
+          "taxablePaise": "2740765n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "137038n",
+          "cessPaise": "0n",
+          "totalPaise": "2877803n"
+        }
+      ]
+    }
+  },
+  {
+    "name": "sez #4",
+    "category": "sez",
+    "rule": "IGST Act s.16",
+    "input": {
+      "lines": [
+        {
+          "qtyMicros": "7750000n",
+          "ratePaise": "867631n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 1200
+        }
+      ],
+      "options": {
+        "supply": "sez_without_tax",
+        "supplierState": "29",
+        "lut": true
+      }
+    },
+    "expect": {
+      "totals": {
+        "taxablePaise": "6724140n",
+        "cgstPaise": "0n",
+        "sgstPaise": "0n",
+        "utgstPaise": "0n",
+        "igstPaise": "0n",
+        "cessPaise": "0n",
+        "taxPaise": "0n",
+        "rcmTaxPaise": "0n",
+        "invoiceDiscountPaise": "0n",
+        "linesTotalPaise": "6724140n",
+        "tcsPaise": "0n",
+        "roundOffPaise": "0n",
+        "totalPaise": "6724140n",
+        "tdsPaise": "0n",
+        "netReceivablePaise": "6724140n"
+      },
+      "lines": [
+        {
+          "taxablePaise": "6724140n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "0n",
+          "cessPaise": "0n",
+          "totalPaise": "6724140n"
+        }
+      ]
+    }
+  },
+  {
+    "name": "sez #5",
+    "category": "sez",
+    "rule": "IGST Act s.16",
+    "input": {
+      "lines": [
+        {
+          "qtyMicros": "6000000n",
+          "ratePaise": "98389n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 50
+        },
+        {
+          "qtyMicros": "7250000n",
+          "ratePaise": "182800n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 2800
+        }
+      ],
+      "options": {
+        "supply": "sez_with_tax",
+        "supplierState": "24"
+      }
+    },
+    "expect": {
+      "totals": {
+        "taxablePaise": "1915634n",
+        "cgstPaise": "0n",
+        "sgstPaise": "0n",
+        "utgstPaise": "0n",
+        "igstPaise": "374036n",
+        "cessPaise": "0n",
+        "taxPaise": "374036n",
+        "rcmTaxPaise": "0n",
+        "invoiceDiscountPaise": "0n",
+        "linesTotalPaise": "2289670n",
+        "tcsPaise": "0n",
+        "roundOffPaise": "0n",
+        "totalPaise": "2289670n",
+        "tdsPaise": "0n",
+        "netReceivablePaise": "2289670n"
+      },
+      "lines": [
+        {
+          "taxablePaise": "590334n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "2952n",
+          "cessPaise": "0n",
+          "totalPaise": "593286n"
+        },
+        {
+          "taxablePaise": "1325300n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "371084n",
+          "cessPaise": "0n",
+          "totalPaise": "1696384n"
+        }
+      ]
+    }
+  },
+  {
+    "name": "sez #6",
+    "category": "sez",
+    "rule": "IGST Act s.16",
+    "input": {
+      "lines": [
+        {
+          "qtyMicros": "750000n",
+          "ratePaise": "469965n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 500
+        }
+      ],
+      "options": {
+        "supply": "sez_without_tax",
+        "supplierState": "29",
+        "lut": true
+      }
+    },
+    "expect": {
+      "totals": {
+        "taxablePaise": "352474n",
+        "cgstPaise": "0n",
+        "sgstPaise": "0n",
+        "utgstPaise": "0n",
+        "igstPaise": "0n",
+        "cessPaise": "0n",
+        "taxPaise": "0n",
+        "rcmTaxPaise": "0n",
+        "invoiceDiscountPaise": "0n",
+        "linesTotalPaise": "352474n",
+        "tcsPaise": "0n",
+        "roundOffPaise": "0n",
+        "totalPaise": "352474n",
+        "tdsPaise": "0n",
+        "netReceivablePaise": "352474n"
+      },
+      "lines": [
+        {
+          "taxablePaise": "352474n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "0n",
+          "cessPaise": "0n",
+          "totalPaise": "352474n"
+        }
+      ]
+    }
+  },
+  {
+    "name": "sez #7",
+    "category": "sez",
+    "rule": "IGST Act s.16",
+    "input": {
+      "lines": [
+        {
+          "qtyMicros": "1000000n",
+          "ratePaise": "243609n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 250
+        },
+        {
+          "qtyMicros": "8000000n",
+          "ratePaise": "879321n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 1200
+        }
+      ],
+      "options": {
+        "supply": "sez_with_tax",
+        "supplierState": "29"
+      }
+    },
+    "expect": {
+      "totals": {
+        "taxablePaise": "7278177n",
+        "cgstPaise": "0n",
+        "sgstPaise": "0n",
+        "utgstPaise": "0n",
+        "igstPaise": "850238n",
+        "cessPaise": "0n",
+        "taxPaise": "850238n",
+        "rcmTaxPaise": "0n",
+        "invoiceDiscountPaise": "0n",
+        "linesTotalPaise": "8128415n",
+        "tcsPaise": "0n",
+        "roundOffPaise": "0n",
+        "totalPaise": "8128415n",
+        "tdsPaise": "0n",
+        "netReceivablePaise": "8128415n"
+      },
+      "lines": [
+        {
+          "taxablePaise": "243609n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "6090n",
+          "cessPaise": "0n",
+          "totalPaise": "249699n"
+        },
+        {
+          "taxablePaise": "7034568n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "844148n",
+          "cessPaise": "0n",
+          "totalPaise": "7878716n"
+        }
+      ]
+    }
+  },
+  {
+    "name": "sez #8",
+    "category": "sez",
+    "rule": "IGST Act s.16",
+    "input": {
+      "lines": [
+        {
+          "qtyMicros": "2750000n",
+          "ratePaise": "411294n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 300
+        },
+        {
+          "qtyMicros": "8750000n",
+          "ratePaise": "743793n",
+          "discount": {
+            "mode": "none"
+          },
+          "gstRateBp": 50
+        }
+      ],
+      "options": {
+        "supply": "sez_without_tax",
+        "supplierState": "27",
+        "lut": true
+      }
+    },
+    "expect": {
+      "totals": {
+        "taxablePaise": "7639248n",
+        "cgstPaise": "0n",
+        "sgstPaise": "0n",
+        "utgstPaise": "0n",
+        "igstPaise": "0n",
+        "cessPaise": "0n",
+        "taxPaise": "0n",
+        "rcmTaxPaise": "0n",
+        "invoiceDiscountPaise": "0n",
+        "linesTotalPaise": "7639248n",
+        "tcsPaise": "0n",
+        "roundOffPaise": "0n",
+        "totalPaise": "7639248n",
+        "tdsPaise": "0n",
+        "netReceivablePaise": "7639248n"
+      },
+      "lines": [
+        {
+          "taxablePaise": "1131059n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "0n",
+          "cessPaise": "0n",
+          "totalPaise": "1131059n"
+        },
+        {
+          "taxablePaise": "6508189n",
+          "cgstPaise": "0n",
+          "sgstPaise": "0n",
+          "utgstPaise": "0n",
+          "igstPaise": "0n",
+          "cessPaise": "0n",
+          "totalPaise": "6508189n"
+        }
+      ]
+    }
+  }
+]
