@@ -57,7 +57,8 @@ function sqliteExtras(): string[] {
 function pgExtras(): string[] {
   const out: string[] = [];
   for (const [table, cols] of Object.entries(SEARCH_COLUMNS)) {
-    const expr = cols.map((c) => `coalesce(${c}, '')`).join(` || ' ' || `);
+    // Separators become spaces so `QS-77` and `a@b.com` split into words like they do in SQLite.
+    const expr = `translate(${cols.map((c) => `coalesce(${c}, '')`).join(` || ' ' || `)}, '-_/.@', '     ')`;
     out.push(
       `ALTER TABLE ${table} ADD COLUMN search tsvector GENERATED ALWAYS AS (to_tsvector('${STEMMED.has(table) ? 'english' : 'simple'}', ${expr})) STORED`,
       `CREATE INDEX ${table}_search_idx ON ${table} USING gin (search)`,

@@ -1,0 +1,791 @@
+{
+  "version": "2025.9.1",
+  "as_of": "2025-09-22",
+  "source": "Curated starter set, unreviewed",
+  "rows": [
+    {
+      "code": "0401",
+      "description": "Milk and cream, not concentrated nor sweetened",
+      "rate_bp": 0,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "0402",
+      "description": "Milk and cream, concentrated or sweetened",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "0405",
+      "description": "Butter and other fats and oils derived from milk; dairy spreads; ghee",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "0406",
+      "description": "Cheese and curd",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "0407",
+      "description": "Birds' eggs, in shell, fresh, preserved or cooked",
+      "rate_bp": 0,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "0409",
+      "description": "Natural honey",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "0701",
+      "description": "Potatoes, fresh or chilled",
+      "rate_bp": 0,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "0702",
+      "description": "Tomatoes, fresh or chilled",
+      "rate_bp": 0,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "0703",
+      "description": "Onions, shallots, garlic, leeks and other alliaceous vegetables, fresh or chilled",
+      "rate_bp": 0,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "0713",
+      "description": "Dried leguminous vegetables, shelled (pulses)",
+      "rate_bp": 0,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "0803",
+      "description": "Bananas, including plantains, fresh or dried",
+      "rate_bp": 0,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "0901",
+      "description": "Coffee, whether or not roasted or decaffeinated; coffee husks and skins",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "0902",
+      "description": "Tea, whether or not flavoured",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "0910",
+      "description": "Ginger, saffron, turmeric, thyme, bay leaves, curry and other spices",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "1001",
+      "description": "Wheat and meslin",
+      "rate_bp": 0,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "1006",
+      "description": "Rice",
+      "rate_bp": 0,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "1101",
+      "description": "Wheat or meslin flour",
+      "rate_bp": 0,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "1507",
+      "description": "Soya-bean oil and its fractions, whether or not refined",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "1508",
+      "description": "Ground-nut oil and its fractions, whether or not refined",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "1511",
+      "description": "Palm oil and its fractions, whether or not refined",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "1512",
+      "description": "Sunflower-seed, safflower or cotton-seed oil and their fractions",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "1514",
+      "description": "Rape, colza or mustard oil and their fractions",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "1701",
+      "description": "Cane or beet sugar and chemically pure sucrose, in solid form",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "1806",
+      "description": "Chocolate and other food preparations containing cocoa",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "1905",
+      "description": "Bread, pastry, cakes, biscuits and other bakers' wares",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "2009",
+      "description": "Fruit or vegetable juices, unfermented and not containing added spirit",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "2201",
+      "description": "Waters, including natural or artificial mineral waters, not sweetened or flavoured",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "2202",
+      "description": "Waters containing added sugar or other sweetening matter or flavoured; aerated beverages",
+      "rate_bp": 4000,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "2401",
+      "description": "Unmanufactured tobacco; tobacco refuse",
+      "rate_bp": 4000,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "2402",
+      "description": "Cigars, cheroots, cigarillos and cigarettes, of tobacco or of tobacco substitutes",
+      "rate_bp": 4000,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "2403",
+      "description": "Other manufactured tobacco and manufactured tobacco substitutes",
+      "rate_bp": 4000,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "2523",
+      "description": "Portland cement, aluminous cement, slag cement and similar hydraulic cements",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "2711",
+      "description": "Petroleum gases and other gaseous hydrocarbons (LPG)",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "3004",
+      "description": "Medicaments consisting of mixed or unmixed products, in measured doses or retail packings",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "3005",
+      "description": "Wadding, gauze, bandages and similar articles, impregnated or coated, for retail medical use",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "3304",
+      "description": "Beauty or make-up preparations and preparations for the care of the skin",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "3305",
+      "description": "Preparations for use on the hair (shampoo, hair oil)",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "3306",
+      "description": "Preparations for oral or dental hygiene, including toothpaste",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "3307",
+      "description": "Shaving preparations, deodorants, bath preparations, perfumery and toilet preparations",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "3401",
+      "description": "Soap; organic surface-active products and preparations for use as soap",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "3402",
+      "description": "Washing and cleaning preparations; detergents",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "3917",
+      "description": "Tubes, pipes and hoses, and fittings therefor, of plastics",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "3923",
+      "description": "Articles for the conveyance or packing of goods, of plastics; stoppers, lids, caps",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "3926",
+      "description": "Other articles of plastics",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "4011",
+      "description": "New pneumatic tyres, of rubber",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "4901",
+      "description": "Printed books, brochures, leaflets and similar printed matter",
+      "rate_bp": 0,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "4902",
+      "description": "Newspapers, journals and periodicals, whether or not illustrated",
+      "rate_bp": 0,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "5208",
+      "description": "Woven fabrics of cotton, containing 85% or more by weight of cotton, weighing not more than 200 g/m2",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "5407",
+      "description": "Woven fabrics of synthetic filament yarn",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "6109",
+      "description": "T-shirts, singlets and other vests, knitted or crocheted",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "6203",
+      "description": "Men's or boys' suits, jackets, trousers and shirts (not knitted)",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "6204",
+      "description": "Women's or girls' suits, jackets, dresses, skirts and trousers (not knitted)",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "6403",
+      "description": "Footwear with outer soles of rubber, plastics or leather and uppers of leather",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "6907",
+      "description": "Ceramic flags and paving, hearth or wall tiles",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "7013",
+      "description": "Glassware of a kind used for table, kitchen, toilet, office or indoor decoration",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "7308",
+      "description": "Structures and parts of structures, of iron or steel",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "7318",
+      "description": "Screws, bolts, nuts, washers and similar articles, of iron or steel",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "8407",
+      "description": "Spark-ignition reciprocating or rotary internal combustion piston engines",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "8414",
+      "description": "Air or vacuum pumps, air or other gas compressors and fans",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "8415",
+      "description": "Air conditioning machines",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "8418",
+      "description": "Refrigerators, freezers and other refrigerating or freezing equipment",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "8443",
+      "description": "Printers, copying machines and facsimile machines",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "8450",
+      "description": "Household or laundry-type washing machines",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "8471",
+      "description": "Automatic data processing machines (computers, laptops) and units thereof",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "8504",
+      "description": "Electrical transformers, static converters (chargers, power supplies) and inductors",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "8507",
+      "description": "Electric accumulators, including separators therefor",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "8516",
+      "description": "Electric water heaters, irons, microwave ovens, cookers and other electro-thermic appliances",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "8517",
+      "description": "Telephone sets, including smartphones, and other apparatus for the transmission of voice or data",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "8523",
+      "description": "Discs, tapes, solid-state non-volatile storage devices and other media for recording",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "8528",
+      "description": "Monitors and projectors; reception apparatus for television",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "8536",
+      "description": "Electrical apparatus for switching or protecting electrical circuits; plugs, sockets, switches",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "8544",
+      "description": "Insulated wire, cable and other insulated electric conductors",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "8702",
+      "description": "Motor vehicles for the transport of ten or more persons, including the driver",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "8703",
+      "description": "Motor cars and other motor vehicles principally designed for the transport of persons",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "8711",
+      "description": "Motorcycles (including mopeds) and cycles fitted with an auxiliary motor",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "8714",
+      "description": "Parts and accessories of motorcycles, motor vehicles and cycles",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9018",
+      "description": "Instruments and appliances used in medical, surgical, dental or veterinary sciences",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9403",
+      "description": "Other furniture and parts thereof",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9404",
+      "description": "Mattress supports; articles of bedding and similar furnishing (mattresses, pillows)",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9503",
+      "description": "Tricycles, scooters, pedal cars, dolls, toys, puzzles",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9608",
+      "description": "Ball point pens, felt tipped pens, propelling pencils and similar articles",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9954",
+      "description": "Construction services",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9961",
+      "description": "Services in wholesale trade",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9962",
+      "description": "Services in retail trade",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9963",
+      "description": "Accommodation, food and beverage services",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9964",
+      "description": "Passenger transport services",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9965",
+      "description": "Goods transport services",
+      "rate_bp": 500,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9966",
+      "description": "Rental services of transport vehicles with operators",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9967",
+      "description": "Supporting services in transport",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9968",
+      "description": "Postal and courier services",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9969",
+      "description": "Electricity, gas, water and other distribution services",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9971",
+      "description": "Financial and related services",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9972",
+      "description": "Real estate services",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9973",
+      "description": "Leasing or rental services with or without operator",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9981",
+      "description": "Research and development services",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9982",
+      "description": "Legal and accounting services",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9983",
+      "description": "Other professional, technical and business services",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9984",
+      "description": "Telecommunications, broadcasting and information supply services",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9985",
+      "description": "Support services",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9986",
+      "description": "Support services to agriculture, hunting, forestry, fishing, mining and utilities",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9987",
+      "description": "Maintenance, repair and installation (except construction) services",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9988",
+      "description": "Manufacturing services on physical inputs (goods) owned by others",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9989",
+      "description": "Other manufacturing services; publishing, printing and reproduction services; materials recovery",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9991",
+      "description": "Public administration and other services provided to the community as a whole; compulsory social security",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9992",
+      "description": "Education services",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9993",
+      "description": "Human health and social care services",
+      "rate_bp": 0,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9994",
+      "description": "Sewage and waste collection, treatment and disposal and other environmental protection services",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9995",
+      "description": "Services of membership organisations",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9996",
+      "description": "Recreational, cultural and sporting services",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9997",
+      "description": "Other services",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9998",
+      "description": "Domestic services",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    },
+    {
+      "code": "9999",
+      "description": "Services provided by extraterritorial organisations and bodies",
+      "rate_bp": 1800,
+      "cess_bp": 0,
+      "effective_from": "2025-09-22"
+    }
+  ]
+}

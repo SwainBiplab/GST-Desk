@@ -1,28 +1,6 @@
-import type { Statement } from '@gst/domain';
-import { toDecimalString } from '@gst/domain';
+import { csvCell, toCsv, toDecimalString, type CsvValue, type Statement } from '@gst/domain';
 
-/**
- * One CSV cell. Values that start with `=`, `+`, `-`, `@`, tab or carriage return are prefixed with an
- * apostrophe so a spreadsheet shows text instead of running it as a formula. Numbers that are
- * negative on purpose should go through `money()` and are exempt.
- */
-export function csvCell(value: string, opts: { numeric?: boolean } = {}): string {
-  let v = value;
-  if (!opts.numeric && /^[=+\-@\t\r]/.test(v)) v = `'${v}`;
-  return /[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
-}
-
-/** Rows to CSV text (CRLF line ends, UTF-8 byte order mark so Excel reads Indian names correctly). */
-export function toCsv(rows: (string | { numeric: string })[][]): string {
-  const body = rows
-    .map((r) =>
-      r
-        .map((c) => (typeof c === 'string' ? csvCell(c) : csvCell(c.numeric, { numeric: true })))
-        .join(','),
-    )
-    .join('\r\n');
-  return `\uFEFF${body}\r\n`;
-}
+export { csvCell, toCsv };
 
 /** Paise as a plain decimal string, for spreadsheets: 12345 -> "123.45". */
 export const money = (paise: bigint | number): { numeric: string } => ({
@@ -30,7 +8,7 @@ export const money = (paise: bigint | number): { numeric: string } => ({
 });
 
 export function statementCsv(s: Statement): string {
-  const rows: (string | { numeric: string })[][] = [
+  const rows: CsvValue[][] = [
     ['Date', 'Type', 'Reference', 'Description', 'Debit', 'Credit', 'Balance'],
   ];
   if (s.openingBalancePaise !== 0n) {
@@ -91,4 +69,56 @@ export function downloadText(
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+export interface PartyExportRow {
+  name: string;
+  tradeName: string;
+  type: string;
+  gstin: string;
+  phone: string;
+  email: string;
+  address: string;
+  city: string;
+  state: string;
+  pincode: string;
+  creditDays: number;
+  openingPaise: bigint;
+  tags: string;
+}
+
+/** Parties in the shape the party import reads back (same headers; a negative balance means we owe them). */
+export function partiesImportCsv(rows: PartyExportRow[]): string {
+  return toCsv([
+    [
+      'Name',
+      'Trade Name',
+      'Type',
+      'GSTIN',
+      'Phone',
+      'Email',
+      'Address',
+      'City',
+      'State',
+      'Pincode',
+      'Credit Days',
+      'Opening Balance',
+      'Tags',
+    ],
+    ...rows.map((r): CsvValue[] => [
+      r.name,
+      r.tradeName,
+      r.type,
+      r.gstin,
+      r.phone,
+      r.email,
+      r.address,
+      r.city,
+      r.state,
+      r.pincode,
+      { numeric: String(r.creditDays) },
+      r.openingPaise === 0n ? '' : money(r.openingPaise),
+      r.tags,
+    ]),
+  ]);
 }

@@ -28,6 +28,14 @@ export class NotFoundError extends Error {
   }
 }
 
+/** A bulk import stopped on request. Nothing was written. */
+export class ImportCancelled extends Error {
+  override name = 'ImportCancelled';
+  constructor() {
+    super('import cancelled');
+  }
+}
+
 /** A business rule was violated (e.g. soft-delete of a referenced party). */
 export class RuleError extends Error {
   override name = 'RuleError';

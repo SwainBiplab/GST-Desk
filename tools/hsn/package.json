@@ -1,0 +1,28 @@
+{
+  "name": "@gst/hsn-tools",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Build, sign and verify versions of the HSN/SAC master.",
+  "scripts": {
+    "make": "tsx src/build.ts",
+    "keygen": "tsx src/keygen.ts",
+    "verify": "tsx src/verify.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@gst/domain": "workspace:*"
+  },
+  "devDependencies": {
+    "@gst/config": "workspace:*",
+    "@types/node": "^26.6.6",
+    "@vitest/coverage-v8": "^5.1.0",
+    "eslint": "^9.39.0",
+    "tsx": "^4.23.15",
+    "typescript": "~6.0.0",
+    "vitest": "^5.1.0"
+  }
+}

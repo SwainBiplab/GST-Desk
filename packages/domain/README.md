@@ -19,6 +19,19 @@ micro-units; rates are basis points. Every calculation returns `{ result, trace 
 | `amountToWordsEn/Hi` (`words.ts`)                                                  | Indian grouping (thousand, lakh, crore)                                                                                         |
 | `fyOf`, `financialYear`, `today` (`fy.ts`)                                         | Financial year 1 April to 31 March (configurable start month), IST                                                              |
 
+## Items, units, CSV and the HSN master (prompt 13)
+
+| Module          | What it holds                                                                                                                                                                                |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `item.ts`       | `validateItemInput` (the one definition of a valid item, used by form, import and repository), `itemWarnings`, `GST_RATES_BP`.                                                               |
+| `barcode.ts`    | `gtinCheckDigit`, `validateBarcode` (EAN-8, UPC-A, EAN-13, GTIN-14 with check digit; other codes are custom).                                                                                |
+| `units.ts`      | `UQC_MASTER`, `returnsUqc`, `validateCustomUnit`, `toPrimaryMicros` / `toSecondaryMicros` for a second unit.                                                                                 |
+| `bulk-edit.ts`  | `planBulkEdit`: what each item becomes under a GST rate, price (percent or amount) or tag change, with integer arithmetic.                                                                   |
+| `csv.ts`        | `parseCsv` (BOM, quotes, `, ; tab \|`, line numbers), `toCsv` and `csvCell` (formula escaping), `parseAmountPaise` / `parseRateBp` / `parseQtyMicros` (Indian grouping, no silent rounding). |
+| `import-map.ts` | `detectMapping`, saved mappings by header text, `ITEM_FIELDS` and `PARTY_FIELDS`.                                                                                                            |
+| `hsn.ts`        | `parseHsnCsv`, `planHsnImport` (rate history), `rowAsOf`, `verifyHsnManifest` (Ed25519 over the file hash), `compareVersions`.                                                               |
+| `data/`         | Signed HSN versions built by `tools/hsn`, the public key, and `bundled.ts` (generated).                                                                                                      |
+
 ## Conventions worth knowing
 
 - **Rounding:** half away from zero, one rounding step per figure (`divRound`). CGST and SGST are rounded separately from `taxable x rate / 2`, so they are always equal.

@@ -44,8 +44,10 @@ export default defineConfig({
       // subpaths first, then the bare package names (exact match only)
       { find: /^@gst\/ui\/tokens/, replacement: root('ui/tokens') },
       { find: /^@gst\/ui\/icons$/, replacement: root('ui/src/icons.ts') },
+      { find: /^@gst\/domain\/data\//, replacement: root('domain/data') + '/' },
       { find: /^@gst\/ai\/fixtures/, replacement: root('ai/fixtures') },
       { find: /^@gst\/ai\/db$/, replacement: root('ai/src/db/index.ts') },
+      { find: /^@gst\/db\/node$/, replacement: root('db/src/node.ts') },
       { find: /^@gst\/db\/seed$/, replacement: root('db/src/seed.ts') },
       { find: /^@gst\/(domain|db|ui|ai|i18n)$/, replacement: root('$1/src/index.ts') },
     ],

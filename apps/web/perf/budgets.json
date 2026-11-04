@@ -1,5 +1,5 @@
 {
-  "note": "CPU throttled 4x (baseline device profile, docs/perf-baseline.md) with the seeded demo database already stored. First paint budgets from prompt 10: /shop under 1.5 s, /books under 2 s. DB-backed list and PDF budgets arrive with prompts 14, 17 and 18.",
+  "note": "CPU throttled 4x (baseline device profile, docs/perf-baseline.md) with the seeded demo database already stored. First paint budgets from prompt 10: /shop under 1.5 s, /books under 2 s. The items entry (prompt 13) is the 10,000-item import at full speed plus grid and command bar timings at the throttle. Invoice and PDF budgets arrive with prompts 14, 17 and 18.",
   "cpuThrottle": 4,
   "routes": {
     "/shop/dashboard": {
@@ -14,5 +14,13 @@
       "fcpMs": 2500,
       "loadMs": 4500
     }
+  },
+  "items": {
+    "importSeconds": 30,
+    "reviewSeconds": 10,
+    "scrollMs": 1000,
+    "searchMs": 1000,
+    "sortMs": 1500,
+    "commandMs": 1500
   }
 }

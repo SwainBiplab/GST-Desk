@@ -132,6 +132,18 @@ pnpm --filter @gst/db db:generate             # regenerate migrations after chan
 
 The schema is defined once in `packages/db/src/schema/spec.ts` and compiled for SQLite and Postgres. After changing it, run `db:generate` and commit the generated files. Details: `docs/decisions/0002-dual-dialect-schema.md`.
 
+## 7b. Items, import and the HSN master
+
+- Items: `http://localhost:1420/books/items` (Shop: `/shop/items`). **Import CSV** opens the wizard; **Units** and **HSN master** open their dialogs. The command bar has "Import items from CSV" and "Import parties from CSV".
+- The HSN/SAC master ships with the app and loads into the local database the first time it opens. To check for newer signed versions, set an address under Items, HSN master (empty by default, https only).
+- Maintaining the master (for the accountant and release owner): `docs/runbooks/hsn-master.md`.
+
+```powershell
+pnpm hsn:keygen --id hsn-2026-1     # once: make the signing key (private half stays out of git)
+pnpm hsn:build --version 2026.4.0 --as-of 2026-04-01
+pnpm hsn:verify
+```
+
 ## 8. AI evaluation (offline)
 
 ```powershell

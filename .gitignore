@@ -16,3 +16,4 @@ test-results
 storybook-static
 updater.ci.json
 perf-results
+tools/hsn/.keys/

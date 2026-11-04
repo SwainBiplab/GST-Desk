@@ -117,6 +117,8 @@ describe.each(DIALECTS)('every repository call needs a business (%s)', (dialect)
         'BusinessRepo',
         'PartyRepo',
         'ItemRepo',
+        'UnitRepo',
+        'ImportMappingRepo',
         'DocumentRepo',
         'PaymentRepo',
         'LedgerRepo',

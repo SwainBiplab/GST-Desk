@@ -11,6 +11,7 @@ import type { Shell } from '../store';
 
 import { ChecklistCard } from '@/features/business/checklist-card';
 import { SettingsPage } from '@/features/business/settings-page';
+import { ItemsPage } from '@/features/items/items-page';
 import { PartiesPage } from '@/features/parties/parties-page';
 
 /** Question-led card slots. Reports (prompt 18) fill them in. */
@@ -112,6 +113,13 @@ export function PlaceholderPage({ page, shell }: { page: PageId; shell: Shell })
     return (
       <div data-shell={shell} className="h-full">
         <PartiesPage shell={shell} />
+      </div>
+    );
+  }
+  if (page === 'items' && ctx) {
+    return (
+      <div data-shell={shell} className="h-full">
+        <ItemsPage shell={shell} />
       </div>
     );
   }

@@ -288,6 +288,26 @@ CREATE TABLE `hsn_master` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `hsn_master_code_effective_from_uq` ON `hsn_master` (`code`,`effective_from`);--> statement-breakpoint
+CREATE TABLE `import_mappings` (
+	`id` text PRIMARY KEY NOT NULL,
+	`org_id` text NOT NULL,
+	`business_id` text NOT NULL,
+	`version` integer DEFAULT 1 NOT NULL,
+	`created_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
+	`updated_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
+	`deleted_at` integer,
+	`created_by` text,
+	`updated_by` text,
+	`entity` text NOT NULL,
+	`signature` text NOT NULL,
+	`mapping_json` text,
+	FOREIGN KEY (`org_id`) REFERENCES `organisations`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`business_id`) REFERENCES `businesses`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `import_mappings_business_id_entity_signature_uq` ON `import_mappings` (`business_id`,`entity`,`signature`) WHERE deleted_at IS NULL;--> statement-breakpoint
+CREATE INDEX `import_mappings_business_id_idx` ON `import_mappings` (`business_id`);--> statement-breakpoint
+CREATE INDEX `import_mappings_org_id_idx` ON `import_mappings` (`org_id`);--> statement-breakpoint
 CREATE TABLE `item_variants` (
 	`id` text PRIMARY KEY NOT NULL,
 	`org_id` text NOT NULL,
@@ -324,23 +344,36 @@ CREATE TABLE `items` (
 	`updated_by` text,
 	`kind` text DEFAULT 'goods' NOT NULL,
 	`name` text NOT NULL,
+	`description` text,
 	`sku` text,
 	`barcode` text,
 	`hsn` text,
 	`unit_id` text,
+	`secondary_unit_id` text,
+	`secondary_factor_micros` integer,
 	`sale_rate_paise` integer DEFAULT 0 NOT NULL,
 	`purchase_rate_paise` integer DEFAULT 0 NOT NULL,
+	`mrp_paise` integer,
+	`tax_inclusive` integer DEFAULT false NOT NULL,
 	`gst_rate_bp` integer DEFAULT 0 NOT NULL,
 	`cess_bp` integer DEFAULT 0 NOT NULL,
+	`gst_rate_overridden` integer DEFAULT false NOT NULL,
 	`track_stock` integer DEFAULT false NOT NULL,
 	`min_stock_micros` integer DEFAULT 0 NOT NULL,
+	`opening_stock_micros` integer DEFAULT 0 NOT NULL,
+	`opening_stock_value_paise` integer DEFAULT 0 NOT NULL,
+	`images_json` text,
+	`tags_json` text,
+	`is_active` integer DEFAULT true NOT NULL,
 	FOREIGN KEY (`org_id`) REFERENCES `organisations`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`business_id`) REFERENCES `businesses`(`id`) ON UPDATE no action ON DELETE no action,
-	FOREIGN KEY (`unit_id`) REFERENCES `units`(`id`) ON UPDATE no action ON DELETE no action
+	FOREIGN KEY (`unit_id`) REFERENCES `units`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`secondary_unit_id`) REFERENCES `units`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE INDEX `items_business_id_sku_idx` ON `items` (`business_id`,`sku`);--> statement-breakpoint
-CREATE INDEX `items_business_id_barcode_idx` ON `items` (`business_id`,`barcode`);--> statement-breakpoint
+CREATE UNIQUE INDEX `items_business_id_sku_uq` ON `items` (`business_id`,`sku`) WHERE deleted_at IS NULL AND sku IS NOT NULL;--> statement-breakpoint
+CREATE UNIQUE INDEX `items_business_id_barcode_uq` ON `items` (`business_id`,`barcode`) WHERE deleted_at IS NULL AND barcode IS NOT NULL;--> statement-breakpoint
+CREATE INDEX `items_business_id_hsn_idx` ON `items` (`business_id`,`hsn`);--> statement-breakpoint
 CREATE INDEX `items_business_id_idx` ON `items` (`business_id`);--> statement-breakpoint
 CREATE INDEX `items_org_id_idx` ON `items` (`org_id`);--> statement-breakpoint
 CREATE TABLE `ledger_accounts` (
@@ -576,7 +609,11 @@ CREATE TABLE `rate_master_versions` (
 	`effective_from` text NOT NULL,
 	`source` text,
 	`notes` text,
-	`published_at` integer
+	`published_at` integer,
+	`as_of` text,
+	`row_count` integer,
+	`sha256` text,
+	`imported_at` integer
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `rate_master_versions_version_unique` ON `rate_master_versions` (`version`);--> statement-breakpoint
@@ -733,6 +770,7 @@ CREATE TABLE `units` (
 	`code` text NOT NULL,
 	`name` text NOT NULL,
 	`is_custom` integer DEFAULT false NOT NULL,
+	`uqc` text,
 	FOREIGN KEY (`org_id`) REFERENCES `organisations`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`business_id`) REFERENCES `businesses`(`id`) ON UPDATE no action ON DELETE no action
 );

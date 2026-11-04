@@ -31,5 +31,6 @@ export const attachments = t.attachments;
 export const review_items = t.review_items;
 export const ai_calls = t.ai_calls;
 export const audit_log = t.audit_log;
+export const import_mappings = t.import_mappings;
 export const settings = t.settings;
 export const sync_state = t.sync_state;

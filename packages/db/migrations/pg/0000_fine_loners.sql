@@ -230,6 +230,21 @@ CREATE TABLE "hsn_master" (
 	"source_version" text
 );
 --> statement-breakpoint
+CREATE TABLE "import_mappings" (
+	"id" uuid PRIMARY KEY NOT NULL,
+	"org_id" uuid NOT NULL,
+	"business_id" uuid NOT NULL,
+	"version" integer DEFAULT 1 NOT NULL,
+	"created_at" bigint DEFAULT (extract(epoch from now()) * 1000)::bigint NOT NULL,
+	"updated_at" bigint DEFAULT (extract(epoch from now()) * 1000)::bigint NOT NULL,
+	"deleted_at" bigint,
+	"created_by" text,
+	"updated_by" text,
+	"entity" text NOT NULL,
+	"signature" text NOT NULL,
+	"mapping_json" jsonb
+);
+--> statement-breakpoint
 CREATE TABLE "item_variants" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"org_id" uuid NOT NULL,
@@ -260,16 +275,27 @@ CREATE TABLE "items" (
 	"updated_by" text,
 	"kind" text DEFAULT 'goods' NOT NULL,
 	"name" text NOT NULL,
+	"description" text,
 	"sku" text,
 	"barcode" text,
 	"hsn" text,
 	"unit_id" uuid,
+	"secondary_unit_id" uuid,
+	"secondary_factor_micros" bigint,
 	"sale_rate_paise" bigint DEFAULT 0 NOT NULL,
 	"purchase_rate_paise" bigint DEFAULT 0 NOT NULL,
+	"mrp_paise" bigint,
+	"tax_inclusive" boolean DEFAULT false NOT NULL,
 	"gst_rate_bp" integer DEFAULT 0 NOT NULL,
 	"cess_bp" integer DEFAULT 0 NOT NULL,
+	"gst_rate_overridden" boolean DEFAULT false NOT NULL,
 	"track_stock" boolean DEFAULT false NOT NULL,
-	"min_stock_micros" bigint DEFAULT 0 NOT NULL
+	"min_stock_micros" bigint DEFAULT 0 NOT NULL,
+	"opening_stock_micros" bigint DEFAULT 0 NOT NULL,
+	"opening_stock_value_paise" bigint DEFAULT 0 NOT NULL,
+	"images_json" jsonb,
+	"tags_json" jsonb,
+	"is_active" boolean DEFAULT true NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "ledger_accounts" (
@@ -451,6 +477,10 @@ CREATE TABLE "rate_master_versions" (
 	"source" text,
 	"notes" text,
 	"published_at" bigint,
+	"as_of" date,
+	"row_count" integer,
+	"sha256" text,
+	"imported_at" bigint,
 	CONSTRAINT "rate_master_versions_version_unique" UNIQUE("version")
 );
 --> statement-breakpoint
@@ -573,7 +603,8 @@ CREATE TABLE "units" (
 	"updated_by" text,
 	"code" text NOT NULL,
 	"name" text NOT NULL,
-	"is_custom" boolean DEFAULT false NOT NULL
+	"is_custom" boolean DEFAULT false NOT NULL,
+	"uqc" text
 );
 --> statement-breakpoint
 CREATE TABLE "users" (
@@ -617,12 +648,15 @@ ALTER TABLE "documents" ADD CONSTRAINT "documents_template_id_templates_id_fk" F
 ALTER TABLE "documents" ADD CONSTRAINT "documents_source_document_id_documents_id_fk" FOREIGN KEY ("source_document_id") REFERENCES "public"."documents"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "godowns" ADD CONSTRAINT "godowns_org_id_organisations_id_fk" FOREIGN KEY ("org_id") REFERENCES "public"."organisations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "godowns" ADD CONSTRAINT "godowns_business_id_businesses_id_fk" FOREIGN KEY ("business_id") REFERENCES "public"."businesses"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "import_mappings" ADD CONSTRAINT "import_mappings_org_id_organisations_id_fk" FOREIGN KEY ("org_id") REFERENCES "public"."organisations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "import_mappings" ADD CONSTRAINT "import_mappings_business_id_businesses_id_fk" FOREIGN KEY ("business_id") REFERENCES "public"."businesses"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "item_variants" ADD CONSTRAINT "item_variants_org_id_organisations_id_fk" FOREIGN KEY ("org_id") REFERENCES "public"."organisations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "item_variants" ADD CONSTRAINT "item_variants_business_id_businesses_id_fk" FOREIGN KEY ("business_id") REFERENCES "public"."businesses"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "item_variants" ADD CONSTRAINT "item_variants_item_id_items_id_fk" FOREIGN KEY ("item_id") REFERENCES "public"."items"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "items" ADD CONSTRAINT "items_org_id_organisations_id_fk" FOREIGN KEY ("org_id") REFERENCES "public"."organisations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "items" ADD CONSTRAINT "items_business_id_businesses_id_fk" FOREIGN KEY ("business_id") REFERENCES "public"."businesses"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "items" ADD CONSTRAINT "items_unit_id_units_id_fk" FOREIGN KEY ("unit_id") REFERENCES "public"."units"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "items" ADD CONSTRAINT "items_secondary_unit_id_units_id_fk" FOREIGN KEY ("secondary_unit_id") REFERENCES "public"."units"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "ledger_accounts" ADD CONSTRAINT "ledger_accounts_org_id_organisations_id_fk" FOREIGN KEY ("org_id") REFERENCES "public"."organisations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "ledger_accounts" ADD CONSTRAINT "ledger_accounts_business_id_businesses_id_fk" FOREIGN KEY ("business_id") REFERENCES "public"."businesses"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "ledger_accounts" ADD CONSTRAINT "ledger_accounts_parent_id_ledger_accounts_id_fk" FOREIGN KEY ("parent_id") REFERENCES "public"."ledger_accounts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -701,11 +735,15 @@ CREATE INDEX "documents_org_id_idx" ON "documents" USING btree ("org_id");--> st
 CREATE INDEX "godowns_business_id_idx" ON "godowns" USING btree ("business_id");--> statement-breakpoint
 CREATE INDEX "godowns_org_id_idx" ON "godowns" USING btree ("org_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "hsn_master_code_effective_from_uq" ON "hsn_master" USING btree ("code","effective_from");--> statement-breakpoint
+CREATE UNIQUE INDEX "import_mappings_business_id_entity_signature_uq" ON "import_mappings" USING btree ("business_id","entity","signature") WHERE deleted_at IS NULL;--> statement-breakpoint
+CREATE INDEX "import_mappings_business_id_idx" ON "import_mappings" USING btree ("business_id");--> statement-breakpoint
+CREATE INDEX "import_mappings_org_id_idx" ON "import_mappings" USING btree ("org_id");--> statement-breakpoint
 CREATE INDEX "item_variants_item_id_idx" ON "item_variants" USING btree ("item_id");--> statement-breakpoint
 CREATE INDEX "item_variants_business_id_idx" ON "item_variants" USING btree ("business_id");--> statement-breakpoint
 CREATE INDEX "item_variants_org_id_idx" ON "item_variants" USING btree ("org_id");--> statement-breakpoint
-CREATE INDEX "items_business_id_sku_idx" ON "items" USING btree ("business_id","sku");--> statement-breakpoint
-CREATE INDEX "items_business_id_barcode_idx" ON "items" USING btree ("business_id","barcode");--> statement-breakpoint
+CREATE UNIQUE INDEX "items_business_id_sku_uq" ON "items" USING btree ("business_id","sku") WHERE deleted_at IS NULL AND sku IS NOT NULL;--> statement-breakpoint
+CREATE UNIQUE INDEX "items_business_id_barcode_uq" ON "items" USING btree ("business_id","barcode") WHERE deleted_at IS NULL AND barcode IS NOT NULL;--> statement-breakpoint
+CREATE INDEX "items_business_id_hsn_idx" ON "items" USING btree ("business_id","hsn");--> statement-breakpoint
 CREATE INDEX "items_business_id_idx" ON "items" USING btree ("business_id");--> statement-breakpoint
 CREATE INDEX "items_org_id_idx" ON "items" USING btree ("org_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "ledger_accounts_business_id_code_uq" ON "ledger_accounts" USING btree ("business_id","code") WHERE deleted_at IS NULL;--> statement-breakpoint

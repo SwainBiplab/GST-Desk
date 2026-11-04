@@ -88,6 +88,11 @@ export function AppDbProvider({ children }: { children: ReactNode }) {
           kind: opened.kind,
           error: null,
         });
+        // Load the HSN/SAC master that shipped with this install. Off the critical path: lookups work
+        // once it lands, and a failure here must not stop the app.
+        void import('@/lib/hsn')
+          .then((m) => m.ensureBundledHsn(opened.database))
+          .catch((e: unknown) => console.warn('HSN master not loaded', e));
       } catch (e) {
         setState((s) => ({
           ...s,

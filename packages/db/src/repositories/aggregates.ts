@@ -1,4 +1,4 @@
-import { canIssue, type DocumentType } from '@gst/domain';
+import { DEFAULT_UNIT_CODES, canIssue, uqcName, type DocumentType } from '@gst/domain';
 import { and, desc, eq, gte, isNull, lte, sql } from 'drizzle-orm';
 
 import type { Database } from '../database';
@@ -69,19 +69,6 @@ export async function listBusinesses(d: Database, orgId?: string): Promise<Row[]
 }
 
 /* ------------------------------------------------------------------ business */
-
-const UQC = [
-  ['NOS', 'Numbers'],
-  ['KGS', 'Kilograms'],
-  ['GMS', 'Grams'],
-  ['LTR', 'Litres'],
-  ['MTR', 'Metres'],
-  ['BOX', 'Box'],
-  ['PCS', 'Pieces'],
-  ['SET', 'Sets'],
-  ['DOZ', 'Dozens'],
-  ['OTH', 'Others'],
-] as const;
 
 const CHART = [
   ['1000', 'Cash', 'asset'],
@@ -184,7 +171,9 @@ export class BusinessRepo {
       updated_by: ctx.actor,
       ...extra,
     });
-    await tx.insert(s.units).values(UQC.map(([code, name]) => base({ code, name })));
+    await tx
+      .insert(s.units)
+      .values(DEFAULT_UNIT_CODES.map((code) => base({ code, name: uqcName(code)!, uqc: code })));
     await tx
       .insert(s.ledger_accounts)
       .values(CHART.map(([code, name, type]) => base({ code, name, type, is_system: true })));
@@ -232,28 +221,7 @@ export class BusinessRepo {
 
 export { PartyRepo } from './parties';
 
-export class ItemRepo extends BaseRepo {
-  constructor(d: Database) {
-    super(d, 'items');
-  }
-
-  async search(ctx: Ctx, q: string, limit = 20): Promise<Row[]> {
-    return runInTx(this.d, ctx, async (tx) =>
-      this.byIds(tx, ctx, await ftsIds(this.d, tx, ctx, 'items', q, limit)),
-    );
-  }
-
-  protected override async beforeSoftDelete(ctx: Ctx, tx: any, row: Row) {
-    for (const [table, col] of [
-      ['document_lines', 'item_id'],
-      ['stock_movements', 'item_id'],
-    ] as const) {
-      if (await this.isReferenced(tx, ctx, table, col, row['id'])) {
-        throw new RuleError(`item ${row['id']} is referenced by ${table} and cannot be deleted`);
-      }
-    }
-  }
-}
+export { ItemRepo, UnitRepo, ImportMappingRepo } from './items';
 
 /* ------------------------------------------------------------------ documents */
 

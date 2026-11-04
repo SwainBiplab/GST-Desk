@@ -3,6 +3,7 @@
  * financial years, payments and stock. Same seed => byte-identical rows (ids and timestamps included).
  * Bulk-inserts directly (no per-row audit_log), inside one transaction.
  */
+import { withCheckDigit } from '@gst/domain';
 import { sql } from 'drizzle-orm';
 
 import type { Database } from './database';
@@ -213,7 +214,7 @@ export async function seedDemo(d: Database, opts: SeedOptions = {}): Promise<See
       kind: i % 10 === 9 ? 'service' : 'goods',
       name: `${pick(ITEM_A)} ${pick(ITEM_B)} ${i + 1}`,
       sku: `SKU-${String(i + 1).padStart(4, '0')}`,
-      barcode: `890${String(1000000000 + i * 7919).slice(0, 10)}`,
+      barcode: withCheckDigit(`890${String(100000000 + i * 7919).padStart(9, '0')}`),
       hsn: pick(HSN),
       unit_id: nos['id'],
       sale_rate_paise: int(50, 5000) * 100,

@@ -8,3 +8,5 @@ Drizzle schema (SQLite + Postgres), migrations, repositories, seed and test harn
 
 Usage: `const d = await openSqlite('file:app.db'); await migrate(d);` then `new PartyRepo(d).create(ctx, {...})` with
 `ctx = { orgId, businessId, actor, deviceId }`. Use `runInTx(d, ctx, tx => repo.x({ ...ctx, tx }))` to compose calls.
+
+Items and the HSN master (prompt 13): `ItemRepo` (validation through `@gst/domain`, unique SKU and barcode, `gst_rate_overridden`, opening stock, `bulkCreate`, `applyBulkEdit` / `undoBulkEdit`, `rateChanges`), `UnitRepo`, `ImportMappingRepo`, and the reference-data functions in `hsn-master.ts` (`importHsnVersion` keeps rate history, `lookupHsn`, `HsnResolver`, `listHsnVersions`). Reference data is imported with `importHsnVersion(d, { version, as_of }, rows)`; see `docs/runbooks/hsn-master.md`.

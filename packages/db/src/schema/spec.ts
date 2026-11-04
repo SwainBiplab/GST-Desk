@@ -91,6 +91,8 @@ export const SPEC: TableSpec[] = [
       code: c.text().nn,
       name: c.text().nn,
       is_custom: c.bool().nn.default(false),
+      /** The GST UQC this unit reports as in returns (a standard unit reports itself). */
+      uqc: c.text(),
     },
     indexes: [{ cols: ['business_id', 'code'], unique: true, where: 'deleted_at IS NULL' }],
   },
@@ -130,18 +132,46 @@ export const SPEC: TableSpec[] = [
     cols: {
       kind: c.text().nn.default('goods').oneOf(['goods', 'service']),
       name: c.text().nn,
+      description: c.text(),
       sku: c.text(),
       barcode: c.text(),
       hsn: c.text(),
       unit_id: c.uuid().ref('units'),
+      /** Optional second unit; `secondary_factor_micros` primary units make one secondary unit. */
+      secondary_unit_id: c.uuid().ref('units'),
+      secondary_factor_micros: c.big(),
       sale_rate_paise: money(),
       purchase_rate_paise: money(),
+      mrp_paise: c.big(),
+      /** True when `sale_rate_paise` already includes GST. */
+      tax_inclusive: c.bool().nn.default(false),
       gst_rate_bp: bp(),
       cess_bp: bp(),
+      /** True when the rate differs from what the HSN master gives for `hsn`. Set by the repository. */
+      gst_rate_overridden: c.bool().nn.default(false),
       track_stock: c.bool().nn.default(false),
+      /** Reorder level. */
       min_stock_micros: money(),
+      opening_stock_micros: money(),
+      opening_stock_value_paise: money(),
+      /** Small references to image bytes held in the blob store: `{ sha256, mime, storagePath, name }`. */
+      images_json: c.json(),
+      tags_json: c.json(),
+      is_active: c.bool().nn.default(true),
     },
-    indexes: [{ cols: ['business_id', 'sku'] }, { cols: ['business_id', 'barcode'] }],
+    indexes: [
+      {
+        cols: ['business_id', 'sku'],
+        unique: true,
+        where: 'deleted_at IS NULL AND sku IS NOT NULL',
+      },
+      {
+        cols: ['business_id', 'barcode'],
+        unique: true,
+        where: 'deleted_at IS NULL AND barcode IS NOT NULL',
+      },
+      { cols: ['business_id', 'hsn'] },
+    ],
   },
   {
     name: 'item_variants',
@@ -179,6 +209,11 @@ export const SPEC: TableSpec[] = [
       source: c.text(),
       notes: c.text(),
       published_at: c.ts(),
+      /** Date the rates were checked against. */
+      as_of: c.date(),
+      row_count: c.int(),
+      sha256: c.text(),
+      imported_at: c.ts(),
     },
   },
   {
@@ -466,6 +501,19 @@ export const SPEC: TableSpec[] = [
       at: c.ts().nn,
     },
     indexes: [{ cols: ['table_name', 'row_id'] }],
+  },
+  {
+    name: 'import_mappings',
+    kind: 'tenant',
+    cols: {
+      entity: c.text().nn.oneOf(['items', 'parties']),
+      /** Sorted, normalised header names: the same layout in any column order. */
+      signature: c.text().nn,
+      mapping_json: c.json(),
+    },
+    indexes: [
+      { cols: ['business_id', 'entity', 'signature'], unique: true, where: 'deleted_at IS NULL' },
+    ],
   },
   {
     name: 'settings',

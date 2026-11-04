@@ -2,12 +2,14 @@ import { PageHeader, Sheet, SheetContent, SheetDescription, SheetTitle } from '@
 import { useTranslation } from 'react-i18next';
 
 import { useParty } from './hooks';
+import { partyImport } from './import-parties';
 import { Party360 } from './party-360';
 import { PartyEditor } from './party-editor';
 import { PartyList } from './party-list';
 
 import { useAppNavigate, useLocationInfo } from '@/app/hooks';
 import type { Shell } from '@/app/store';
+import { ImportWizard } from '@/features/import/import-wizard';
 
 /**
  * The Parties page. The URL decides what shows: `?open=<id>` Party 360, `?new=1` the create form,
@@ -21,6 +23,7 @@ export function PartiesPage({ shell }: { shell: Shell }) {
   const openId = typeof search['open'] === 'string' ? search['open'] : null;
   const editId = typeof search['edit'] === 'string' ? search['edit'] : null;
   const creating = search['new'] === '1' || search['new'] === 1;
+  const importing = search['import'] === '1' || search['import'] === 1;
   const editing = useParty(editId);
 
   const toList = () => navigate(`/${shell}/parties`);
@@ -65,6 +68,7 @@ export function PartiesPage({ shell }: { shell: Shell }) {
           </SheetContent>
         </Sheet>
       )}
+      {importing && <ImportWizard spec={partyImport} onClose={toList} />}
     </>
   );
 }

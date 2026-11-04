@@ -85,6 +85,21 @@ export function registerDefaultActions(): void {
   });
 
   registerAction({
+    id: 'import.items',
+    title: t('act.importItems'),
+    section: section('data'),
+    keywords: ['csv', 'upload', 'products', 'bulk'],
+    run: go('items', { import: '1' }),
+  });
+  registerAction({
+    id: 'import.parties',
+    title: t('act.importParties'),
+    section: section('data'),
+    keywords: ['csv', 'upload', 'customers', 'suppliers', 'bulk'],
+    run: go('parties', { import: '1' }),
+  });
+
+  registerAction({
     id: 'money.receive',
     title: t('act.receive'),
     section: section('money'),

@@ -10,3 +10,5 @@ export * from './repositories/hsn';
 export * from './events';
 export * from './repositories/stats';
 export * from './repositories/parties';
+export * from './repositories/hsn-master';
+export { ItemValidationError, type BulkBatch, type RateChangeRow } from './repositories/items';

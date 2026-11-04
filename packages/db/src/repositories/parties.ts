@@ -15,7 +15,15 @@ import { and, eq, isNull, sql } from 'drizzle-orm';
 import { queryRows, type Database } from '../database';
 import type { NewRow, Row } from '../schema';
 
-import { BaseRepo, NotFoundError, RuleError, ftsIds, runInTx, type Ctx } from './base';
+import {
+  BaseRepo,
+  ImportCancelled,
+  NotFoundError,
+  RuleError,
+  ftsIds,
+  runInTx,
+  type Ctx,
+} from './base';
 
 /** Ledger account codes for the keys the domain posting rules use. */
 const ACCOUNT_CODE: Partial<Record<AccountKey, string>> = {
@@ -95,6 +103,31 @@ export class PartyRepo extends BaseRepo {
       const party = await this.createIn(tx, ctx, values);
       await this.postOpening(tx, ctx, party, 0, Number(party['opening_balance_paise'] ?? 0));
       return party;
+    });
+  }
+
+  /**
+   * Create many parties in one transaction: all are stored or none. Opening balances post their
+   * ledger entries like `create`. Stops cleanly, writing nothing, if `shouldCancel` returns true.
+   */
+  async bulkCreate(
+    ctx: Ctx,
+    rows: NewRow[],
+    opts: {
+      onProgress?: (done: number, total: number) => void | Promise<void>;
+      shouldCancel?: () => boolean;
+    } = {},
+  ): Promise<{ created: number }> {
+    return runInTx(this.d, ctx, async (tx) => {
+      let done = 0;
+      for (const values of rows) {
+        if (opts.shouldCancel?.()) throw new ImportCancelled();
+        const party = await this.createIn(tx, ctx, values);
+        await this.postOpening(tx, ctx, party, 0, Number(party['opening_balance_paise'] ?? 0));
+        done++;
+        if (done % 50 === 0 || done === rows.length) await opts.onProgress?.(done, rows.length);
+      }
+      return { created: done };
     });
   }
 

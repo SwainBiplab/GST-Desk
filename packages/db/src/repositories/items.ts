@@ -1,0 +1,609 @@
+/**
+ * Items, units and saved import mappings. The item rules (what a valid item is) live in
+ * `@gst/domain`; this file enforces them at the storage boundary, keeps SKU and barcode unique,
+ * records whether an item's GST rate follows the HSN master, and posts opening stock.
+ */
+import {
+  divRound,
+  headerSignature,
+  isUqc,
+  uqcName,
+  validateCustomUnit,
+  validateItemInput,
+  type BulkPlanEntry,
+  type ItemFields,
+  type SavedMapping,
+} from '@gst/domain';
+import { and, eq, inArray, isNull, ne, or } from 'drizzle-orm';
+
+import type { Database } from '../database';
+import { noteWrite } from '../events';
+import type { NewRow, Row } from '../schema';
+
+import {
+  BaseRepo,
+  ImportCancelled,
+  NotFoundError,
+  RuleError,
+  ftsIds,
+  newId,
+  runInTx,
+  type Ctx,
+} from './base';
+import { loadHsnResolver, lookupHsn, type HsnResolver } from './hsn-master';
+
+const today = () => new Date().toISOString().slice(0, 10);
+
+/** An item failed validation. `fields` maps a field name to a code the UI turns into a message. */
+export class ItemValidationError extends RuleError {
+  override name = 'ItemValidationError';
+  constructor(
+    readonly fields: Record<string, string>,
+    /** Zero-based position in a bulk import, when known. */
+    readonly index?: number,
+  ) {
+    super(
+      `item rejected${index === undefined ? '' : ` (row ${index + 1})`}: ${Object.entries(fields)
+        .map(([k, v]) => `${k} (${v})`)
+        .join(', ')}`,
+    );
+  }
+}
+
+export interface BulkBatch {
+  id: string;
+  entries: { id: string; before: Record<string, unknown>; afterVersion: number }[];
+}
+
+export interface RateChangeRow {
+  id: string;
+  name: string;
+  hsn: string;
+  version: number;
+  oldRateBp: number;
+  newRateBp: number;
+  oldCessBp: number;
+  newCessBp: number;
+  effectiveFrom: string;
+  /** True when the new rate is already in force; false when it starts later. */
+  due: boolean;
+}
+
+const TEXT_KEYS = ['name', 'sku', 'barcode', 'hsn', 'description'] as const;
+
+/** Trim text, turn blanks into null, tidy tags. Only touches keys that are present. */
+function normalise(v: NewRow): NewRow {
+  const out: NewRow = { ...v };
+  for (const k of TEXT_KEYS) {
+    if (k in out && typeof out[k] === 'string') {
+      const t = (out[k] as string).trim();
+      out[k] = k === 'name' ? t : t === '' ? null : t;
+    }
+  }
+  if (out['hsn']) out['hsn'] = String(out['hsn']).replace(/\s+/g, '');
+  if (Array.isArray(out['tags_json'])) {
+    const seen = new Set<string>();
+    out['tags_json'] = (out['tags_json'] as string[])
+      .map((t) => t.trim().replace(/\s+/g, ' '))
+      .filter((t) => t !== '' && !seen.has(t.toLowerCase()) && seen.add(t.toLowerCase()));
+  }
+  return out;
+}
+
+const fieldsOf = (r: Row): ItemFields => r as unknown as ItemFields;
+
+function overriddenFlag(resolver: Pick<HsnResolver, 'resolve'>, row: Row, asOf: string): boolean {
+  if (!row['hsn']) return false;
+  const master = resolver.resolve(String(row['hsn']), asOf);
+  return !!master && master.rate_bp !== Number(row['gst_rate_bp'] ?? 0);
+}
+
+export class ItemRepo extends BaseRepo {
+  private readonly movements: BaseRepo;
+
+  constructor(d: Database) {
+    super(d, 'items');
+    this.movements = new BaseRepo(d, 'stock_movements');
+  }
+
+  async search(ctx: Ctx, q: string, limit = 20): Promise<Row[]> {
+    return runInTx(this.d, ctx, async (tx) =>
+      this.byIds(tx, ctx, await ftsIds(this.d, tx, ctx, 'items', q, limit)),
+    );
+  }
+
+  /** Several items by id, in the order asked. Missing or deleted ids are left out. */
+  async getMany(ctx: Ctx, ids: readonly string[]): Promise<Row[]> {
+    return runInTx(this.d, ctx, async (tx) => {
+      const out: Row[] = [];
+      for (let i = 0; i < ids.length; i += 500) {
+        out.push(...(await this.byIds(tx, ctx, ids.slice(i, i + 500))));
+      }
+      return out;
+    });
+  }
+
+  /** Every SKU and barcode in use, for checking an import file before it is written. */
+  async existingKeys(ctx: Ctx): Promise<{ skus: string[]; barcodes: string[] }> {
+    return runInTx(this.d, ctx, async (tx) => {
+      const t = this.t;
+      const rows: Row[] = await tx
+        .select({ sku: t.sku, barcode: t.barcode })
+        .from(t)
+        .where(and(eq(t.business_id, ctx.businessId), isNull(t.deleted_at)));
+      return {
+        skus: rows.map((r) => r['sku']).filter((x): x is string => !!x),
+        barcodes: rows.map((r) => r['barcode']).filter((x): x is string => !!x),
+      };
+    });
+  }
+
+  /** The live items that already use this SKU or barcode. */
+  async findClashes(
+    ctx: Ctx,
+    keys: { sku?: string | null; barcode?: string | null },
+    ignoreId?: string,
+  ): Promise<{ sku: Row | null; barcode: Row | null }> {
+    return runInTx(this.d, ctx, (tx) => this.clashesIn(tx, ctx, keys, ignoreId));
+  }
+
+  private async clashesIn(
+    tx: any,
+    ctx: Ctx,
+    keys: { sku?: string | null; barcode?: string | null },
+    ignoreId?: string,
+  ) {
+    const t = this.t;
+    const by = [
+      keys.sku ? eq(t.sku, keys.sku) : undefined,
+      keys.barcode ? eq(t.barcode, keys.barcode) : undefined,
+    ].filter(Boolean);
+    if (by.length === 0) return { sku: null, barcode: null };
+    const rows: Row[] = await tx
+      .select()
+      .from(t)
+      .where(
+        and(
+          eq(t.business_id, ctx.businessId),
+          isNull(t.deleted_at),
+          ignoreId ? ne(t.id, ignoreId) : undefined,
+          or(...by),
+        ),
+      );
+    return {
+      sku: (keys.sku && rows.find((r) => r['sku'] === keys.sku)) || null,
+      barcode: (keys.barcode && rows.find((r) => r['barcode'] === keys.barcode)) || null,
+    };
+  }
+
+  private async unitsMissingIn(
+    tx: any,
+    ctx: Ctx,
+    ids: (string | null | undefined)[],
+  ): Promise<boolean> {
+    const wanted = [...new Set(ids.filter((x): x is string => !!x))];
+    if (wanted.length === 0) return false;
+    const u = this.d.schema.units;
+    const rows: Row[] = await tx
+      .select({ id: u.id })
+      .from(u)
+      .where(and(eq(u.business_id, ctx.businessId), isNull(u.deleted_at), inArray(u.id, wanted)));
+    return rows.length !== wanted.length;
+  }
+
+  /** Validate and complete a row about to be stored. `only` limits error reporting to changed fields. */
+  private async prepareIn(
+    tx: any,
+    ctx: Ctx,
+    merged: NewRow,
+    patch: NewRow | null,
+    ignoreId?: string,
+  ): Promise<NewRow> {
+    const errors: Record<string, string> = {};
+    const found = validateItemInput(fieldsOf(merged));
+    for (const [k, v] of Object.entries(found)) if (!patch || k in patch) errors[k] = v;
+
+    if (!patch || 'sku' in patch || 'barcode' in patch) {
+      const clash = await this.clashesIn(
+        tx,
+        ctx,
+        {
+          sku: (merged['sku'] as string | null) ?? null,
+          barcode: (merged['barcode'] as string | null) ?? null,
+        },
+        ignoreId,
+      );
+      if (clash.sku) errors['sku'] = 'duplicate_sku';
+      if (clash.barcode) errors['barcode'] = 'duplicate_barcode';
+    }
+    if (!patch || 'unit_id' in patch || 'secondary_unit_id' in patch) {
+      if (await this.unitsMissingIn(tx, ctx, [merged['unit_id'], merged['secondary_unit_id']]))
+        errors['unit_id'] = 'unit';
+    }
+    if (Object.keys(errors).length > 0) throw new ItemValidationError(errors);
+
+    const out: NewRow = patch ? { ...patch } : { ...merged };
+    if (!patch || 'hsn' in patch || 'gst_rate_bp' in patch) {
+      const master = merged['hsn']
+        ? await lookupHsn(this.d, String(merged['hsn']), today(), tx)
+        : null;
+      out['gst_rate_overridden'] =
+        !!master && master.rate_bp !== Number(merged['gst_rate_bp'] ?? 0);
+    }
+    return out;
+  }
+
+  override async create(
+    ctx: Ctx,
+    values: NewRow & { id?: string },
+    opts: { openingDate?: string } = {},
+  ): Promise<Row> {
+    return runInTx(this.d, ctx, async (tx) => {
+      const clean = normalise(values);
+      const row = await this.prepareIn(tx, ctx, clean, null);
+      const created = await this.createIn(tx, ctx, row);
+      await this.postOpeningStockIn(tx, ctx, [created], opts.openingDate ?? today());
+      return created;
+    });
+  }
+
+  override async update(
+    ctx: Ctx,
+    id: string,
+    patch: NewRow,
+    expectedVersion: number,
+  ): Promise<Row> {
+    return runInTx(this.d, ctx, async (tx) => {
+      const before = await this.getIn(tx, ctx, id);
+      if (!before) throw new NotFoundError(this.name, id);
+      const clean = normalise(patch);
+      const merged = { ...before, ...clean };
+      const row = await this.prepareIn(tx, ctx, merged, clean, id);
+      return this.updateIn(tx, ctx, id, row, expectedVersion);
+    });
+  }
+
+  /** Stock-in movements for items created with an opening quantity. */
+  private async postOpeningStockIn(tx: any, ctx: Ctx, items: Row[], date: string): Promise<void> {
+    const opening = items.filter((i) => i['track_stock'] && Number(i['opening_stock_micros']) > 0);
+    if (opening.length === 0) return;
+    const g = this.d.schema.godowns;
+    const [godown]: Row[] = await tx
+      .select({ id: g.id })
+      .from(g)
+      .where(and(eq(g.business_id, ctx.businessId), eq(g.is_default, true), isNull(g.deleted_at)))
+      .limit(1);
+    for (const i of opening) {
+      const qty = BigInt(i['opening_stock_micros']);
+      const value = BigInt(i['opening_stock_value_paise'] ?? 0);
+      const rate =
+        value > 0n ? divRound(value * 1_000_000n, qty) : BigInt(i['purchase_rate_paise'] ?? 0);
+      await (this.movements as any).createIn(tx, ctx, {
+        item_id: i['id'],
+        godown_id: godown?.['id'] ?? null,
+        kind: 'in',
+        qty_micros: Number(qty),
+        rate_paise: Number(rate),
+        date,
+        note: 'Opening stock',
+      });
+    }
+  }
+
+  /**
+   * Create many items in one transaction: either all are stored or none. Validates every row first,
+   * writes in chunks, reports progress, and stops cleanly if `shouldCancel` returns true.
+   */
+  async bulkCreate(
+    ctx: Ctx,
+    rows: NewRow[],
+    opts: {
+      onProgress?: (done: number, total: number) => void | Promise<void>;
+      shouldCancel?: () => boolean;
+      openingDate?: string;
+      chunk?: number;
+    } = {},
+  ): Promise<{ created: number }> {
+    return runInTx(this.d, ctx, async (tx) => {
+      const s = this.d.schema;
+      const total = rows.length;
+      const chunk = opts.chunk ?? 200;
+
+      const resolver = await loadHsnResolver(this.d, tx);
+      const existing: Row[] = await tx
+        .select({ sku: s.items.sku, barcode: s.items.barcode })
+        .from(s.items)
+        .where(and(eq(s.items.business_id, ctx.businessId), isNull(s.items.deleted_at)));
+      const skus = new Set(existing.map((r) => r['sku']).filter(Boolean));
+      const barcodes = new Set(existing.map((r) => r['barcode']).filter(Boolean));
+      const unitRows: Row[] = await tx
+        .select({ id: s.units.id })
+        .from(s.units)
+        .where(and(eq(s.units.business_id, ctx.businessId), isNull(s.units.deleted_at)));
+      const units = new Set(unitRows.map((r) => r['id']));
+
+      const clean: NewRow[] = rows.map((r, index) => {
+        const v = normalise(r);
+        const errors: Record<string, string> = { ...validateItemInput(fieldsOf(v)) };
+        const sku = v['sku'] as string | null | undefined;
+        const barcode = v['barcode'] as string | null | undefined;
+        if (sku) {
+          if (skus.has(sku)) errors['sku'] = 'duplicate_sku';
+          skus.add(sku);
+        }
+        if (barcode) {
+          if (barcodes.has(barcode)) errors['barcode'] = 'duplicate_barcode';
+          barcodes.add(barcode);
+        }
+        for (const k of ['unit_id', 'secondary_unit_id']) {
+          if (v[k] && !units.has(v[k])) errors['unit_id'] = 'unit';
+        }
+        if (Object.keys(errors).length > 0) throw new ItemValidationError(errors, index);
+        return { ...v, gst_rate_overridden: overriddenFlag(resolver, v, today()) };
+      });
+
+      const date = opts.openingDate ?? today();
+      let done = 0;
+      for (let i = 0; i < clean.length; i += chunk) {
+        if (opts.shouldCancel?.()) throw new ImportCancelled();
+        const now = Date.now();
+        const slice = clean.slice(i, i + chunk).map((v) => ({
+          ...v,
+          id: newId(),
+          org_id: ctx.orgId,
+          business_id: ctx.businessId,
+          version: 1,
+          created_at: now,
+          updated_at: now,
+          created_by: ctx.actor,
+          updated_by: ctx.actor,
+        }));
+        const created: Row[] = await tx.insert(s.items).values(slice).returning();
+        noteWrite(tx, 'items');
+        noteWrite(tx, 'audit_log');
+        await tx.insert(s.audit_log).values(
+          created.map((row) => ({
+            id: newId(),
+            org_id: ctx.orgId,
+            business_id: ctx.businessId,
+            created_at: now,
+            table_name: 'items',
+            row_id: row['id'],
+            action: 'insert',
+            before_json: null,
+            after_json: row,
+            actor: ctx.actor,
+            device_id: ctx.deviceId,
+            at: now,
+          })),
+        );
+        await this.postOpeningStockIn(tx, ctx, created, date);
+        done += slice.length;
+        await opts.onProgress?.(done, total);
+      }
+      if (opts.shouldCancel?.()) throw new ImportCancelled();
+      return { created: done };
+    });
+  }
+
+  /**
+   * Apply a bulk-edit plan (from `planBulkEdit`) in one transaction. Fails as a whole with a
+   * `ConflictError` if any item changed since the plan was made. The returned batch undoes it.
+   */
+  async applyBulkEdit(ctx: Ctx, plan: readonly BulkPlanEntry[]): Promise<BulkBatch> {
+    return runInTx(this.d, ctx, async (tx) => {
+      const resolver = await loadHsnResolver(this.d, tx);
+      const entries: BulkBatch['entries'] = [];
+      for (const e of plan) {
+        if (e.skipped) continue;
+        const before = await this.getIn(tx, ctx, e.id);
+        if (!before) throw new NotFoundError(this.name, e.id);
+        const after: NewRow = { ...e.after };
+        const undo: Record<string, unknown> = { ...e.before };
+        if ('gst_rate_bp' in after) {
+          const flag = overriddenFlag(resolver, { ...before, ...after }, today());
+          after['gst_rate_overridden'] = flag;
+          undo['gst_rate_overridden'] = before['gst_rate_overridden'];
+        }
+        const row = await this.updateIn(tx, ctx, e.id, after, e.version);
+        entries.push({ id: e.id, before: undo, afterVersion: Number(row['version']) });
+      }
+      return { id: newId(), entries };
+    });
+  }
+
+  /** Put back what a bulk edit changed. Items edited since are left alone and counted as skipped. */
+  async undoBulkEdit(ctx: Ctx, batch: BulkBatch): Promise<{ reverted: number; skipped: number }> {
+    return runInTx(this.d, ctx, async (tx) => {
+      let reverted = 0;
+      let skipped = 0;
+      for (const e of batch.entries) {
+        const now = await this.getIn(tx, ctx, e.id);
+        if (!now || Number(now['version']) !== e.afterVersion) {
+          skipped++;
+          continue;
+        }
+        await this.updateIn(tx, ctx, e.id, e.before as NewRow, e.afterVersion);
+        reverted++;
+      }
+      return { reverted, skipped };
+    });
+  }
+
+  /**
+   * Items whose rate no longer matches the HSN master. Items with a deliberate override are not
+   * listed. `due` is false for changes that start in the future.
+   */
+  async rateChanges(ctx: Ctx, asOf = today()): Promise<RateChangeRow[]> {
+    return runInTx(this.d, ctx, async (tx) => {
+      const t = this.t;
+      const items: Row[] = await tx
+        .select({
+          id: t.id,
+          name: t.name,
+          hsn: t.hsn,
+          version: t.version,
+          gst_rate_bp: t.gst_rate_bp,
+          cess_bp: t.cess_bp,
+        })
+        .from(t)
+        .where(
+          and(
+            eq(t.business_id, ctx.businessId),
+            isNull(t.deleted_at),
+            eq(t.gst_rate_overridden, false),
+          ),
+        );
+      const resolver = await loadHsnResolver(this.d, tx);
+      const out: RateChangeRow[] = [];
+      for (const it of items) {
+        if (!it['hsn']) continue;
+        const hsn = String(it['hsn']);
+        const now = resolver.resolve(hsn, asOf);
+        const next = resolver.upcoming(hsn, asOf);
+        const rate = Number(it['gst_rate_bp']);
+        const cess = Number(it['cess_bp']);
+        const differs = (r: { rate_bp: number; cess_bp: number }) =>
+          r.rate_bp !== rate || r.cess_bp !== cess;
+        const target = now && differs(now) ? now : next && differs(next) ? next : null;
+        if (!target) continue;
+        out.push({
+          id: it['id'],
+          name: it['name'],
+          hsn,
+          version: Number(it['version']),
+          oldRateBp: rate,
+          newRateBp: target.rate_bp,
+          oldCessBp: cess,
+          newCessBp: target.cess_bp,
+          effectiveFrom: target.effective_from,
+          due: target.effective_from <= asOf,
+        });
+      }
+      return out.sort((a, b) => a.hsn.localeCompare(b.hsn) || a.name.localeCompare(b.name));
+    });
+  }
+
+  protected override async beforeSoftDelete(ctx: Ctx, tx: any, row: Row) {
+    for (const [table, col] of [
+      ['document_lines', 'item_id'],
+      ['stock_movements', 'item_id'],
+    ] as const) {
+      if (await this.isReferenced(tx, ctx, table, col, row['id'])) {
+        throw new RuleError(`item ${row['id']} is referenced by ${table} and cannot be deleted`);
+      }
+    }
+  }
+}
+
+/** Units of measure: the standard UQC set a business picks from, and its own custom units. */
+export class UnitRepo extends BaseRepo {
+  constructor(d: Database) {
+    super(d, 'units');
+  }
+
+  /** Add a standard GST unit (by its UQC code) to this business. A no-op if it is already there. */
+  async addStandard(ctx: Ctx, code: string): Promise<Row> {
+    return runInTx(this.d, ctx, async (tx) => {
+      if (!isUqc(code)) throw new RuleError(`${code} is not a GST unit quantity code`);
+      const t = this.t;
+      const [have]: Row[] = await tx
+        .select()
+        .from(t)
+        .where(and(eq(t.business_id, ctx.businessId), eq(t.code, code), isNull(t.deleted_at)))
+        .limit(1);
+      if (have) return have;
+      return this.createIn(tx, ctx, { code, name: uqcName(code)!, is_custom: false, uqc: code });
+    });
+  }
+
+  /** Add a custom unit mapped to the UQC it reports as in returns. */
+  async addCustom(ctx: Ctx, input: { code: string; name: string; uqc: string }): Promise<Row> {
+    return runInTx(this.d, ctx, async (tx) => {
+      const t = this.t;
+      const existing: Row[] = await tx
+        .select({ code: t.code })
+        .from(t)
+        .where(and(eq(t.business_id, ctx.businessId), isNull(t.deleted_at)));
+      const problems = validateCustomUnit(
+        input,
+        existing.map((r) => r['code']),
+      );
+      if (problems.length > 0) throw new RuleError(`unit rejected: ${problems.join(', ')}`);
+      return this.createIn(tx, ctx, {
+        code: input.code.trim().toUpperCase(),
+        name: input.name.trim(),
+        is_custom: true,
+        uqc: input.uqc,
+      });
+    });
+  }
+
+  protected override async beforeSoftDelete(ctx: Ctx, tx: any, row: Row) {
+    for (const [table, col] of [
+      ['items', 'unit_id'],
+      ['items', 'secondary_unit_id'],
+      ['document_lines', 'unit_id'],
+    ] as const) {
+      if (await this.isReferenced(tx, ctx, table, col, row['id'])) {
+        throw new RuleError(`unit ${row['code']} is in use and cannot be removed`);
+      }
+    }
+  }
+}
+
+/** Column mappings the user saved for an import, found again by header layout. */
+export class ImportMappingRepo extends BaseRepo {
+  constructor(d: Database) {
+    super(d, 'import_mappings');
+  }
+
+  async forHeaders(
+    ctx: Ctx,
+    entity: 'items' | 'parties',
+    headers: readonly string[],
+  ): Promise<SavedMapping | null> {
+    return runInTx(this.d, ctx, async (tx) => {
+      const t = this.t;
+      const [row]: Row[] = await tx
+        .select()
+        .from(t)
+        .where(
+          and(
+            eq(t.business_id, ctx.businessId),
+            eq(t.entity, entity),
+            eq(t.signature, headerSignature(headers)),
+            isNull(t.deleted_at),
+          ),
+        )
+        .limit(1);
+      return (row?.['mapping_json'] as SavedMapping | undefined) ?? null;
+    });
+  }
+
+  async save(
+    ctx: Ctx,
+    entity: 'items' | 'parties',
+    headers: readonly string[],
+    mapping: SavedMapping,
+  ): Promise<void> {
+    await runInTx(this.d, ctx, async (tx) => {
+      const t = this.t;
+      const signature = headerSignature(headers);
+      const [row]: Row[] = await tx
+        .select()
+        .from(t)
+        .where(
+          and(
+            eq(t.business_id, ctx.businessId),
+            eq(t.entity, entity),
+            eq(t.signature, signature),
+            isNull(t.deleted_at),
+          ),
+        )
+        .limit(1);
+      if (row) await this.updateIn(tx, ctx, row['id'], { mapping_json: mapping }, row['version']);
+      else await this.createIn(tx, ctx, { entity, signature, mapping_json: mapping });
+    });
+  }
+}

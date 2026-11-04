@@ -37,7 +37,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { downloadText, partiesCsv } from './csv';
+import { downloadText, partiesCsv, partiesImportCsv } from './csv';
 import { stateName } from './form';
 import { usePartyList, usePartySearch } from './hooks';
 import { MergeDialog } from './merge';
@@ -557,19 +557,62 @@ export function PartyList({ shell }: { shell: Shell }) {
     );
   };
 
+  /** The same columns the import reads, so an export can be edited and imported again. */
+  const exportForImport = () => {
+    const rows = chosen.length > 0 ? chosen : filtered;
+    downloadText(
+      'parties-for-import.csv',
+      partiesImportCsv(
+        rows.map((r) => {
+          const addresses = (r.row['addresses_json'] ?? []) as {
+            kind?: string;
+            line1?: string;
+            pincode?: string;
+          }[];
+          const billing = addresses.find((a) => a.kind === 'billing') ?? addresses[0];
+          return {
+            name: r.name,
+            tradeName: r.row['trade_name'] ?? '',
+            type: r.type,
+            gstin: r.gstin,
+            phone: r.phone,
+            email: r.row['email'] ?? '',
+            address: billing?.line1 ?? '',
+            city: r.city,
+            state: r.state,
+            pincode: billing?.pincode ?? '',
+            creditDays: r.creditDays,
+            openingPaise: BigInt(r.row['opening_balance_paise'] ?? 0),
+            tags: r.tags,
+          };
+        }),
+      ),
+    );
+  };
+
   return (
     <div className="flex h-full min-h-0 flex-col gap-3" data-testid="party-list">
       <PageHeader
         title={t('nav.parties')}
         description={t('parties.list.count', { count: filtered.length, total: all.length })}
         actions={
-          <Button
-            onClick={() => navigate(`/${shell}/parties`, { new: '1' })}
-            data-testid="new-party"
-            className={shell === 'shop' ? 'min-h-11' : ''}
-          >
-            {t('parties.list.new')}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => navigate(`/${shell}/parties`, { import: '1' })}
+              data-testid="import-parties"
+              className={shell === 'shop' ? 'min-h-11' : ''}
+            >
+              {t('parties.list.import')}
+            </Button>
+            <Button
+              onClick={() => navigate(`/${shell}/parties`, { new: '1' })}
+              data-testid="new-party"
+              className={shell === 'shop' ? 'min-h-11' : ''}
+            >
+              {t('parties.list.new')}
+            </Button>
+          </div>
         }
       />
       <div className="flex flex-wrap items-center gap-3">
@@ -592,6 +635,9 @@ export function PartyList({ shell }: { shell: Shell }) {
           </span>
           <Button variant="outline" onClick={exportCsv} data-testid="export-csv">
             {t('parties.bulk.export')}
+          </Button>
+          <Button variant="outline" onClick={exportForImport} data-testid="export-import-csv">
+            {t('parties.bulk.exportForImport')}
           </Button>
           <Button
             variant="outline"

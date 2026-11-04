@@ -28,7 +28,10 @@
     "release:sync-version": "node scripts/sync-version.mjs",
     "release:version": "changeset version && node scripts/sync-version.mjs",
     "release:tag": "node scripts/release-tag.mjs",
-    "release:verify": "node scripts/verify-release.mjs"
+    "release:verify": "node scripts/verify-release.mjs",
+    "hsn:keygen": "pnpm --filter @gst/hsn-tools keygen",
+    "hsn:build": "pnpm --filter @gst/hsn-tools make",
+    "hsn:verify": "pnpm --filter @gst/hsn-tools verify"
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.3",

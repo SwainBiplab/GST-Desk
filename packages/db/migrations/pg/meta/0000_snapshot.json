@@ -1,5 +1,5 @@
 {
-  "id": "450b9a4a-b334-4307-81fe-ec0d0e0d8a46",
+  "id": "b8fc3db7-3113-46b4-a9b6-dc7bd3bb663b",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -2181,6 +2181,172 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.import_mappings": {
+      "name": "import_mappings",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "org_id": {
+          "name": "org_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "business_id": {
+          "name": "business_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "(extract(epoch from now()) * 1000)::bigint"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "(extract(epoch from now()) * 1000)::bigint"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entity": {
+          "name": "entity",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "signature": {
+          "name": "signature",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "mapping_json": {
+          "name": "mapping_json",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "import_mappings_business_id_entity_signature_uq": {
+          "name": "import_mappings_business_id_entity_signature_uq",
+          "columns": [
+            {
+              "expression": "business_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "entity",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "signature",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "deleted_at IS NULL",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "import_mappings_business_id_idx": {
+          "name": "import_mappings_business_id_idx",
+          "columns": [
+            {
+              "expression": "business_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "import_mappings_org_id_idx": {
+          "name": "import_mappings_org_id_idx",
+          "columns": [
+            {
+              "expression": "org_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "import_mappings_org_id_organisations_id_fk": {
+          "name": "import_mappings_org_id_organisations_id_fk",
+          "tableFrom": "import_mappings",
+          "tableTo": "organisations",
+          "columnsFrom": ["org_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "import_mappings_business_id_businesses_id_fk": {
+          "name": "import_mappings_business_id_businesses_id_fk",
+          "tableFrom": "import_mappings",
+          "tableTo": "businesses",
+          "columnsFrom": ["business_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.item_variants": {
       "name": "item_variants",
       "schema": "",
@@ -2435,6 +2601,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "sku": {
           "name": "sku",
           "type": "text",
@@ -2459,6 +2631,18 @@
           "primaryKey": false,
           "notNull": false
         },
+        "secondary_unit_id": {
+          "name": "secondary_unit_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "secondary_factor_micros": {
+          "name": "secondary_factor_micros",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
         "sale_rate_paise": {
           "name": "sale_rate_paise",
           "type": "bigint",
@@ -2472,6 +2656,19 @@
           "primaryKey": false,
           "notNull": true,
           "default": 0
+        },
+        "mrp_paise": {
+          "name": "mrp_paise",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tax_inclusive": {
+          "name": "tax_inclusive",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         },
         "gst_rate_bp": {
           "name": "gst_rate_bp",
@@ -2487,6 +2684,13 @@
           "notNull": true,
           "default": 0
         },
+        "gst_rate_overridden": {
+          "name": "gst_rate_overridden",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
         "track_stock": {
           "name": "track_stock",
           "type": "boolean",
@@ -2500,11 +2704,44 @@
           "primaryKey": false,
           "notNull": true,
           "default": 0
+        },
+        "opening_stock_micros": {
+          "name": "opening_stock_micros",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "opening_stock_value_paise": {
+          "name": "opening_stock_value_paise",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "images_json": {
+          "name": "images_json",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tags_json": {
+          "name": "tags_json",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
         }
       },
       "indexes": {
-        "items_business_id_sku_idx": {
-          "name": "items_business_id_sku_idx",
+        "items_business_id_sku_uq": {
+          "name": "items_business_id_sku_uq",
           "columns": [
             {
               "expression": "business_id",
@@ -2519,13 +2756,14 @@
               "nulls": "last"
             }
           ],
-          "isUnique": false,
+          "isUnique": true,
+          "where": "deleted_at IS NULL AND sku IS NOT NULL",
           "concurrently": false,
           "method": "btree",
           "with": {}
         },
-        "items_business_id_barcode_idx": {
-          "name": "items_business_id_barcode_idx",
+        "items_business_id_barcode_uq": {
+          "name": "items_business_id_barcode_uq",
           "columns": [
             {
               "expression": "business_id",
@@ -2535,6 +2773,28 @@
             },
             {
               "expression": "barcode",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "deleted_at IS NULL AND barcode IS NOT NULL",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "items_business_id_hsn_idx": {
+          "name": "items_business_id_hsn_idx",
+          "columns": [
+            {
+              "expression": "business_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "hsn",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -2600,6 +2860,15 @@
           "tableFrom": "items",
           "tableTo": "units",
           "columnsFrom": ["unit_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "items_secondary_unit_id_units_id_fk": {
+          "name": "items_secondary_unit_id_units_id_fk",
+          "tableFrom": "items",
+          "tableTo": "units",
+          "columnsFrom": ["secondary_unit_id"],
           "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
@@ -4397,6 +4666,30 @@
           "type": "bigint",
           "primaryKey": false,
           "notNull": false
+        },
+        "as_of": {
+          "name": "as_of",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "row_count": {
+          "name": "row_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sha256": {
+          "name": "sha256",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "imported_at": {
+          "name": "imported_at",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -5563,6 +5856,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": false
+        },
+        "uqc": {
+          "name": "uqc",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {
