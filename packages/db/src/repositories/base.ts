@@ -109,9 +109,7 @@ export async function ftsIds(
     const rows = await queryRows(
       d,
       tx,
-      sql.raw(
-        `SELECT id FROM ${table}_fts WHERE ${table}_fts MATCH '${match.replace(/'/g, "''")}' AND business_id = '${ctx.businessId}' ORDER BY rank LIMIT ${Math.trunc(limit)}`,
-      ),
+      sql`SELECT id FROM ${sql.identifier(`${table}_fts`)} WHERE ${sql.identifier(`${table}_fts`)} MATCH ${match} AND business_id = ${ctx.businessId} ORDER BY rank LIMIT ${Math.trunc(limit)}`,
     );
     return rows.map((r) => String(r['id']));
   }
