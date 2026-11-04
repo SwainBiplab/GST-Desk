@@ -1,0 +1,33 @@
+// Drizzle Kit entrypoint (pg). Keep in sync with SPEC (a test enforces it).
+import { buildSchema } from './index';
+
+const t = buildSchema('pg');
+export const organisations = t.organisations;
+export const users = t.users;
+export const businesses = t.businesses;
+export const memberships = t.memberships;
+export const devices = t.devices;
+export const business_accounts = t.business_accounts;
+export const units = t.units;
+export const parties = t.parties;
+export const items = t.items;
+export const item_variants = t.item_variants;
+export const hsn_master = t.hsn_master;
+export const rate_master_versions = t.rate_master_versions;
+export const number_series = t.number_series;
+export const number_reservations = t.number_reservations;
+export const documents = t.documents;
+export const document_lines = t.document_lines;
+export const payments = t.payments;
+export const payment_allocations = t.payment_allocations;
+export const ledger_accounts = t.ledger_accounts;
+export const ledger_entries = t.ledger_entries;
+export const godowns = t.godowns;
+export const batches = t.batches;
+export const stock_movements = t.stock_movements;
+export const templates = t.templates;
+export const attachments = t.attachments;
+export const review_items = t.review_items;
+export const audit_log = t.audit_log;
+export const settings = t.settings;
+export const sync_state = t.sync_state;

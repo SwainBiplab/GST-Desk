@@ -1,3 +1,10 @@
 # @gst/db
 
-Placeholder package. See `docs/decisions/0001-monorepo-and-stack.md`.
+Drizzle schema (SQLite + Postgres), migrations, repositories, seed and test harness. See ADR 0002.
+
+- `pnpm --filter @gst/db db:generate` – regenerate Drizzle Kit SQL for both dialects and the embedded `migrations.generated.ts`.
+- `pnpm --filter @gst/db db:seed [file]` – write a deterministic demo SQLite file (default `demo.sqlite`, gitignored).
+- `pnpm --filter @gst/db test` – every repository test runs on SQLite (in-memory) and Postgres (PGlite).
+
+Usage: `const d = await openSqlite('file:app.db'); await migrate(d);` then `new PartyRepo(d).create(ctx, {...})` with
+`ctx = { orgId, businessId, actor, deviceId }`. Use `runInTx(d, ctx, tx => repo.x({ ...ctx, tx }))` to compose calls.
