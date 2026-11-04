@@ -34,3 +34,7 @@ Secrets `WINDOWS_CERTIFICATE` (base64 PFX) and `WINDOWS_CERTIFICATE_PASSWORD` ar
 3. Use a protected environment (`release`) with required reviewers for the secrets once the repository has more than one maintainer.
 4. Verify every release with `pnpm release:verify`; it checks each updater signature against the public key.
 5. Record key creation, rotation and custodian changes in this file's history.
+
+## Workflow supply chain
+
+Third-party actions (`pnpm/action-setup`, `dtolnay/rust-toolchain`, `swatinem/rust-cache`, `tauri-apps/tauri-action`, `changesets/action`) are pinned to full commit SHAs, with the tag in a comment. Dependabot's `github-actions` group proposes SHA bumps weekly; review them like any dependency change. Signing secrets are passed only to the Build step, so no other action in the job can read them. `scripts/test/workflows.test.mjs` fails if a third-party action is pinned to a tag or if a job-level `env` carries secrets.

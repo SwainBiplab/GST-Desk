@@ -41,12 +41,15 @@ describe('workflow files', () => {
       }
     });
 
-    it('pins third-party actions to a major version', () => {
+    it('pins third-party actions to a full commit SHA (first-party actions/* to a major tag)', () => {
       const uses = [...text.matchAll(/uses:\s*([^\s#]+)/g)]
         .map((m) => m[1])
         .filter((u) => !u.startsWith('./'));
       expect(uses.length).toBeGreaterThan(0);
-      for (const u of uses) expect(u, u).toMatch(/@(v\d+|stable)$/);
+      for (const u of uses) {
+        if (u.startsWith('actions/')) expect(u, u).toMatch(/@v\d+$/);
+        else expect(u, u).toMatch(/@[0-9a-f]{40}$/);
+      }
     });
 
     it('never prints secrets', () => {
@@ -98,9 +101,13 @@ describe('release wiring', () => {
     expect(include[2].target).toBe('universal-apple-darwin');
     expect(workflows['desktop.yml'].text).not.toMatch(/releaseDraft|gh release|tagName/);
     expect(d.on.workflow_call).toBeDefined();
-    const env = d.jobs.build.env;
+    // signing secrets are visible to the Build step only, not to every action in the job
+    expect(d.jobs.build.env).toBeUndefined();
+    const build = d.jobs.build.steps.find((st) => st.name === 'Build');
     for (const k of ['TAURI_SIGNING_PRIVATE_KEY', 'APPLE_CERTIFICATE', 'WINDOWS_CERTIFICATE'])
-      expect(env[k]).toContain('secrets.');
+      expect(build.env[k]).toContain('secrets.');
+    for (const st of d.jobs.build.steps)
+      if (st !== build) expect(JSON.stringify(st.env ?? {})).not.toContain('secrets.');
   });
 
   it('release.yml only drafts', () => {
