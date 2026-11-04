@@ -1,8 +1,9 @@
 import { sql } from 'drizzle-orm';
 import { afterAll, describe, expect, it } from 'vitest';
 
-import { openPglite, openSqlite, queryRows, type Database } from './database';
+import { queryRows, type Database } from './database';
 import { MIGRATIONS, migrate, schemaVersion } from './migrate';
+import { openPglite, openSqlite } from './node';
 import { SPEC } from './schema';
 import * as pgEntry from './schema/pg';
 import * as sqliteEntry from './schema/sqlite';

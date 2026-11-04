@@ -7,7 +7,9 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./testing": "./src/testing/harness.ts"
+    "./testing": "./src/testing/harness.ts",
+    "./node": "./src/node.ts",
+    "./seed": "./src/seed.ts"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json --noEmit",

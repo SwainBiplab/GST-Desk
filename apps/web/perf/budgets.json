@@ -1,9 +1,18 @@
 {
-  "note": "CPU throttled 4x (baseline device profile, docs/perf-baseline.md). DB-backed budgets (50,000-document list, PDF render) arrive with prompts 14, 17 and 18.",
+  "note": "CPU throttled 4x (baseline device profile, docs/perf-baseline.md) with the seeded demo database already stored. First paint budgets from prompt 10: /shop under 1.5 s, /books under 2 s. DB-backed list and PDF budgets arrive with prompts 14, 17 and 18.",
   "cpuThrottle": 4,
   "routes": {
-    "/shop": { "fcpMs": 2500, "loadMs": 4000 },
-    "/books": { "fcpMs": 2500, "loadMs": 4000 },
-    "/books/_kit": { "fcpMs": 3000, "loadMs": 5000 }
+    "/shop/dashboard": {
+      "fcpMs": 1500,
+      "loadMs": 3000
+    },
+    "/books/dashboard": {
+      "fcpMs": 2000,
+      "loadMs": 3500
+    },
+    "/books/_kit": {
+      "fcpMs": 2500,
+      "loadMs": 4500
+    }
   }
 }

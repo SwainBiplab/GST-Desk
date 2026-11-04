@@ -39,6 +39,16 @@ export async function createUser(
   return row;
 }
 
+/** All live businesses (optionally of one organisation), oldest first. */
+export async function listBusinesses(d: Database, orgId?: string): Promise<Row[]> {
+  const t = d.schema.businesses;
+  return d.db
+    .select()
+    .from(t)
+    .where(and(isNull(t.deleted_at), orgId ? eq(t.org_id, orgId) : undefined))
+    .orderBy(t.created_at);
+}
+
 /* ------------------------------------------------------------------ business */
 
 const UQC = [

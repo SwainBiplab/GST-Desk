@@ -6,8 +6,8 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
-import { openSqlite } from '../src/database';
 import { migrate } from '../src/migrate';
+import { openSqlite } from '../src/node';
 import { DocumentRepo, PartyRepo } from '../src/repositories/aggregates';
 import { seedDemo } from '../src/seed';
 

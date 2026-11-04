@@ -1,8 +1,8 @@
 import { rmSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-import { openSqlite } from '../src/database';
 import { migrate } from '../src/migrate';
+import { openSqlite } from '../src/node';
 import { seedDemo } from '../src/seed';
 
 const file = resolve(process.argv[2] ?? 'demo.sqlite');

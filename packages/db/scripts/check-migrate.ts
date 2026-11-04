@@ -5,8 +5,9 @@
  */
 import { sql } from 'drizzle-orm';
 
-import { openSqlite, queryRows } from '../src/database';
+import { queryRows } from '../src/database';
 import { migrate } from '../src/migrate';
+import { openSqlite } from '../src/node';
 
 const file = process.argv[2];
 if (!file) {

@@ -25,7 +25,9 @@ import {
   ThemeToggle,
 } from '@gst/ui';
 import { createFileRoute } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+
+import { useUnsavedGuard } from '@/app/unsaved';
 
 export const Route = createFileRoute('/books/_kit')({ component: Kit });
 
@@ -36,14 +38,13 @@ const rows = [
 ];
 
 function Kit() {
-  useEffect(() => {
-    document.documentElement.setAttribute('data-density', 'compact');
-  }, []);
   const [paise, setPaise] = useState<bigint | null>(12345600n);
   const [bp, setBp] = useState<number | null>(1800);
   const [gstin, setGstin] = useState('27AAPFU0939F1ZV');
   const [date, setDate] = useState<Date | null>(null);
   const [party, setParty] = useState<string | null>(null);
+  const [name, setName] = useState('');
+  useUnsavedGuard(name !== '');
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -58,14 +59,19 @@ function Kit() {
           </>
         }
       />
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         <Card className="flex flex-col gap-2">
           <MoneyInput aria-label="Amount" value={paise} onValueChange={setPaise} />
           <PercentInput aria-label="GST rate" value={bp} onValueChange={setBp} />
           <GstinInput aria-label="GSTIN" value={gstin} onValueChange={setGstin} />
         </Card>
         <Card className="flex flex-col gap-2">
-          <Input aria-label="Name" placeholder="Name" />
+          <Input
+            aria-label="Name"
+            placeholder="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
           <DatePicker value={date} onChange={(d) => setDate(d ?? null)} />
           <Combobox
             value={party}

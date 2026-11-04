@@ -1,5 +1,6 @@
-import { execRaw, openPglite, openSqlite, type Database } from '../database';
+import { execRaw, type Database } from '../database';
 import { migrate } from '../migrate';
+import { openPglite, openSqlite } from '../node';
 import type { Dialect } from '../schema';
 
 export const DIALECTS: Dialect[] = ['sqlite', 'pg'];

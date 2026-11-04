@@ -4,6 +4,7 @@ import {
   Checkbox as CheckboxPrimitive,
   RadioGroup as RadioPrimitive,
   Select as SelectPrimitive,
+  Slot,
   Switch as SwitchPrimitive,
 } from 'radix-ui';
 import * as React from 'react';
@@ -31,17 +32,17 @@ const buttonVariants = cva(
 );
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {}
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
+  /** Render the child element (e.g. a router Link) with button styling instead of a <button>. */
+  asChild?: boolean | undefined;
+}
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, type = 'button', ...props }, ref) => (
-    <button
-      ref={ref}
-      type={type}
-      className={cn(buttonVariants({ variant }), className)}
-      {...props}
-    />
-  ),
+  ({ className, variant, type = 'button', asChild = false, ...props }, ref) => {
+    const classes = cn(buttonVariants({ variant }), className);
+    if (asChild) return <Slot.Root ref={ref} className={classes} {...props} />;
+    return <button ref={ref} type={type} className={classes} {...props} />;
+  },
 );
 Button.displayName = 'Button';
 

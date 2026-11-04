@@ -29,7 +29,16 @@ test.afterAll(() => {
 });
 
 for (const [route, budget] of Object.entries(budgets.routes)) {
-  test(`${route} loads within budget at ${budgets.cpuThrottle}x CPU throttle`, async ({ page }) => {
+  test(`${route} loads within budget at ${budgets.cpuThrottle}x CPU throttle`, async ({
+    context,
+  }) => {
+    // seed once per context, then close that page so its OPFS lock is released before measuring
+    const seeder = await context.newPage();
+    await seeder.goto('/books/dashboard?demo=1');
+    await expect(seeder.getByTestId('badge-documents')).toHaveText('500', { timeout: 30_000 });
+    await seeder.close();
+
+    const page = await context.newPage();
     const cdp = await page.context().newCDPSession(page);
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: budgets.cpuThrottle });
     await page.goto(route, { waitUntil: 'load' });

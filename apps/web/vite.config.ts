@@ -6,16 +6,27 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vitest/config';
 import { VitePWA } from 'vite-plugin-pwa';
 
-const pkg = (name: string) =>
-  path.resolve(import.meta.dirname, `../../packages/${name}/src/index.ts`);
+const root = (p: string) => path.resolve(import.meta.dirname, `../../packages/${p}`);
+
+import { readFileSync } from 'node:fs';
+
+const pkgJson = JSON.parse(
+  readFileSync(path.resolve(import.meta.dirname, 'package.json'), 'utf8'),
+) as { version: string };
 
 export default defineConfig({
+  define: { __APP_VERSION__: JSON.stringify(pkgJson.version) },
   plugins: [
     tanstackRouter({ target: 'react', autoCodeSplitting: true }),
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,wasm}'],
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+        navigateFallback: '/index.html',
+      },
       manifest: {
         name: 'GST Desk',
         short_name: 'GST Desk',
@@ -28,17 +39,19 @@ export default defineConfig({
     }),
   ],
   resolve: {
-    alias: {
-      '@': path.resolve(import.meta.dirname, 'src'),
-      '@gst/domain': pkg('domain'),
-      '@gst/db': pkg('db'),
-      '@gst/ui/tokens': path.resolve(import.meta.dirname, '../../packages/ui/tokens'),
-      '@gst/ui': pkg('ui'),
-      '@gst/ai/fixtures': path.resolve(import.meta.dirname, '../../packages/ai/fixtures'),
-      '@gst/ai': pkg('ai'),
-      '@gst/i18n': pkg('i18n'),
-    },
+    alias: [
+      { find: '@', replacement: path.resolve(import.meta.dirname, 'src') },
+      // subpaths first, then the bare package names (exact match only)
+      { find: /^@gst\/ui\/tokens/, replacement: root('ui/tokens') },
+      { find: /^@gst\/ui\/icons$/, replacement: root('ui/src/icons.ts') },
+      { find: /^@gst\/ai\/fixtures/, replacement: root('ai/fixtures') },
+      { find: /^@gst\/ai\/db$/, replacement: root('ai/src/db/index.ts') },
+      { find: /^@gst\/db\/seed$/, replacement: root('db/src/seed.ts') },
+      { find: /^@gst\/(domain|db|ui|ai|i18n)$/, replacement: root('$1/src/index.ts') },
+    ],
   },
+  worker: { format: 'es' },
+  optimizeDeps: { exclude: ['@sqlite.org/sqlite-wasm'] },
   server: { port: 1420, strictPort: true },
   test: { environment: 'node', exclude: ['e2e/**', 'node_modules/**'] },
 });

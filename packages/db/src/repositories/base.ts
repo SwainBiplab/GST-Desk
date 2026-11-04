@@ -1,6 +1,7 @@
 import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 
 import { queryRows, type Database } from '../database';
+import { discardWrites, flushWrites, noteWrite } from '../events';
 import type { NewRow, Row, TableName } from '../schema';
 
 /** Passed to every repository method. `orgId` is required for Postgres row-level security. */
@@ -50,11 +51,20 @@ const PROTECTED = new Set([
  */
 export async function runInTx<T>(d: Database, ctx: Ctx, fn: (tx: any) => Promise<T>): Promise<T> {
   if (ctx.tx) return fn(ctx.tx);
-  return d.db.transaction(async (tx: any) => {
-    if (d.dialect === 'pg')
-      await tx.execute(sql`SELECT set_config('app.org_id', ${ctx.orgId}, true)`);
-    return fn(tx);
-  });
+  let owned: any;
+  try {
+    const result = await d.db.transaction(async (tx: any) => {
+      owned = tx;
+      if (d.dialect === 'pg')
+        await tx.execute(sql`SELECT set_config('app.org_id', ${ctx.orgId}, true)`);
+      return fn(tx);
+    });
+    if (owned) flushWrites(d, owned);
+    return result;
+  } catch (e) {
+    if (owned) discardWrites(owned);
+    throw e;
+  }
 }
 
 export function newId(): string {
@@ -72,6 +82,7 @@ export async function writeAudit(
   before: Row | null,
   after: Row | null,
 ): Promise<void> {
+  noteWrite(tx, table);
   const now = Date.now();
   await tx.insert(d.schema.audit_log).values({
     id: newId(),
