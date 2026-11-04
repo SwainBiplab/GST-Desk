@@ -20,3 +20,7 @@ export * from './item';
 export * from './bulk-edit';
 export * from './hsn';
 export * from './import-map';
+export * from './documents/build';
+export * from './documents/rules';
+export * from './documents/richtext';
+export * from './documents/rows';

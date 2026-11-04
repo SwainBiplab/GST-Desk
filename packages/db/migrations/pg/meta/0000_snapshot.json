@@ -1,5 +1,5 @@
 {
-  "id": "b8fc3db7-3113-46b4-a9b6-dc7bd3bb663b",
+  "id": "8eb0e444-0ae7-4bc4-9765-ae7d9b662054",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1257,6 +1257,33 @@
           "primaryKey": false,
           "notNull": true,
           "default": 0
+        },
+        "gst_rate_bp": {
+          "name": "gst_rate_bp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "price_includes_tax": {
+          "name": "price_includes_tax",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "taxability": {
+          "name": "taxability",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'taxable'"
+        },
+        "note": {
+          "name": "note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "taxable_paise": {
           "name": "taxable_paise",

@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "0eaa9faa-483b-48eb-9ac2-ae436c1d36b1",
+  "id": "a4fb071d-9360-472e-802e-f5b7535bc810",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "ai_calls": {
@@ -1154,6 +1154,37 @@
           "notNull": true,
           "autoincrement": false,
           "default": 0
+        },
+        "gst_rate_bp": {
+          "name": "gst_rate_bp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "price_includes_tax": {
+          "name": "price_includes_tax",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "taxability": {
+          "name": "taxability",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'taxable'"
+        },
+        "note": {
+          "name": "note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         },
         "taxable_paise": {
           "name": "taxable_paise",

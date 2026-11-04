@@ -12,6 +12,7 @@ import {
   listBusinesses,
 } from './repositories/aggregates';
 import { BaseRepo, RuleError, type Ctx } from './repositories/base';
+import { DocumentFlowRepo } from './repositories/document-flow';
 import { computeLine } from './repositories/line-math';
 import * as stats from './repositories/stats';
 import { DIALECTS, openTestDb } from './testing/harness';
@@ -104,6 +105,7 @@ describe.each(DIALECTS)('every repository call needs a business (%s)', (dialect)
     const classes: [string, new (db: Database) => object][] = Object.entries(aggregates)
       .filter(([, v]) => typeof v === 'function' && /^[A-Z]\w+Repo$/.test(v.name))
       .map(([k, v]) => [k, v as never]);
+    classes.push(['DocumentFlowRepo', DocumentFlowRepo as never]);
     classes.push([
       'BaseRepo',
       class extends BaseRepo {

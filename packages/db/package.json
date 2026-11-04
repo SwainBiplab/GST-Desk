@@ -25,6 +25,7 @@
   "devDependencies": {
     "@gst/config": "workspace:*",
     "@types/node": "^26.6.6",
+    "fast-check": "^4.10.2",
     "@vitest/coverage-v8": "^5.1.0",
     "drizzle-kit": "^0.31.11",
     "eslint": "^9.39.0",

@@ -77,11 +77,13 @@ const CHART = [
   ['1300', 'Input GST', 'asset'],
   ['2000', 'Accounts Payable', 'liability'],
   ['2100', 'Output GST', 'liability'],
+  ['2200', 'TCS Payable', 'liability'],
   ['3000', 'Owner Equity', 'equity'],
   ['3100', 'Opening Balance Equity', 'equity'],
   ['4000', 'Sales', 'income'],
   ['5000', 'Purchases', 'expense'],
   ['5100', 'Expenses', 'expense'],
+  ['5200', 'Round-off', 'expense'],
 ] as const;
 
 export class BusinessRepo {

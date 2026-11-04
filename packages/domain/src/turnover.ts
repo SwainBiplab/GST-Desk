@@ -15,7 +15,9 @@ export type DocumentType =
   | 'receipt_voucher'
   | 'purchase_bill'
   | 'purchase_return'
-  | 'expense';
+  | 'expense'
+  /** The recipient's own invoice for tax it pays under reverse charge (linked to the supplier's bill). */
+  | 'rcm_self_invoice';
 
 export type DocumentStatus = 'draft' | 'issued' | 'cancelled';
 

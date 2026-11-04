@@ -12,6 +12,7 @@ export const DOCUMENT_TYPES = [
   'purchase_bill',
   'purchase_return',
   'expense',
+  'rcm_self_invoice',
 ] as const;
 export const DOCUMENT_STATUSES = ['draft', 'issued', 'cancelled'] as const;
 export const SUPPLY_TYPES = ['intra', 'inter', 'export', 'sez'] as const;
@@ -306,9 +307,18 @@ export const SPEC: TableSpec[] = [
       qty_micros: c.big().nn.default(1000000),
       unit_id: c.uuid().ref('units'),
       rate_paise: money(),
-      discount_mode: c.text().nn.default('none').oneOf(['none', 'percent', 'amount']),
-      /** basis points when mode = percent, paise when mode = amount */
+      discount_mode: c.text().nn.default('none').oneOf(['none', 'percent', 'amount', 'per_unit']),
+      /** basis points when mode = percent, paise when mode = amount (whole line) or per_unit (each unit) */
       discount_value: money(),
+      /** The item's nominal GST rate, kept so a draft reopens with it even when no tax is charged. */
+      gst_rate_bp: bp(),
+      /** True when `rate_paise` already includes GST. */
+      price_includes_tax: c.bool().nn.default(false),
+      taxability: c
+        .text()
+        .nn.default('taxable')
+        .oneOf(['taxable', 'exempt', 'nil_rated', 'non_gst']),
+      note: c.text(),
       taxable_paise: money(),
       cgst_bp: bp(),
       sgst_bp: bp(),

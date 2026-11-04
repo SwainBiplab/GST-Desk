@@ -100,3 +100,77 @@ export const arithmeticValidator: LineValidator = (doc, lines) => {
   }
   return errors;
 };
+
+const HEADS = ['cgst', 'sgst', 'igst', 'utgst'] as const;
+
+/**
+ * Integrity check for documents built by the editor (`buildDocument` in `@gst/domain`). The engine
+ * supports things a row cannot restate (tax-inclusive prices, per-unit discounts, an invoice-level
+ * discount, reverse charge), so this does not re-derive a line from its rate and quantity. It checks
+ * that the stored numbers agree with each other: every head of tax matches the taxable value and its
+ * rate (to the rounding a basis-point column forces), line totals add up, document totals add up,
+ * and the heads match the supply type. A tampered or half-written document fails.
+ */
+export const consistencyValidator: LineValidator = (doc, lines) => {
+  const errors: string[] = [];
+  const n = (v: unknown) => Number(v ?? 0);
+  const reverse = !!doc['reverse_charge'];
+  const supply = doc['supply_type'];
+  const BP = 10_000n;
+
+  for (const l of lines) {
+    const no = l['line_no'];
+    const taxable = BigInt(n(l['taxable_paise']));
+    if (taxable < 0n) errors.push(`line ${no}: taxable_paise is negative`);
+    // a basis-point column cannot hold half of 0.25%, so allow the rounding that costs
+    const tolerance = taxable / 20_000n + 1n;
+    let tax = 0n;
+    for (const h of HEADS) {
+      const paise = BigInt(n(l[`${h}_paise`]));
+      const expected = divRound(taxable * BigInt(n(l[`${h}_bp`])), BP);
+      const gap = paise > expected ? paise - expected : expected - paise;
+      if (gap > tolerance)
+        errors.push(`line ${no}: ${h}_paise is ${paise}, expected about ${expected}`);
+      tax += paise;
+    }
+    const cess = BigInt(n(l['cess_paise']));
+    const cessExpected = divRound(taxable * BigInt(n(l['cess_bp'])), BP);
+    if (
+      n(l['cess_bp']) > 0 &&
+      (cess > cessExpected ? cess - cessExpected : cessExpected - cess) > tolerance
+    )
+      errors.push(`line ${no}: cess_paise is ${cess}, expected about ${cessExpected}`);
+    tax += cess;
+    const total = BigInt(n(l['total_paise']));
+    const expectedTotal = reverse ? taxable : taxable + tax;
+    if (total !== expectedTotal)
+      errors.push(`line ${no}: total_paise is ${total}, expected ${expectedTotal}`);
+    if (
+      n(l['igst_paise']) > 0 &&
+      (n(l['cgst_paise']) > 0 || n(l['sgst_paise']) > 0 || n(l['utgst_paise']) > 0)
+    )
+      errors.push(`line ${no}: IGST and CGST/SGST on the same line`);
+    if (supply === 'intra' && n(l['igst_paise']) > 0)
+      errors.push(`line ${no}: IGST on an intra-state supply`);
+    if (
+      supply === 'inter' &&
+      (n(l['cgst_paise']) > 0 || n(l['sgst_paise']) > 0 || n(l['utgst_paise']) > 0)
+    )
+      errors.push(`line ${no}: CGST/SGST on an inter-state supply`);
+  }
+
+  const sum = (k: string) => lines.reduce((a, l) => a + n(l[k]), 0);
+  const expected: Record<string, number> = {
+    total_taxable_paise: sum('taxable_paise'),
+    total_cgst_paise: sum('cgst_paise'),
+    total_sgst_paise: sum('sgst_paise'),
+    total_igst_paise: sum('igst_paise'),
+    total_utgst_paise: sum('utgst_paise'),
+    total_cess_paise: sum('cess_paise'),
+    total_paise: sum('total_paise') + n(doc['tcs_paise']) + n(doc['round_off_paise']),
+  };
+  for (const [k, v] of Object.entries(expected)) {
+    if (n(doc[k]) !== v) errors.push(`document: ${k} is ${n(doc[k])}, expected ${v}`);
+  }
+  return errors;
+};
