@@ -64,6 +64,14 @@ export const en = {
     loadDemo: 'Load demo data',
     loading: 'Opening your data...',
     error: 'Could not open the local database',
+    reset: {
+      hint: 'This usually means the data on this device is from an older version, or the app is open in another window. Close other windows and reload first. If it still fails, you can clear this browser’s copy.',
+      action: 'Reset local data',
+      title: 'Delete the data on this device?',
+      body: 'This deletes every business, document and picture stored in this browser, and cannot be undone. Data you have backed up or synced elsewhere is not affected.',
+      confirm: 'Delete and start again',
+      failed: 'Could not clear it: {{reason}}. Close other windows of this app and try again.',
+    },
   },
   page: {
     notBuilt: 'This screen is not built yet.',

@@ -1,12 +1,16 @@
 import { formatPaise } from '@gst/ui';
 import { Button, Card, CardTitle, EmptyState, PageHeader } from '@gst/ui';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useAppDb } from '../db';
 import { parseCommand } from '../grammar';
 import { useLocationInfo } from '../hooks';
 import type { PageId } from '../nav';
+import { canResetLocalData, resetLocalData } from '../reset-local';
 import type { Shell } from '../store';
+
+import { useConfirm } from './confirm';
 
 import { ChecklistCard } from '@/features/business/checklist-card';
 import { SettingsPage } from '@/features/business/settings-page';
@@ -37,13 +41,53 @@ export function DashboardFrame({ shell }: { shell: Shell }) {
   );
 }
 
+/** The way out of a database that will not open: clear this browser's copy and start again. */
+function ResetLocalData() {
+  const { t } = useTranslation();
+  const confirm = useConfirm();
+  const [failure, setFailure] = useState<string | null>(null);
+  const reset = async () => {
+    const ok = await confirm({
+      title: t('empty.reset.title'),
+      description: t('empty.reset.body'),
+      confirmLabel: t('empty.reset.confirm'),
+    });
+    if (!ok) return;
+    try {
+      await resetLocalData();
+      window.location.reload();
+    } catch (e) {
+      setFailure(e instanceof Error ? e.message : String(e));
+    }
+  };
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <p className="max-w-sm text-sm text-fg-muted">{t('empty.reset.hint')}</p>
+      <Button variant="outline" data-testid="reset-local" onClick={() => void reset()}>
+        {t('empty.reset.action')}
+      </Button>
+      {failure && (
+        <p role="alert" className="max-w-sm text-sm text-danger" data-testid="reset-failed">
+          {t('empty.reset.failed', { reason: failure })}
+        </p>
+      )}
+    </div>
+  );
+}
+
 /** Shown when the database is open but no business exists yet. */
 export function NoBusiness() {
   const { t } = useTranslation();
   const { status, error, loadDemoData } = useAppDb();
   if (status === 'loading') return <p className="p-6 text-fg-muted">{t('empty.loading')}</p>;
   if (status === 'error') {
-    return <EmptyState title={t('empty.error')} description={error?.message ?? ''} />;
+    return (
+      <EmptyState
+        title={t('empty.error')}
+        description={error?.message ?? ''}
+        action={canResetLocalData() ? <ResetLocalData /> : undefined}
+      />
+    );
   }
   return (
     <EmptyState

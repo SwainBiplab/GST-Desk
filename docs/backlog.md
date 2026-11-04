@@ -17,7 +17,7 @@
 | B-013 | Editor: lines and totals in languages other than English                                                                                                          | prompt 22          | open   |
 | B-014 | Engine and editor: tax rates are whole basis points, so 0.25% cannot be entered                                                                                   | P2                 | open   |
 | B-015 | Editor: attachments live in the browser database only; sync them and clean up when a document is deleted                                                          | P3                 | open   |
-| B-016 | Web: a Reset local data button on the Could not open the local database screen                                                                                    | P1                 | open   |
+| B-016 | Web: a Reset local data button on the Could not open the local database screen                                                                                    | P1                 | done   |
 | B-017 | Editor: column visibility is saved per business in this browser, not with the business settings                                                                   | P2                 | open   |
 | B-018 | Numbering: finalise provisional numbers on reconnect and block sharing a document that still has one (the repository hook `finaliseNumber` exists; sync calls it) | prompt 41          | open   |
 | B-019 | Cancellation: cancel an e-invoiced document on the portal first, then here; stamp CANCELLED on the printed PDF                                                    | prompts 32 and 17  | open   |
