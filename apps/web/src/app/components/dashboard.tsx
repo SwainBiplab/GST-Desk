@@ -11,6 +11,7 @@ import type { Shell } from '../store';
 
 import { ChecklistCard } from '@/features/business/checklist-card';
 import { SettingsPage } from '@/features/business/settings-page';
+import { PartiesPage } from '@/features/parties/parties-page';
 
 /** Question-led card slots. Reports (prompt 18) fill them in. */
 export function DashboardFrame({ shell }: { shell: Shell }) {
@@ -107,6 +108,13 @@ export function PlaceholderPage({ page, shell }: { page: PageId; shell: Shell })
   const { search } = useLocationInfo();
   const { ctx, status } = useAppDb();
   const intent = describeIntent(search);
+  if (page === 'parties' && ctx) {
+    return (
+      <div data-shell={shell} className="h-full">
+        <PartiesPage shell={shell} />
+      </div>
+    );
+  }
   if (page === 'settings' && ctx) {
     return (
       <div data-shell={shell}>

@@ -48,7 +48,7 @@
     'Noto Sans Gujarati', system-ui, sans-serif;
 
   /* z-index */
-  --z-dropdown: 50;
+  --z-dropdown: 350; /* above modals, so selects and menus work inside drawers and dialogs */
   --z-sticky: 100;
   --z-overlay: 200;
   --z-modal: 300;

@@ -109,7 +109,14 @@ export const SPEC: TableSpec[] = [
       addresses_json: c.json(),
       contacts_json: c.json(),
       credit_days: c.int().nn.default(0),
+      /** Positive = the party owes us at `opening_balance_date`; negative = we owe the party. */
       opening_balance_paise: money(),
+      opening_balance_date: c.date(),
+      credit_limit_paise: money(),
+      city: c.text(),
+      country: c.text().nn.default('India'),
+      notes: c.text(),
+      tags_json: c.json(),
       is_sez: c.bool().nn.default(false),
       is_export: c.bool().nn.default(false),
       is_unregistered: c.bool().nn.default(false),
@@ -289,6 +296,8 @@ export const SPEC: TableSpec[] = [
     kind: 'tenant',
     cols: {
       date: c.date().nn,
+      /** received = from a customer, made = to a supplier. */
+      direction: c.text().nn.default('received').oneOf(['received', 'made']),
       mode: c.text().nn.oneOf(['cash', 'upi', 'card', 'bank', 'cheque', 'other']),
       account_id: c.uuid().ref('business_accounts'),
       party_id: c.uuid().ref('parties'),
@@ -328,6 +337,7 @@ export const SPEC: TableSpec[] = [
     cols: {
       document_id: c.uuid().ref('documents'),
       payment_id: c.uuid().ref('payments'),
+      party_id: c.uuid().ref('parties'),
       account_id: c.uuid().nn.ref('ledger_accounts'),
       debit_paise: money(),
       credit_paise: money(),
@@ -335,6 +345,19 @@ export const SPEC: TableSpec[] = [
       narration: c.text(),
     },
     indexes: [{ cols: ['account_id', 'date'] }, { cols: ['document_id'] }],
+  },
+  {
+    name: 'reminders',
+    kind: 'tenant',
+    cols: {
+      party_id: c.uuid().nn.ref('parties'),
+      channel: c.text().nn.oneOf(['whatsapp', 'email', 'sms', 'call', 'manual']),
+      message: c.text(),
+      /** Amount outstanding when the reminder was sent. */
+      amount_paise: money(),
+      sent_at: c.ts().nn,
+    },
+    indexes: [{ cols: ['party_id', 'sent_at'] }],
   },
   {
     name: 'godowns',

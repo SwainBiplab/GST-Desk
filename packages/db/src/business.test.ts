@@ -52,7 +52,7 @@ const doc = (type: string) => ({
 
 /** Repository methods whose first argument is a tx or an internal detail, not the public API. */
 const INTERNAL =
-  /In$|^(constructor|beforeSoftDelete|byIds|isReferenced|check|insertLines|linesOf|assertCanIssue|find|seedDefaults)$/;
+  /In$|^(constructor|beforeSoftDelete|byIds|isReferenced|check|insertLines|linesOf|assertCanIssue|find|seedDefaults|accountId|postOpening|repoint)$/;
 
 /** Arguments that survive any argument validation done before the first database access. */
 const ARGS: Record<string, unknown[]> = {

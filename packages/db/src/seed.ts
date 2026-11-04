@@ -61,6 +61,16 @@ const SECOND = [
   'Works',
   'Sons',
 ];
+const CITIES = [
+  'Mumbai',
+  'Pune',
+  'Bengaluru',
+  'Chennai',
+  'Ahmedabad',
+  'Kolkata',
+  'Hyderabad',
+  'Delhi',
+];
 const ITEM_A = [
   'Copper',
   'Steel',
@@ -117,6 +127,8 @@ export interface SeedOptions {
   parties?: number;
   items?: number;
   documents?: number;
+  /** Add one extra party with this many issued invoices (used to test Party 360 at scale). */
+  heavyParty?: number;
 }
 
 export interface SeedResult {
@@ -185,6 +197,8 @@ export async function seedDemo(d: Database, opts: SeedOptions = {}): Promise<See
         gstin: i % 9 === 8 ? null : gstinFor(`${state}${pan}1Z`),
         pan,
         phone: `98${String(int(10000000, 99999999))}`,
+        city: pick(CITIES),
+        country: 'India',
         state_code: state,
         credit_days: pick([0, 15, 30, 45]),
         opening_balance_paise: 0,
@@ -249,17 +263,36 @@ export async function seedDemo(d: Database, opts: SeedOptions = {}): Promise<See
     const allocRows: Row[] = [];
     const total = opts.documents ?? 500;
 
-    for (let n = 0; n < total; n++) {
-      const dayOffset = Math.floor((n / total) * 730);
+    const heavy = opts.heavyParty ?? 0;
+    let heavyParty: Row | undefined;
+    if (heavy > 0) {
+      heavyParty = {
+        ...stamp(0),
+        type: 'customer',
+        name: 'Heavy Traders',
+        gstin: gstinFor('27AAHCH1234H1Z'.slice(0, 14)),
+        state_code: '27',
+        city: 'Mumbai',
+        country: 'India',
+        credit_days: 30,
+      };
+      await chunked(tx, s.parties, [heavyParty]);
+      parties.push(heavyParty);
+    }
+    for (let n = 0; n < total + heavy; n++) {
+      const isHeavy = n >= total;
+      const dayOffset = isHeavy
+        ? Math.floor(((n - total) / heavy) * 730)
+        : Math.floor((n / total) * 730);
       const dateMs = EPOCH + dayOffset * DAY;
       const date = new Date(dateMs).toISOString().slice(0, 10);
       const fy = dayOffset < 365 ? '24-25' : '25-26';
       let roll = int(1, 100);
-      const type = DOC_MIX.find(([, w]) => (roll -= w) <= 0)![0];
-      const party = pick(parties);
+      const type = isHeavy ? 'tax_invoice' : DOC_MIX.find(([, w]) => (roll -= w) <= 0)![0];
+      const party = isHeavy ? heavyParty! : pick(parties);
       const supply = party['state_code'] === '27' ? 'intra' : 'inter';
       const sr = rnd();
-      const status = sr < 0.1 ? 'draft' : sr < 0.15 ? 'cancelled' : 'issued';
+      const status = isHeavy ? 'issued' : sr < 0.1 ? 'draft' : sr < 0.15 ? 'cancelled' : 'issued';
       const docId = uuid();
 
       const nLines = int(1, 5);
@@ -349,6 +382,7 @@ export async function seedDemo(d: Database, opts: SeedOptions = {}): Promise<See
             const payment = {
               ...stamp(dayOffset + 3),
               date: new Date(dateMs + 3 * DAY).toISOString().slice(0, 10),
+              direction: type === 'purchase_bill' ? 'made' : 'received',
               mode: pick(['cash', 'upi', 'bank', 'cheque']),
               party_id: party['id'],
               amount_paise: amount,

@@ -378,6 +378,7 @@ CREATE TABLE `ledger_entries` (
 	`updated_by` text,
 	`document_id` text,
 	`payment_id` text,
+	`party_id` text,
 	`account_id` text NOT NULL,
 	`debit_paise` integer DEFAULT 0 NOT NULL,
 	`credit_paise` integer DEFAULT 0 NOT NULL,
@@ -387,6 +388,7 @@ CREATE TABLE `ledger_entries` (
 	FOREIGN KEY (`business_id`) REFERENCES `businesses`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`document_id`) REFERENCES `documents`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`payment_id`) REFERENCES `payments`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`party_id`) REFERENCES `parties`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`account_id`) REFERENCES `ledger_accounts`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
@@ -494,6 +496,12 @@ CREATE TABLE `parties` (
 	`contacts_json` text,
 	`credit_days` integer DEFAULT 0 NOT NULL,
 	`opening_balance_paise` integer DEFAULT 0 NOT NULL,
+	`opening_balance_date` text,
+	`credit_limit_paise` integer DEFAULT 0 NOT NULL,
+	`city` text,
+	`country` text DEFAULT 'India' NOT NULL,
+	`notes` text,
+	`tags_json` text,
 	`is_sez` integer DEFAULT false NOT NULL,
 	`is_export` integer DEFAULT false NOT NULL,
 	`is_unregistered` integer DEFAULT false NOT NULL,
@@ -543,6 +551,7 @@ CREATE TABLE `payments` (
 	`created_by` text,
 	`updated_by` text,
 	`date` text NOT NULL,
+	`direction` text DEFAULT 'received' NOT NULL,
 	`mode` text NOT NULL,
 	`account_id` text,
 	`party_id` text,
@@ -571,6 +580,29 @@ CREATE TABLE `rate_master_versions` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `rate_master_versions_version_unique` ON `rate_master_versions` (`version`);--> statement-breakpoint
+CREATE TABLE `reminders` (
+	`id` text PRIMARY KEY NOT NULL,
+	`org_id` text NOT NULL,
+	`business_id` text NOT NULL,
+	`version` integer DEFAULT 1 NOT NULL,
+	`created_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
+	`updated_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
+	`deleted_at` integer,
+	`created_by` text,
+	`updated_by` text,
+	`party_id` text NOT NULL,
+	`channel` text NOT NULL,
+	`message` text,
+	`amount_paise` integer DEFAULT 0 NOT NULL,
+	`sent_at` integer NOT NULL,
+	FOREIGN KEY (`org_id`) REFERENCES `organisations`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`business_id`) REFERENCES `businesses`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`party_id`) REFERENCES `parties`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE INDEX `reminders_party_id_sent_at_idx` ON `reminders` (`party_id`,`sent_at`);--> statement-breakpoint
+CREATE INDEX `reminders_business_id_idx` ON `reminders` (`business_id`);--> statement-breakpoint
+CREATE INDEX `reminders_org_id_idx` ON `reminders` (`org_id`);--> statement-breakpoint
 CREATE TABLE `review_items` (
 	`id` text PRIMARY KEY NOT NULL,
 	`org_id` text NOT NULL,

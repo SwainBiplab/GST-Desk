@@ -290,6 +290,27 @@ export class BaseRepo {
     });
   }
 
+  /** Bring back a soft-deleted row. Used to undo merges. */
+  async restore(ctx: Ctx, id: string): Promise<Row> {
+    return runInTx(this.d, ctx, async (tx) => {
+      const t = this.t;
+      const before = await this.getIn(tx, ctx, id, true);
+      if (!before) throw new NotFoundError(this.name, id);
+      const [after] = await tx
+        .update(t)
+        .set({
+          deleted_at: null,
+          version: sql`${t.version} + 1`,
+          updated_at: Date.now(),
+          updated_by: ctx.actor,
+        })
+        .where(and(eq(t.id, id), eq(t.business_id, ctx.businessId)))
+        .returning();
+      await writeAudit(this.d, tx, ctx, this.name, id, 'update', before, after);
+      return after;
+    });
+  }
+
   /** Load rows by id, preserving the order of `ids`. */
   protected async byIds(tx: any, ctx: Ctx, ids: string[]): Promise<Row[]> {
     if (ids.length === 0) return [];
@@ -314,7 +335,7 @@ export class BaseRepo {
     const rows = await tx
       .select({ id: tt.id })
       .from(tt)
-      .where(and(eq(tt.business_id, ctx.businessId), eq(tt[column], id)))
+      .where(and(eq(tt.business_id, ctx.businessId), eq(tt[column], id), isNull(tt.deleted_at)))
       .limit(1);
     return rows.length > 0;
   }

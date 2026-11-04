@@ -40,6 +40,8 @@ const Context = createContext<AppDbValue | null>(null);
 
 /** Read once at load: router redirects drop the query string. */
 export const DEMO_REQUESTED = new URLSearchParams(location.search).get('demo') === '1';
+/** `?demo=1&heavy=1` also adds one party with 200 invoices, for scale checks. */
+const HEAVY_REQUESTED = new URLSearchParams(location.search).get('heavy') === '1';
 
 const TABLES_ALL = [
   'businesses',
@@ -148,7 +150,7 @@ export function AppDbProvider({ children }: { children: ReactNode }) {
   const loadDemoData = useCallback(async () => {
     if (!database) return;
     const { seedDemo } = await import('@gst/db/seed');
-    const { ctx: seeded } = await seedDemo(database);
+    const { ctx: seeded } = await seedDemo(database, HEAVY_REQUESTED ? { heavyParty: 200 } : {});
     announce(database, TABLES_ALL);
     setBusinessId(seeded.businessId);
   }, [database, setBusinessId]);

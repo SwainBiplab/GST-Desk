@@ -17,6 +17,7 @@ export type AccountKey =
   | 'purchases'
   | 'expenses'
   | 'roundOff'
+  | 'openingEquity'
   | 'tcsPayable'
   | `output${TaxHead}`
   | `input${TaxHead}`;
@@ -169,4 +170,53 @@ export function postPayment(p: PostablePayment): LedgerLine[] {
         ];
   assertBalanced(lines);
   return lines;
+}
+
+/**
+ * Opening balance of a party. Positive means the party owes us (debit receivables); negative means we owe
+ * them (credit payables). The other side goes to opening balance equity, so the books still balance.
+ */
+export function postOpeningBalance(openingPaise: bigint, party = ''): LedgerLine[] {
+  if (openingPaise === 0n) return [];
+  const narration = `Opening balance${party ? `: ${party}` : ''}`;
+  const amount = openingPaise > 0n ? openingPaise : -openingPaise;
+  const lines: LedgerLine[] =
+    openingPaise > 0n
+      ? [
+          { account: 'receivables', debitPaise: amount, creditPaise: 0n, narration },
+          { account: 'openingEquity', debitPaise: 0n, creditPaise: amount, narration },
+        ]
+      : [
+          { account: 'openingEquity', debitPaise: amount, creditPaise: 0n, narration },
+          { account: 'payables', debitPaise: 0n, creditPaise: amount, narration },
+        ];
+  assertBalanced(lines);
+  return lines;
+}
+
+const flip = (lines: LedgerLine[]): LedgerLine[] =>
+  lines.map((l) => ({
+    ...l,
+    debitPaise: l.creditPaise,
+    creditPaise: l.debitPaise,
+    narration: `${l.narration} (adjusted)`,
+  }));
+
+/**
+ * Entries for changing a party's opening balance from `oldPaise` to `newPaise`. Moving within one side
+ * (they owe us more or less) posts only the difference; crossing from "they owe us" to "we owe them" (or
+ * to or from zero) reverses the old postings and posts the new ones, so receivables and payables stay right.
+ */
+export function openingBalanceChange(oldPaise: bigint, newPaise: bigint, party = ''): LedgerLine[] {
+  if (oldPaise === newPaise) return [];
+  if (oldPaise >= 0n && newPaise >= 0n) {
+    const delta = newPaise - oldPaise;
+    return delta > 0n ? postOpeningBalance(delta, party) : flip(postOpeningBalance(-delta, party));
+  }
+  if (oldPaise <= 0n && newPaise <= 0n) {
+    // amounts we owe: more owed = more payable
+    const delta = oldPaise - newPaise; // positive when we owe more
+    return delta > 0n ? postOpeningBalance(-delta, party) : flip(postOpeningBalance(delta, party));
+  }
+  return [...flip(postOpeningBalance(oldPaise, party)), ...postOpeningBalance(newPaise, party)];
 }

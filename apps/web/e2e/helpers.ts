@@ -3,10 +3,20 @@ import { deflateSync } from 'node:zlib';
 import { gstinCheckChar } from '@gst/domain';
 import { expect, type Page } from '@playwright/test';
 
-/** Open a path with the deterministic demo business loaded (500 documents) and wait for the counts. */
-export async function openSeeded(page: Page, path = '/books/dashboard') {
-  await page.goto(`${path}${path.includes('?') ? '&' : '?'}demo=1`);
-  await expect(page.getByTestId('badge-documents')).toHaveText('500', { timeout: 30_000 });
+/**
+ * Open a path with the deterministic demo business loaded (500 documents) and wait for the counts.
+ * `heavy` also adds one party with 200 invoices (700 documents in all).
+ */
+export async function openSeeded(
+  page: Page,
+  path = '/books/dashboard',
+  opts: { heavy?: boolean } = {},
+) {
+  const join = path.includes('?') ? '&' : '?';
+  await page.goto(`${path}${join}demo=1${opts.heavy ? '&heavy=1' : ''}`);
+  await expect(page.getByTestId('badge-documents')).toHaveText(opts.heavy ? '700' : '500', {
+    timeout: 30_000,
+  });
 }
 
 export async function openCommandBar(page: Page) {

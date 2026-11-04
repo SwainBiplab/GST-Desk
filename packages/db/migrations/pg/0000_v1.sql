@@ -301,6 +301,7 @@ CREATE TABLE "ledger_entries" (
 	"updated_by" text,
 	"document_id" uuid,
 	"payment_id" uuid,
+	"party_id" uuid,
 	"account_id" uuid NOT NULL,
 	"debit_paise" bigint DEFAULT 0 NOT NULL,
 	"credit_paise" bigint DEFAULT 0 NOT NULL,
@@ -391,6 +392,12 @@ CREATE TABLE "parties" (
 	"contacts_json" jsonb,
 	"credit_days" integer DEFAULT 0 NOT NULL,
 	"opening_balance_paise" bigint DEFAULT 0 NOT NULL,
+	"opening_balance_date" date,
+	"credit_limit_paise" bigint DEFAULT 0 NOT NULL,
+	"city" text,
+	"country" text DEFAULT 'India' NOT NULL,
+	"notes" text,
+	"tags_json" jsonb,
 	"is_sez" boolean DEFAULT false NOT NULL,
 	"is_export" boolean DEFAULT false NOT NULL,
 	"is_unregistered" boolean DEFAULT false NOT NULL,
@@ -425,6 +432,7 @@ CREATE TABLE "payments" (
 	"created_by" text,
 	"updated_by" text,
 	"date" date NOT NULL,
+	"direction" text DEFAULT 'received' NOT NULL,
 	"mode" text NOT NULL,
 	"account_id" uuid,
 	"party_id" uuid,
@@ -444,6 +452,23 @@ CREATE TABLE "rate_master_versions" (
 	"notes" text,
 	"published_at" bigint,
 	CONSTRAINT "rate_master_versions_version_unique" UNIQUE("version")
+);
+--> statement-breakpoint
+CREATE TABLE "reminders" (
+	"id" uuid PRIMARY KEY NOT NULL,
+	"org_id" uuid NOT NULL,
+	"business_id" uuid NOT NULL,
+	"version" integer DEFAULT 1 NOT NULL,
+	"created_at" bigint DEFAULT (extract(epoch from now()) * 1000)::bigint NOT NULL,
+	"updated_at" bigint DEFAULT (extract(epoch from now()) * 1000)::bigint NOT NULL,
+	"deleted_at" bigint,
+	"created_by" text,
+	"updated_by" text,
+	"party_id" uuid NOT NULL,
+	"channel" text NOT NULL,
+	"message" text,
+	"amount_paise" bigint DEFAULT 0 NOT NULL,
+	"sent_at" bigint NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "review_items" (
@@ -605,6 +630,7 @@ ALTER TABLE "ledger_entries" ADD CONSTRAINT "ledger_entries_org_id_organisations
 ALTER TABLE "ledger_entries" ADD CONSTRAINT "ledger_entries_business_id_businesses_id_fk" FOREIGN KEY ("business_id") REFERENCES "public"."businesses"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "ledger_entries" ADD CONSTRAINT "ledger_entries_document_id_documents_id_fk" FOREIGN KEY ("document_id") REFERENCES "public"."documents"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "ledger_entries" ADD CONSTRAINT "ledger_entries_payment_id_payments_id_fk" FOREIGN KEY ("payment_id") REFERENCES "public"."payments"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "ledger_entries" ADD CONSTRAINT "ledger_entries_party_id_parties_id_fk" FOREIGN KEY ("party_id") REFERENCES "public"."parties"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "ledger_entries" ADD CONSTRAINT "ledger_entries_account_id_ledger_accounts_id_fk" FOREIGN KEY ("account_id") REFERENCES "public"."ledger_accounts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "memberships" ADD CONSTRAINT "memberships_org_id_organisations_id_fk" FOREIGN KEY ("org_id") REFERENCES "public"."organisations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "memberships" ADD CONSTRAINT "memberships_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -626,6 +652,9 @@ ALTER TABLE "payments" ADD CONSTRAINT "payments_org_id_organisations_id_fk" FORE
 ALTER TABLE "payments" ADD CONSTRAINT "payments_business_id_businesses_id_fk" FOREIGN KEY ("business_id") REFERENCES "public"."businesses"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "payments" ADD CONSTRAINT "payments_account_id_business_accounts_id_fk" FOREIGN KEY ("account_id") REFERENCES "public"."business_accounts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "payments" ADD CONSTRAINT "payments_party_id_parties_id_fk" FOREIGN KEY ("party_id") REFERENCES "public"."parties"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "reminders" ADD CONSTRAINT "reminders_org_id_organisations_id_fk" FOREIGN KEY ("org_id") REFERENCES "public"."organisations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "reminders" ADD CONSTRAINT "reminders_business_id_businesses_id_fk" FOREIGN KEY ("business_id") REFERENCES "public"."businesses"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "reminders" ADD CONSTRAINT "reminders_party_id_parties_id_fk" FOREIGN KEY ("party_id") REFERENCES "public"."parties"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "review_items" ADD CONSTRAINT "review_items_org_id_organisations_id_fk" FOREIGN KEY ("org_id") REFERENCES "public"."organisations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "review_items" ADD CONSTRAINT "review_items_business_id_businesses_id_fk" FOREIGN KEY ("business_id") REFERENCES "public"."businesses"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "settings" ADD CONSTRAINT "settings_org_id_organisations_id_fk" FOREIGN KEY ("org_id") REFERENCES "public"."organisations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -705,6 +734,9 @@ CREATE INDEX "payment_allocations_org_id_idx" ON "payment_allocations" USING btr
 CREATE INDEX "payments_party_id_idx" ON "payments" USING btree ("party_id");--> statement-breakpoint
 CREATE INDEX "payments_business_id_idx" ON "payments" USING btree ("business_id");--> statement-breakpoint
 CREATE INDEX "payments_org_id_idx" ON "payments" USING btree ("org_id");--> statement-breakpoint
+CREATE INDEX "reminders_party_id_sent_at_idx" ON "reminders" USING btree ("party_id","sent_at");--> statement-breakpoint
+CREATE INDEX "reminders_business_id_idx" ON "reminders" USING btree ("business_id");--> statement-breakpoint
+CREATE INDEX "reminders_org_id_idx" ON "reminders" USING btree ("org_id");--> statement-breakpoint
 CREATE INDEX "review_items_business_id_status_idx" ON "review_items" USING btree ("business_id","status");--> statement-breakpoint
 CREATE INDEX "review_items_business_id_idx" ON "review_items" USING btree ("business_id");--> statement-breakpoint
 CREATE INDEX "review_items_org_id_idx" ON "review_items" USING btree ("org_id");--> statement-breakpoint

@@ -22,6 +22,7 @@ export const payments = t.payments;
 export const payment_allocations = t.payment_allocations;
 export const ledger_accounts = t.ledger_accounts;
 export const ledger_entries = t.ledger_entries;
+export const reminders = t.reminders;
 export const godowns = t.godowns;
 export const batches = t.batches;
 export const stock_movements = t.stock_movements;

@@ -60,7 +60,7 @@ export async function getTodaySummary(d: Database, ctx: Ctx, today: string): Pro
       d,
       tx,
       sql`SELECT coalesce(sum(amount_paise), 0) AS v FROM payments
-          WHERE business_id = ${b} AND deleted_at IS NULL AND mode = 'cash'
+          WHERE business_id = ${b} AND deleted_at IS NULL AND direction = 'received' AND mode = 'cash'
             AND status = 'cleared' AND date = ${today}`,
     );
     const billed = await queryRows(

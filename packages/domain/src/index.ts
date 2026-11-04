@@ -12,3 +12,4 @@ export * from './ledger/posting';
 export * from './schemas';
 export * from './presets';
 export * from './composition';
+export * from './party-account';

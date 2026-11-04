@@ -9,3 +9,4 @@ export * from './repositories/line-math';
 export * from './repositories/hsn';
 export * from './events';
 export * from './repositories/stats';
+export * from './repositories/parties';

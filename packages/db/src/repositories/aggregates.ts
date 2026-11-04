@@ -91,6 +91,7 @@ const CHART = [
   ['2000', 'Accounts Payable', 'liability'],
   ['2100', 'Output GST', 'liability'],
   ['3000', 'Owner Equity', 'equity'],
+  ['3100', 'Opening Balance Equity', 'equity'],
   ['4000', 'Sales', 'income'],
   ['5000', 'Purchases', 'expense'],
   ['5100', 'Expenses', 'expense'],
@@ -229,32 +230,7 @@ export class BusinessRepo {
 
 /* ------------------------------------------------------------------ parties & items */
 
-export class PartyRepo extends BaseRepo {
-  constructor(d: Database) {
-    super(d, 'parties');
-  }
-
-  async findByGstin(ctx: Ctx, gstin: string): Promise<Row[]> {
-    return this.list(ctx, { where: eq(this.t.gstin, gstin.toUpperCase()) });
-  }
-
-  async search(ctx: Ctx, q: string, limit = 20): Promise<Row[]> {
-    return runInTx(this.d, ctx, async (tx) =>
-      this.byIds(tx, ctx, await ftsIds(this.d, tx, ctx, 'parties', q, limit)),
-    );
-  }
-
-  protected override async beforeSoftDelete(ctx: Ctx, tx: any, row: Row) {
-    for (const [table, col] of [
-      ['documents', 'party_id'],
-      ['payments', 'party_id'],
-    ] as const) {
-      if (await this.isReferenced(tx, ctx, table, col, row['id'])) {
-        throw new RuleError(`party ${row['id']} is referenced by ${table} and cannot be deleted`);
-      }
-    }
-  }
-}
+export { PartyRepo } from './parties';
 
 export class ItemRepo extends BaseRepo {
   constructor(d: Database) {

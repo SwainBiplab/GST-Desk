@@ -9,7 +9,7 @@ export const BREAK = '--> statement-breakpoint';
 
 /** Searchable text columns per table. */
 export const SEARCH_COLUMNS: Record<string, string[]> = {
-  parties: ['name', 'trade_name', 'gstin', 'phone', 'email'],
+  parties: ['name', 'trade_name', 'gstin', 'phone', 'email', 'city'],
   items: ['name', 'sku', 'barcode', 'hsn'],
   documents: ['number', 'party_name', 'notes'],
   hsn_master: ['code', 'description'],
