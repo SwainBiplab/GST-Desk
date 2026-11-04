@@ -1,0 +1,41 @@
+{
+  "name": "@gst/print",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./escpos": "./src/escpos.ts",
+    "./fonts.node": "./src/fonts.node.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fontsource/noto-sans": "^5.2.0",
+    "@fontsource/noto-sans-bengali": "^5.2.0",
+    "@fontsource/noto-sans-devanagari": "^5.2.0",
+    "@fontsource/noto-sans-gujarati": "^5.2.0",
+    "@fontsource/noto-sans-tamil": "^5.2.0",
+    "@gst/domain": "workspace:*",
+    "@gst/i18n": "workspace:*",
+    "@pdf-lib/fontkit": "^1.1.1",
+    "pdf-lib": "^1.17.1",
+    "qrcode": "^1.5.4",
+    "regenerator-runtime": "^0.14.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@gst/config": "workspace:*",
+    "@types/node": "^26.6.6",
+    "@types/qrcode": "^1.5.5",
+    "eslint": "^9.39.0",
+    "typescript": "~6.0.0",
+    "vitest": "^5.1.0"
+  }
+}
