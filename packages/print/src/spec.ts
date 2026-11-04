@@ -219,6 +219,24 @@ export function moveBlock(spec: TemplateSpec, type: BlockType, by: -1 | 1): Temp
   return { ...spec, blocks };
 }
 
+/** Drop a block where another sits (drag and drop): it takes that place and the rest shift. Same zone only. */
+export function reorderBlock(spec: TemplateSpec, from: BlockType, to: BlockType): TemplateSpec {
+  if (from === to || zoneOf(from) !== zoneOf(to)) return spec;
+  const zone = zoneOf(from);
+  const slots = spec.blocks.map((b, i) => (zoneOf(b.type) === zone ? i : -1)).filter((i) => i >= 0);
+  const inZone = slots.map((i) => spec.blocks[i]!);
+  const fi = inZone.findIndex((b) => b.type === from);
+  const ti = inZone.findIndex((b) => b.type === to);
+  if (fi < 0 || ti < 0) return spec;
+  const [moved] = inZone.splice(fi, 1);
+  inZone.splice(ti, 0, moved!);
+  const blocks = [...spec.blocks];
+  slots.forEach((slot, k) => {
+    blocks[slot] = inZone[k]!;
+  });
+  return { ...spec, blocks };
+}
+
 /** Switch a block on or off. */
 export const toggleBlock = (
   spec: TemplateSpec,

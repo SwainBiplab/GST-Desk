@@ -609,3 +609,25 @@ export function printLabel(
 ): string {
   return overrides?.[lang]?.[key] ?? PRINT_CATALOGUE[lang][key] ?? en[key];
 }
+
+/** The message that goes with a shared document, per language. `{party}`, `{type}`, `{number}`, `{total}`, `{business}`. */
+export const SHARE_TEXT: Record<PrintLanguage, string> = {
+  en: 'Hello {party}, here is your {type} {number} for {total}. Thank you, {business}.',
+  hi: 'नमस्ते {party}, आपका {type} {number} ({total}) संलग्न है। धन्यवाद, {business}।',
+  ta: 'வணக்கம் {party}, உங்கள் {type} {number} ({total}) இணைக்கப்பட்டுள்ளது. நன்றி, {business}.',
+  bn: 'নমস্কার {party}, আপনার {type} {number} ({total}) সংযুক্ত। ধন্যবাদ, {business}।',
+  gu: 'નમસ્તે {party}, તમારું {type} {number} ({total}) જોડેલ છે. આભાર, {business}.',
+  mr: 'नमस्कार {party}, तुमचे {type} {number} ({total}) सोबत जोडले आहे. धन्यवाद, {business}.',
+};
+
+export function shareText(
+  lang: PrintLanguage,
+  vars: { party: string; type: string; number: string; total: string; business: string },
+  override?: string | null,
+): string {
+  const template = override?.trim() ? override : SHARE_TEXT[lang];
+  return template.replace(
+    /\{(party|type|number|total|business)\}/g,
+    (_m, k: keyof typeof vars) => vars[k],
+  );
+}

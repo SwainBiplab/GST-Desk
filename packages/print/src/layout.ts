@@ -48,6 +48,8 @@ export type Item =
       /** Degrees anticlockwise, about the centre of the text (watermarks). */
       rotate?: number;
       opacity?: number;
+      /** A stable name for tests and the preview: `title`, `number`, `total`, `line:2:amount`... */
+      tag?: string;
     }
   | { t: 'qr'; x: number; y: number; size: number; data: string }
   | { t: 'image'; x: number; y: number; w: number; h: number; dataUrl: string };
@@ -250,6 +252,7 @@ class Sheet {
       color?: string;
       align?: Align;
       wrap?: boolean;
+      tag?: string;
     } = {},
   ): number {
     const size = opts.size ?? this.c.size;
@@ -267,7 +270,17 @@ class Sheet {
           : align === 'right'
             ? boxX + boxW - width
             : boxX + (boxW - width) / 2;
-      if (line) this.items.push({ t: 'text', x, y: this.y, text: line, size, weight, color });
+      if (line)
+        this.items.push({
+          t: 'text',
+          x,
+          y: this.y,
+          text: line,
+          size,
+          weight,
+          color,
+          ...(opts.tag ? { tag: opts.tag } : {}),
+        });
       this.y += size * LH;
     }
     return lines.length;
@@ -326,6 +339,7 @@ function headerBlock(c: Ctx): Draw {
       color: spec.theme.accent,
       align: center ? 'center' : 'left',
       w: s.w - x,
+      tag: 'business',
     });
     if (b.logo && !center) s.y = Math.max(s.y, start + logoH);
     s.gap(2);
@@ -362,10 +376,16 @@ function titleBlock(c: Ctx): Draw {
       const h = size * LH + 6;
       s.rect(0, s.y, s.w, h, { fill: spec.theme.accent });
       s.y += 3;
-      s.text(title, { size, weight: 'bold', color: '#ffffff', align: 'center' });
+      s.text(title, { size, weight: 'bold', color: '#ffffff', align: 'center', tag: 'title' });
       s.y += 3;
     } else {
-      s.text(title, { size, weight: 'bold', color: spec.theme.accent, align: 'center' });
+      s.text(title, {
+        size,
+        weight: 'bold',
+        color: spec.theme.accent,
+        align: 'center',
+        tag: 'title',
+      });
     }
     s.gap(3);
 
@@ -390,7 +410,12 @@ function titleBlock(c: Ctx): Draw {
       s.text(`${k}: `, { w: half, wrap: false, color: spec.theme.muted });
       s.y = before;
       const kw = c.m.width(`${k}: `, 'regular', c.size);
-      s.text(v, { x: kw, w: half - kw, weight: 'bold' });
+      s.text(v, {
+        x: kw,
+        w: half - kw,
+        weight: 'bold',
+        ...(k === c.label('invoiceNo') ? { tag: 'number' } : {}),
+      });
     }
     lh = s.y - top;
     s.y = top;
@@ -423,7 +448,13 @@ function partyBlock(c: Ctx): Draw {
         weight: 'bold',
         color: spec.theme.muted,
       });
-      sh.text(bold, { x: 4, w: colW - 8, weight: 'bold', size: c.size * 1.1 });
+      sh.text(bold, {
+        x: 4,
+        w: colW - 8,
+        weight: 'bold',
+        size: c.size * 1.1,
+        tag: heading === c.label('shipTo') ? 'ship' : 'party',
+      });
       for (const l of lines) sh.text(l, { x: 4, w: colW - 8 });
       sh.y += 3;
       return { sh, x };
@@ -565,6 +596,7 @@ function drawRow(
         size: c.size,
         weight: bold ? 'bold' : 'regular',
         color: spec.theme.text,
+        tag: `line:${index}:${col.key}`,
       });
     });
     if (col.key === 'item' && line.note) {
@@ -579,6 +611,7 @@ function drawRow(
           size: c.size * 0.9,
           weight: 'regular',
           color: spec.theme.muted,
+          tag: `line:${index}:note`,
         }),
       );
     }
@@ -692,10 +725,11 @@ function totalsBlock(c: Ctx): Draw {
     const left = new Sheet(c, 0, s.w - half - 10);
     left.y = top;
     left.text(c.label('amountInWords'), { size: c.size * 0.9, color: spec.theme.muted });
-    left.text(WORDS[c.lang](model.totals.totalPaise), { weight: 'bold' });
+    left.text(WORDS[c.lang](model.totals.totalPaise), { weight: 'bold', tag: 'words' });
     if (model.foreign)
       left.text(`${c.label('inForeign')}: ${model.foreign.currency} ${model.foreign.amount}`, {
         color: spec.theme.muted,
+        tag: 'foreign',
       });
     if (model.declaration) {
       left.gap(2);
@@ -721,7 +755,14 @@ function totalsBlock(c: Ctx): Draw {
         color: bold ? spec.theme.text : spec.theme.muted,
       });
       right.y = before;
-      right.text(v, { w: half, weight, size, align: 'right', wrap: false });
+      right.text(v, {
+        w: half,
+        weight,
+        size,
+        align: 'right',
+        wrap: false,
+        ...(big ? { tag: 'total' } : {}),
+      });
     };
     const t = model.totals;
     // a document that charges no tax has nothing to separate the total from
@@ -788,7 +829,8 @@ function textBlock(c: Ctx, label: PrintLabelKey, lines: string[]): Draw | null {
   if (lines.length === 0) return null;
   return (s) => {
     s.text(c.label(label), { weight: 'bold', size: c.size * 1.0, color: c.spec.theme.accent });
-    for (const l of lines) s.text(l, { size: c.size * 0.92, color: c.spec.theme.muted });
+    for (const l of lines)
+      s.text(l, { size: c.size * 0.92, color: c.spec.theme.muted, tag: label });
     s.gap(4);
   };
 }
@@ -912,6 +954,7 @@ function layoutCopy(
         size: big,
         weight: 'bold',
         color: wm.color,
+        tag: 'watermark',
         rotate: 35,
         opacity: 0.14,
       });

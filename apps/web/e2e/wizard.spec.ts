@@ -308,10 +308,13 @@ test.describe('presets and the composition scheme', () => {
     await page.getByTestId('go-dashboard').click();
 
     await page.getByTestId('nav-sell').click();
-    await expect(page.getByTestId('preview-title')).toHaveText('Bill of supply');
-    await expect(page.getByTestId('preview-sheet')).toContainText(
-      'Composition taxable person, not eligible to collect tax on supplies',
-    );
+    await expect(page.getByTestId('preview-title')).toHaveText(/bill of supply/i);
+    // the declaration wraps onto more than one printed line: compare without the spaces at the wrap
+    await expect
+      .poll(async () =>
+        ((await page.getByTestId('preview-sheet').textContent()) ?? '').replace(/\s+/g, ''),
+      )
+      .toContain('Compositiontaxableperson,noteligibletocollecttaxonsupplies');
     // a tax invoice cannot be issued, and the reason is shown
     await page.goto('/books/documents/new?type=tax_invoice');
     await page.getByTestId('doc-issue').click();
@@ -335,7 +338,7 @@ test.describe('presets and the composition scheme', () => {
     await page.getByTestId('confirm-dialog').getByRole('button', { name: 'Cancel' }).click();
     await page.getByTestId('nav-sell').click();
     await page.getByTestId('confirm-dialog').getByRole('button', { name: 'Leave' }).click();
-    await expect(page.getByTestId('preview-title')).toHaveText('Tax invoice');
+    await expect(page.getByTestId('preview-title')).toHaveText(/tax invoice/i);
   });
 });
 

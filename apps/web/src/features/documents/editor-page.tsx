@@ -1,11 +1,4 @@
-import {
-  DocumentFlowRepo,
-  NumberingRepo,
-  PartyRepo,
-  SettingsRepo,
-  type Row,
-  type SeriesView,
-} from '@gst/db';
+import { DocumentFlowRepo, NumberingRepo, SettingsRepo, type Row, type SeriesView } from '@gst/db';
 import {
   CONVERSIONS,
   convertDraft,
@@ -17,6 +10,8 @@ import {
   type DraftIssue,
   type LineSelection,
 } from '@gst/domain';
+import { printLabel } from '@gst/i18n';
+import { SCRIPT_FAMILY } from '@gst/print';
 import {
   Badge,
   Button,
@@ -63,13 +58,27 @@ import {
 import { TraceView, type TraceTarget } from './trace-view';
 import { useDocumentEditor } from './use-editor';
 
+import { getBlob } from '@/app/blobs';
 import { useRightPanel } from '@/app/components/panel';
 import { useAppDb, useLiveQuery } from '@/app/db';
 import type { Shell } from '@/app/store';
 import { useUnits } from '@/features/items/hooks';
 import { ItemEditor } from '@/features/items/item-editor';
 import { useLockOverride } from '@/features/numbering/lock-override';
+import { useParty } from '@/features/parties/hooks';
 import { ApplyCreditBanner } from '@/features/payments/apply-credit-banner';
+import {
+  downloadBytes,
+  emailLink,
+  findSavedPdf,
+  pdfFileName,
+  savePdfAttachment,
+  shareDocument,
+} from '@/features/print/actions';
+import { familiesFor, loadFonts } from '@/features/print/fonts-client';
+import { makePdf, stampCancelled } from '@/features/print/pdf-client';
+import { modelNow, usePrintContext, usePrintModel } from '@/features/print/use-print-model';
+import { specOf, useDefaultTemplateId, useTemplates } from '@/features/print/use-templates';
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
 
@@ -146,10 +155,22 @@ export function EditorPage({
   const { setContent: setPanel } = useRightPanel();
   const [hidden, setHidden] = useState<ReadonlySet<GridColumn>>(new Set(DEFAULT_HIDDEN));
 
-  const unitCodes = useMemo(
-    () => new Map(units.map((u) => [u['id'] as string, u['code'] as string])),
-    [units],
-  );
+  // what prints: the template for this document type (Books and Shop can differ), or the one picked here
+  const templates = useTemplates();
+  const defaultTemplate = useDefaultTemplateId(draft.type, shell);
+  const [pickedTemplate, setPickedTemplate] = useState<string | null>(null);
+  const templateId = pickedTemplate ?? defaultTemplate;
+  const spec = specOf(templates.options, templateId);
+  const partyQuery = useParty(draft.partyId);
+  const printContext = usePrintContext();
+  const model = usePrintModel({
+    draft,
+    built,
+    number: meta.number,
+    status: meta.status,
+    revision: meta.revision,
+    party: partyQuery.data ?? null,
+  });
 
   // the business's column choices
   useEffect(() => {
@@ -250,25 +271,78 @@ export function EditorPage({
     }
   };
 
-  /** A WhatsApp message with the number and total. The PDF itself comes with the template designer. */
-  const share = async (number: string) => {
-    let phone = '';
-    if (database && ctx && draft.partyId) {
-      const p = await new PartyRepo(database).get(ctx, draft.partyId);
-      phone = String(p?.['phone'] ?? '').replace(/\D/g, '');
-    }
-    const text = t('docs.shareText', {
-      party: draft.partyName || '',
-      type: t(`docs.types.${draft.type}`),
-      number,
-      total: formatPaise(built.totals.totalPaise),
-      business: business?.['trade_name'] ?? business?.['legal_name'] ?? '',
+  /**
+   * The PDF of this document as it is right now (a fresh model, so a document that was just issued
+   * carries its new number), kept with the document once it has one.
+   */
+  const makeCurrentPdf = async (over?: { number: string; status: 'issued' }) => {
+    if (!printContext) throw new Error(t('print.notReady'));
+    const m = modelNow(printContext, {
+      draft,
+      built,
+      number: over?.number ?? meta.number,
+      status: over?.status ?? meta.status,
+      revision: meta.revision,
+      party: partyQuery.data ?? null,
     });
-    window.open(
-      `https://wa.me/${phone ? `91${phone.slice(-10)}` : ''}?text=${encodeURIComponent(text)}`,
-      '_blank',
-      'noopener',
-    );
+    const fonts = await loadFonts(familiesFor(m, spec));
+    const bytes = await makePdf(m, spec, fonts.bytes, {
+      title: `${t(`docs.types.${draft.type}`)} ${m.number ?? ''}`.trim(),
+      author: m.business.name,
+      created: new Date(`${m.date}T00:00:00Z`),
+    });
+    const fileName = pdfFileName(m, Number(business?.['fy_start_month'] ?? 4));
+    const id = editor.currentId();
+    if (database && ctx && id && m.number)
+      await savePdfAttachment(database, ctx, id, fileName, bytes);
+    return { model: m, bytes, fileName };
+  };
+
+  const downloadPdf = async () => {
+    setBusy(true);
+    try {
+      const r = await makeCurrentPdf();
+      downloadBytes(r.fileName, r.bytes);
+      toast.success(t('print.saved', { name: r.fileName }));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  /** Share the PDF: the device's share sheet where it takes files, otherwise WhatsApp with the PDF saved to attach. */
+  const share = async (number?: string) => {
+    try {
+      const r = await makeCurrentPdf(number ? { number, status: 'issued' } : undefined);
+      const out = await shareDocument({
+        model: r.model,
+        language: spec.language,
+        bytes: r.bytes,
+        fileName: r.fileName,
+        phone: String(partyQuery.data?.['phone'] ?? ''),
+        totalText: formatPaise(built.totals.totalPaise),
+      });
+      if (out === 'whatsapp') toast.success(t('print.sharedWhatsapp', { name: r.fileName }));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : String(e));
+    }
+  };
+
+  const email = async () => {
+    try {
+      const r = await makeCurrentPdf();
+      downloadBytes(r.fileName, r.bytes);
+      window.location.href = emailLink(
+        r.model,
+        spec.language,
+        formatPaise(built.totals.totalPaise),
+        String(partyQuery.data?.['email'] ?? ''),
+      );
+      toast.success(t('print.emailed', { name: r.fileName }));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : String(e));
+    }
   };
 
   /** Save the changes to an issued document (a new revision when anything financial changed). */
@@ -301,6 +375,30 @@ export function EditorPage({
     }
   };
 
+  /** A PDF that was saved before the cancellation gets CANCELLED across every page, replacing the saved file. */
+  const stampSavedPdf = async () => {
+    const id = editor.currentId();
+    if (!database || !ctx || !id) return;
+    try {
+      const saved = await findSavedPdf(database, ctx, id);
+      if (!saved) return;
+      const blob = await getBlob(String(saved['storage_path']), 'application/pdf');
+      if (!blob) return;
+      const script = SCRIPT_FAMILY[spec.language];
+      const fonts = await loadFonts(['latin', 'latinExt', ...(script ? [script] : [])]);
+      const word = printLabel(spec.language, 'watermark.cancelled');
+      const stamped = await stampCancelled(
+        new Uint8Array(await blob.arrayBuffer()),
+        word,
+        fonts.bytes,
+      );
+      await savePdfAttachment(database, ctx, id, String(saved['file_name']), stamped);
+    } catch {
+      // the document is cancelled either way; a PDF that could not be stamped is regenerated on the next download
+      toast.warning(t('print.stampFailed'));
+    }
+  };
+
   const doCancel = async (reason: string) => {
     setBusy(true);
     try {
@@ -316,6 +414,7 @@ export function EditorPage({
       }
       setCancelOpen(false);
       toast.success(t('docs.cancel.done', { number: meta.number ?? '' }));
+      void stampSavedPdf();
       if (out.unallocated.length > 0) {
         const sum = out.unallocated.reduce((n, u) => n + BigInt(u.amountPaise), 0n);
         toast.warning(
@@ -518,6 +617,15 @@ export function EditorPage({
                     {t('docs.actions.print')}
                   </DropdownMenuItem>
                 )}
+                <DropdownMenuItem data-testid="doc-pdf" onSelect={() => void downloadPdf()}>
+                  {t('print.download')}
+                </DropdownMenuItem>
+                <DropdownMenuItem data-testid="doc-share" onSelect={() => void share()}>
+                  {t('print.share')}
+                </DropdownMenuItem>
+                <DropdownMenuItem data-testid="doc-email" onSelect={() => void email()}>
+                  {t('print.email')}
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   data-testid="doc-duplicate"
                   disabled={!meta.id}
@@ -637,6 +745,9 @@ export function EditorPage({
             numberLabel={numberLabel}
             series={seriesQuery.data ?? []}
             seriesLocked={!isDraft}
+            templates={templates.options}
+            templateId={templateId}
+            onTemplate={setPickedTemplate}
             simple={simple}
             onPartyPicked={() =>
               requestAnimationFrame(() =>
@@ -708,14 +819,13 @@ export function EditorPage({
         </div>
 
         {simple ? (
-          <div aria-hidden className="pointer-events-none fixed left-[-10000px] top-0">
+          <div aria-hidden className="offscreen">
             <DocumentPreview
-              draft={draft}
-              built={built}
-              business={business}
-              units={unitCodes}
-              number={meta.number}
-              status={meta.status}
+              model={model}
+              spec={spec}
+              templates={templates.options}
+              templateId={templateId}
+              onTemplate={setPickedTemplate}
             />
           </div>
         ) : (
@@ -745,12 +855,11 @@ export function EditorPage({
               </TabsList>
               <TabsContent value="preview" className="min-h-0 flex-1">
                 <DocumentPreview
-                  draft={draft}
-                  built={built}
-                  business={business}
-                  units={unitCodes}
-                  number={meta.number}
-                  status={meta.status}
+                  model={model}
+                  spec={spec}
+                  templates={templates.options}
+                  templateId={templateId}
+                  onTemplate={setPickedTemplate}
                 />
               </TabsContent>
               {meta.id && !isDraft && (

@@ -9,6 +9,7 @@ import {
   blocksIn,
   exportTemplate,
   moveBlock,
+  reorderBlock,
   parseTemplate,
   presetSpec,
   thermalColumns,
@@ -95,6 +96,23 @@ describe('editing a template', () => {
     expect(moveBlock(s, 'header', -1)).toBe(s);
     expect(moveBlock(s, 'lines', 1)).toBe(s);
     // other zones are untouched
+    expect(blocksIn(moved, 'top').map((b) => b.type)).toEqual(
+      blocksIn(s, 'top').map((b) => b.type),
+    );
+  });
+
+  it('drops a block onto another: it takes its place, others shift, and zones stay apart', () => {
+    const s = presetSpec('classic');
+    const order = (x: typeof s) => blocksIn(x, 'closing').map((b) => b.type);
+    const before = order(s);
+    const last = before[before.length - 1]!;
+    const moved = reorderBlock(s, last, before[0]!);
+    expect(order(moved)[0]).toBe(last);
+    expect(order(moved).slice(1)).toEqual(before.slice(0, -1));
+    // dropping on itself, or across zones, changes nothing
+    expect(reorderBlock(s, 'bank', 'bank')).toBe(s);
+    expect(reorderBlock(s, 'bank', 'header')).toBe(s);
+    // the other zones are untouched
     expect(blocksIn(moved, 'top').map((b) => b.type)).toEqual(
       blocksIn(s, 'top').map((b) => b.type),
     );

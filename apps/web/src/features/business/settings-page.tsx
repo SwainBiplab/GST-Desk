@@ -55,6 +55,7 @@ import { AuditViewer } from '@/features/numbering/audit-viewer';
 import { NumberingTab } from '@/features/numbering/numbering-tab';
 import { Field } from '@/features/onboarding/field';
 import { AccountsTab } from '@/features/payments/accounts-tab';
+import { PrintTab } from '@/features/print/designer';
 
 const MONTHS = [
   'January',
@@ -444,6 +445,7 @@ const TABS = [
   'documents',
   'numbering',
   'accounts',
+  'print',
   'audit',
   'businesses',
   'inventory',
@@ -494,6 +496,9 @@ export function SettingsPage() {
         </TabsContent>
         <TabsContent value="numbering">
           <NumberingTab />
+        </TabsContent>
+        <TabsContent value="print">
+          <PrintTab />
         </TabsContent>
         <TabsContent value="accounts">
           <AccountsTab />

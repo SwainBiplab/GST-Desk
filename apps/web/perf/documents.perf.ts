@@ -99,7 +99,7 @@ test(`with ${B.lines} lines a keystroke is handled within a frame and the previe
   // a change that alters the totals: how long until the preview shows the new total
   await page.getByTestId('doc-inv-discount-mode').click();
   await page.getByRole('option', { name: 'Percent' }).click();
-  const before = await page.getByTestId('preview-total').innerText();
+  const before = (await page.getByTestId('preview-total').textContent()) ?? '';
   const t0 = Date.now();
   await page.getByTestId('doc-inv-discount').fill('10');
   await expect(page.getByTestId('preview-total')).not.toHaveText(before, { timeout: 5000 });

@@ -7,7 +7,11 @@
  */
 // fontkit's Indic shapers were compiled with generators and expect this global
 import 'regenerator-runtime/runtime';
-import * as fontkit from '@pdf-lib/fontkit';
+import fontkitModule from '@pdf-lib/fontkit';
+import type * as FontkitTypes from '@pdf-lib/fontkit';
+
+/** fontkit: the default export is what both Node and the browser bundle provide. */
+export const fontkit = fontkitModule as unknown as typeof FontkitTypes;
 
 export const FONT_FAMILIES = [
   'latin',
@@ -53,6 +57,26 @@ export function splitRuns(text: string): Run[] {
   return runs;
 }
 
+/** The scripts used in some text, as the font families that must be loaded to draw it. */
+export function familiesIn(text: string): Set<FontFamily> {
+  const out = new Set<FontFamily>();
+  for (const ch of text) {
+    const cp = ch.codePointAt(0)!;
+    if (cp >= 0x80) out.add(familyOf(cp));
+  }
+  return out;
+}
+
+/** The extra family a template language needs (English needs only Latin). */
+export const SCRIPT_FAMILY: Record<string, FontFamily | null> = {
+  en: null,
+  hi: 'devanagari',
+  mr: 'devanagari',
+  ta: 'tamil',
+  bn: 'bengali',
+  gu: 'gujarati',
+};
+
 export interface TextMeasurer {
   /** Width of `text` in points at `size`, shaped. */
   width(text: string, weight: Weight, size: number): number;
@@ -62,13 +86,13 @@ export interface TextMeasurer {
 
 /** Measures with real font files. */
 export class FontMeasurer implements TextMeasurer {
-  private readonly fonts = new Map<string, fontkit.Font>();
+  private readonly fonts = new Map<string, FontkitTypes.Font>();
   private readonly cache = new Map<string, number>();
 
   constructor(private readonly bytes: FontBytes) {}
 
   /** The parsed font for a family and weight; a missing bold falls back to regular, a missing family to Latin. */
-  font(family: FontFamily, weight: Weight): fontkit.Font {
+  font(family: FontFamily, weight: Weight): FontkitTypes.Font {
     const tries: `${FontFamily}:${Weight}`[] = [
       `${family}:${weight}`,
       `${family}:regular`,
@@ -95,11 +119,32 @@ export class FontMeasurer implements TextMeasurer {
     let w = 0;
     for (const run of splitRuns(text)) {
       const f = this.font(run.family, weight);
-      w += (f.layout(run.text).advanceWidth / f.unitsPerEm) * size;
+      if (run.family === 'latin' || run.family === 'latinExt') {
+        // Latin needs no shaping: the sum of each character's own advance, which is also what the PDF draws
+        w += (this.latinAdvance(f, `${run.family}:${weight}`, run.text) / f.unitsPerEm) * size;
+      } else w += (f.layout(run.text).advanceWidth / f.unitsPerEm) * size;
     }
     if (this.cache.size > 20_000) this.cache.clear();
     this.cache.set(key, w);
     return w;
+  }
+
+  private readonly advances = new Map<string, number>();
+
+  /** Sum of glyph advances in font units, each looked up once per font. */
+  private latinAdvance(f: FontkitTypes.Font, key: string, text: string): number {
+    let sum = 0;
+    for (const ch of text) {
+      const cp = ch.codePointAt(0)!;
+      const k = `${key}:${cp}`;
+      let a = this.advances.get(k);
+      if (a === undefined) {
+        a = f.glyphForCodePoint(cp).advanceWidth;
+        this.advances.set(k, a);
+      }
+      sum += a;
+    }
+    return sum;
   }
 
   metrics() {

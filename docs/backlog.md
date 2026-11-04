@@ -33,3 +33,13 @@
 | B-029 | Payments: TCS on receipt uses the default 0.1% rate; a rate and PAN-based 1% (no PAN) choice per party                                                            | P2                 | open   |
 | B-030 | Payments: payment links, gateway reconciliation and reminder sending                                                                                              | prompts 44 and 45  | open   |
 | B-031 | Payments: receipts as a PDF on the template designer, with the accounts chosen for documents                                                                      | prompt 17          | open   |
+| B-032 | Print: save the PDF to Documents/GST Desk/<Business>/<FY>/<Type>/ on the desktop app (the browser keeps it as an attachment and downloads it)                     | prompt 23          | open   |
+| B-033 | Print: send ESC/POS straight to a USB or network thermal printer from the desktop app (the bytes are generated and tested; the browser uses the print dialog)     | prompt 23          | open   |
+| B-034 | Print: bold and other formatting of notes and terms on the printed page (kept in the editor and the stored text)                                                  | P2                 | open   |
+| B-035 | Print: position Indic diacritics with GPOS mark anchors in the PDF (shapes are right; small offsets possible)                                                     | P2                 | open   |
+| B-036 | Print: amount in words in Tamil, Bengali, Gujarati and Marathi (English or Hindi words print today)                                                               | prompt 22          | open   |
+| B-037 | Print: native-speaker review of the label translations (docs/qa/print-language-review.md)                                                                         | before release     | open   |
+| B-038 | Print: email with the PDF attached from the desktop app (the browser opens the mail app and saves the PDF to attach)                                              | prompt 23          | open   |
+| B-039 | Print: client portal link in the share flow (a disabled placeholder today)                                                                                        | prompt 47          | open   |
+| B-040 | Print: preview the designer with one of the business's real documents, not only the sample                                                                        | P2                 | open   |
+| B-041 | Print: a Rust sidecar for bulk PDF on the desktop app, if the worker is too slow for thousands of documents                                                       | P3                 | open   |

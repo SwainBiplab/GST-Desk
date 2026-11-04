@@ -3,6 +3,7 @@ import type { DocumentType } from '@gst/domain';
 import {
   Badge,
   Button,
+  Checkbox,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -29,6 +30,7 @@ import type { Shell } from '@/app/store';
 import { useFeatureFlags } from '@/features/business/hooks';
 import { usePositions } from '@/features/payments/hooks';
 import { PayStatusBadge } from '@/features/payments/status-badge';
+import { BulkExportDialog } from '@/features/print/bulk-export';
 
 const ALL_TYPES: DocumentType[] = [
   'tax_invoice',
@@ -88,6 +90,8 @@ export function DocumentsPage({ shell }: { shell: Shell }) {
     .slice(0, SHOWN);
 
   const positions = usePositions();
+  const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
+  const [exporting, setExporting] = useState<string[] | null>(null);
   const open = (r: Row) =>
     r['type'] === 'receipt_voucher'
       ? navigate(`/${shell}/payments`, { voucher: r['id'] })
@@ -104,24 +108,35 @@ export function DocumentsPage({ shell }: { shell: Shell }) {
         title={t(purchasesOnly ? 'docs.list.purchases' : 'nav.documents')}
         description={t('docs.list.count', { count: rows.length })}
         actions={
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button data-testid="doc-new">{t('docs.list.new')}</Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {creatable
-                .filter((x) => (purchasesOnly ? isPurchase(x) : true))
-                .map((x) => (
-                  <DropdownMenuItem
-                    key={x}
-                    data-testid={`doc-new-${x}`}
-                    onSelect={() => navigate(editorPath(shell), { type: x })}
-                  >
-                    {t(`docs.types.${x}`)}
-                  </DropdownMenuItem>
-                ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-2">
+            {selected.size > 0 && (
+              <Button
+                variant="outline"
+                data-testid="bulk-export-button"
+                onClick={() => setExporting([...selected])}
+              >
+                {t('print.bulk.exportButton', { count: selected.size })}
+              </Button>
+            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button data-testid="doc-new">{t('docs.list.new')}</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {creatable
+                  .filter((x) => (purchasesOnly ? isPurchase(x) : true))
+                  .map((x) => (
+                    <DropdownMenuItem
+                      key={x}
+                      data-testid={`doc-new-${x}`}
+                      onSelect={() => navigate(editorPath(shell), { type: x })}
+                    >
+                      {t(`docs.types.${x}`)}
+                    </DropdownMenuItem>
+                  ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         }
       />
 
@@ -210,6 +225,18 @@ export function DocumentsPage({ shell }: { shell: Shell }) {
           >
             <thead className="bg-surface-2 text-left text-xs text-fg-muted">
               <tr>
+                <th className="w-8 p-2">
+                  <Checkbox
+                    aria-label={t('print.bulk.selectAll')}
+                    data-testid="doc-select-all"
+                    checked={rows.length > 0 && rows.every((r) => selected.has(r['id']))}
+                    onCheckedChange={(v) =>
+                      setSelected(
+                        v === true ? new Set(rows.map((r) => r['id'] as string)) : new Set(),
+                      )
+                    }
+                  />
+                </th>
                 <th className="p-2">{t('docs.list.number')}</th>
                 <th className="p-2">{t('docs.list.type')}</th>
                 <th className="p-2">{t('docs.header.date')}</th>
@@ -226,6 +253,21 @@ export function DocumentsPage({ shell }: { shell: Shell }) {
                   className="border-t border-border hover:bg-surface-1"
                   data-testid="document-row"
                 >
+                  <td className="p-2">
+                    <Checkbox
+                      aria-label={t('print.bulk.select', { number: r['number'] ?? '' })}
+                      data-testid="doc-select"
+                      checked={selected.has(r['id'])}
+                      onCheckedChange={(v) =>
+                        setSelected((s) => {
+                          const next = new Set(s);
+                          if (v === true) next.add(r['id'] as string);
+                          else next.delete(r['id'] as string);
+                          return next;
+                        })
+                      }
+                    />
+                  </td>
                   <td className="p-2">
                     <button
                       type="button"
@@ -256,6 +298,7 @@ export function DocumentsPage({ shell }: { shell: Shell }) {
           </table>
         </div>
       )}
+      {exporting && <BulkExportDialog ids={exporting} onClose={() => setExporting(null)} />}
     </div>
   );
 }

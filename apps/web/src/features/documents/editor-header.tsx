@@ -17,6 +17,7 @@ import { PartyPicker } from './party-picker';
 import { applyParty, isPurchase } from './state';
 
 import { Field } from '@/features/onboarding/field';
+import type { TemplateOption } from '@/features/print/use-templates';
 
 const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD', 'AUD', 'CAD', 'JPY'] as const;
 const STATE_OPTIONS = Object.entries(STATES).filter(([code]) => code !== '97' && code !== '99');
@@ -40,6 +41,9 @@ export function EditorHeader({
   numberLabel,
   series = [],
   seriesLocked = false,
+  templates = [],
+  templateId = 'preset:classic',
+  onTemplate,
   simple = false,
   onPartyPicked,
   onChange,
@@ -55,6 +59,10 @@ export function EditorHeader({
   series?: SeriesView[];
   /** Numbered documents keep the series they were issued from. */
   seriesLocked?: boolean;
+  /** The print templates to choose from, and the one in use. */
+  templates?: readonly TemplateOption[];
+  templateId?: string;
+  onTemplate?: (id: string) => void;
   /** Shop: just who and when. */
   simple?: boolean;
   /** Called after a party is chosen, so the cursor can move on to the lines. */
@@ -363,7 +371,24 @@ export function EditorHeader({
         }
       </Field>
       <Field label={t('docs.header.template')} hint={t('docs.header.templateHelp')}>
-        {(c) => <Input {...c} readOnly disabled value={t('docs.header.templateStandard')} />}
+        {(c) =>
+          templates.length > 0 ? (
+            <Select value={templateId} onValueChange={(v) => onTemplate?.(v)}>
+              <SelectTrigger {...c} data-testid="doc-template">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {templates.map((o) => (
+                  <SelectItem key={o.id} value={o.id}>
+                    {o.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <Input {...c} readOnly disabled value={t('docs.header.templateStandard')} />
+          )
+        }
       </Field>
     </section>
   );

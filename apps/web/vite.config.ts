@@ -26,6 +26,14 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,wasm}'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: '/index.html',
+        // the print fonts load on first use and are kept, so printing works offline afterwards
+        runtimeCaching: [
+          {
+            urlPattern: /\.woff2?$/,
+            handler: 'CacheFirst',
+            options: { cacheName: 'print-fonts', expiration: { maxEntries: 30 } },
+          },
+        ],
       },
       manifest: {
         name: 'GST Desk',
@@ -47,9 +55,10 @@ export default defineConfig({
       { find: /^@gst\/domain\/data\//, replacement: root('domain/data') + '/' },
       { find: /^@gst\/ai\/fixtures/, replacement: root('ai/fixtures') },
       { find: /^@gst\/ai\/db$/, replacement: root('ai/src/db/index.ts') },
+      { find: /^@gst\/print\/fonts\.web$/, replacement: root('print/src/fonts.web.ts') },
       { find: /^@gst\/db\/node$/, replacement: root('db/src/node.ts') },
       { find: /^@gst\/db\/seed$/, replacement: root('db/src/seed.ts') },
-      { find: /^@gst\/(domain|db|ui|ai|i18n)$/, replacement: root('$1/src/index.ts') },
+      { find: /^@gst\/(domain|db|ui|ai|i18n|print)$/, replacement: root('$1/src/index.ts') },
     ],
   },
   worker: { format: 'es' },

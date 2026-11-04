@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "@gst/config": "workspace:*",
+    "@gst/print": "workspace:*",
     "@types/node": "^26.6.6",
     "fast-check": "^4.10.2",
     "@vitest/coverage-v8": "^5.1.0",

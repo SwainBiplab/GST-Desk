@@ -8,7 +8,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./escpos": "./src/escpos.ts",
-    "./fonts.node": "./src/fonts.node.ts"
+    "./fonts.node": "./src/fonts.node.ts",
+    "./fonts.web": "./src/fonts.web.ts"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json --noEmit",
@@ -35,6 +36,7 @@
     "@types/node": "^26.6.6",
     "@types/qrcode": "^1.5.5",
     "eslint": "^9.39.0",
+    "pdfjs-dist": "^6.5.438",
     "typescript": "~6.0.0",
     "vitest": "^5.1.0"
   }

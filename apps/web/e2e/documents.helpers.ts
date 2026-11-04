@@ -85,8 +85,9 @@ export async function addLine(page: Page, row: number, query: string, qty = '1')
   await keyLine(page, query, qty, true);
 }
 
-const text = (page: Page, id: string) => page.getByTestId(id).innerText();
-const paise = (s: string) => BigInt(parseAmountPaise(s.replace(/[₹\s]/g, '')) ?? 0);
+// textContent, not innerText: parts of the printed preview are SVG
+const text = async (page: Page, id: string) => (await page.getByTestId(id).textContent()) ?? '';
+const paise = (s: string) => BigInt(parseAmountPaise(s.replace(/[₹,\s]/g, '')) ?? 0);
 
 /**
  * What the engine says the total should be, recomputed from the lines the preview shows and the place
@@ -111,14 +112,16 @@ export async function engineTotalFromPreview(
   draft.placeOfSupply = pos;
   draft.lines = [];
   for (let i = 0; i < n; i++) {
-    const cells = await rows.nth(i).locator('td').allInnerTexts();
-    const qty = parseQtyMicros(cells[3]!.split(' ')[0]!) ?? 0;
+    // each cell of a printed line carries its column in `data-tag` (line:<n>:item, :qty, :rate, :taxRate)
+    const cell = async (col: string) =>
+      (await rows.nth(i).locator(`[data-tag$=":${col}"]`).allTextContents()).join(' ').trim();
+    const qty = parseQtyMicros((await cell('qty')).split(' ')[0]!) ?? 0;
     draft.lines.push({
       ...emptyDraftLine(`e${i}`),
-      description: cells[1]!,
+      description: await cell('item'),
       qtyMicros: BigInt(qty),
-      ratePaise: paise(cells[4]!),
-      gstRateBp: Math.round(parseFloat(cells[6]!.replace('%', '')) * 100),
+      ratePaise: paise((await cell('rate')).replace(/,/g, '')),
+      gstRateBp: Math.round(parseFloat((await cell('taxRate')).replace('%', '')) * 100),
     });
   }
   return buildDocument(draft).totals.totalPaise;

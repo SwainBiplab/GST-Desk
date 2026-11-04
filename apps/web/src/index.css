@@ -2,3 +2,43 @@
 @import '@gst/ui/tokens/theme.css';
 @import '@gst/ui/tokens/fonts.css';
 @source "../../../packages/ui/src";
+
+/* Kept in the page (so it can be printed) but out of sight. */
+@media screen {
+  .offscreen {
+    position: fixed;
+    left: -10000px;
+    top: 0;
+    pointer-events: none;
+  }
+}
+
+/* Printing: only the document, never the app around it. Each preview page prints as its own sheet. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #print-area,
+  #print-area *,
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+  #print-area,
+  .print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  #print-area svg.print-page {
+    display: block;
+    width: var(--pw) !important;
+    height: var(--ph) !important;
+    page-break-after: always;
+    break-after: page;
+  }
+  @page {
+    margin: 0;
+  }
+}
