@@ -17,6 +17,7 @@ import {
   createOrganisation,
 } from './aggregates';
 import { BaseRepo, ConflictError, RuleError, runInTx, type Ctx } from './base';
+import { insertHsnEntries, searchHsn } from './hsn';
 import { computeLine } from './line-math';
 
 async function newTenant(d: Database): Promise<Ctx> {
@@ -363,4 +364,45 @@ describe('row-level security (pg)', () => {
       ),
     ).rejects.toThrow();
   });
+});
+
+describe.each(DIALECTS)('hsn search (%s)', (dialect) => {
+  it('ranks by relevance, honours effective dates and stems words', async () => {
+    const d = await openTestDb(dialect);
+    await insertHsnEntries(d, [
+      { code: '7408', description: 'Copper wire', rate_bp: 1800, effective_from: '2017-07-01' },
+      {
+        code: '8544',
+        description: 'Insulated electric wire, cable and other insulated electric conductors',
+        rate_bp: 1800,
+        effective_from: '2017-07-01',
+      },
+      {
+        code: '5208',
+        description: 'Woven fabrics of cotton',
+        rate_bp: 500,
+        effective_from: '2017-07-01',
+      },
+      {
+        code: '9999',
+        description: 'Old copper scheme',
+        rate_bp: 1200,
+        effective_from: '2017-07-01',
+        effective_to: '2019-12-31',
+      },
+    ]);
+    const hits = await searchHsn(d, 'copper wires');
+    expect(hits[0]?.code).toBe('7408');
+    expect(hits.map((h) => h.code)).toContain('8544');
+    expect(hits.every((h) => h.score > 0)).toBe(true);
+    expect((await searchHsn(d, 'copper', { asOf: '2026-01-01' })).map((h) => h.code)).not.toContain(
+      '9999',
+    );
+    expect((await searchHsn(d, 'copper', { asOf: '2018-01-01' })).map((h) => h.code)).toContain(
+      '9999',
+    );
+    expect(await searchHsn(d, '   ')).toEqual([]);
+    expect(await searchHsn(d, 'zzzzzz')).toEqual([]);
+    await d.close();
+  }, 60_000);
 });

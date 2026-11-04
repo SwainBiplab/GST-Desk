@@ -6,3 +6,4 @@ export * from './schema';
 export * from './repositories/base';
 export * from './repositories/aggregates';
 export * from './repositories/line-math';
+export * from './repositories/hsn';

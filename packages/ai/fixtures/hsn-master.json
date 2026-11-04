@@ -1,0 +1,296 @@
+[
+  {
+    "code": "0401",
+    "description": "Milk and cream, not concentrated nor sweetened",
+    "rate_bp": 0,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "0902",
+    "description": "Tea, whether or not flavoured",
+    "rate_bp": 500,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "0901",
+    "description": "Coffee, whether or not roasted or decaffeinated",
+    "rate_bp": 500,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "1001",
+    "description": "Wheat and meslin",
+    "rate_bp": 0,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "1006",
+    "description": "Rice",
+    "rate_bp": 500,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "1701",
+    "description": "Cane or beet sugar and chemically pure sucrose, in solid form",
+    "rate_bp": 500,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "1806",
+    "description": "Chocolate and other food preparations containing cocoa",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "1905",
+    "description": "Bread, pastry, cakes, biscuits and other bakers' wares",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "2106",
+    "description": "Food preparations not elsewhere specified or included",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "2201",
+    "description": "Waters, including natural or artificial mineral waters and aerated waters",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "2523",
+    "description": "Portland cement, aluminous cement, slag cement and similar hydraulic cements",
+    "rate_bp": 2800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "3004",
+    "description": "Medicaments consisting of mixed or unmixed products for therapeutic or prophylactic use",
+    "rate_bp": 1200,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "3304",
+    "description": "Beauty or make-up preparations and preparations for the care of the skin",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "3401",
+    "description": "Soap; organic surface-active products and preparations for use as soap in bars, cakes",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "3402",
+    "description": "Washing preparations and cleaning preparations, detergent powder",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "3923",
+    "description": "Plastic articles for the conveyance or packing of goods, stoppers, lids, caps",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "4016",
+    "description": "Other articles of vulcanised rubber other than hard rubber",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "4202",
+    "description": "Trunks, suitcases, vanity cases, handbags, wallets of leather or plastic",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "4802",
+    "description": "Uncoated paper and paperboard for writing, printing or other graphic purposes",
+    "rate_bp": 1200,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "4820",
+    "description": "Registers, account books, notebooks, order books, diaries, exercise books",
+    "rate_bp": 1200,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "5208",
+    "description": "Woven fabrics of cotton, containing 85 percent or more by weight of cotton",
+    "rate_bp": 500,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "6109",
+    "description": "T-shirts, singlets and other vests, knitted or crocheted",
+    "rate_bp": 1200,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "6203",
+    "description": "Men's or boys' suits, jackets, trousers and shorts, woven",
+    "rate_bp": 1200,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "6403",
+    "description": "Footwear with outer soles of rubber, plastics, leather and uppers of leather",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "6907",
+    "description": "Ceramic flags and paving, hearth or wall tiles, floor tiles",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "7010",
+    "description": "Carboys, bottles, flasks, jars, pots and other glass containers for conveyance of goods",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "7208",
+    "description": "Flat-rolled products of iron or non-alloy steel, hot-rolled",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "7306",
+    "description": "Other tubes, pipes and hollow profiles of iron or steel",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "7318",
+    "description": "Screws, bolts, nuts, coach screws, washers of iron or steel",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "7408",
+    "description": "Copper wire",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "7615",
+    "description": "Table, kitchen or other household articles of aluminium",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "8414",
+    "description": "Air or vacuum pumps, air or other gas compressors and fans",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "8418",
+    "description": "Refrigerators, freezers and other refrigerating or freezing equipment",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "8443",
+    "description": "Printing machinery, printers, copying machines and facsimile machines",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "8471",
+    "description": "Automatic data processing machines, computers, laptops and units thereof",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "8501",
+    "description": "Electric motors and generators",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "8507",
+    "description": "Electric accumulators, lead-acid batteries, including separators",
+    "rate_bp": 2800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "8516",
+    "description": "Electric water heaters, hair dryers, electric flat irons and other electro-thermic appliances",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "8517",
+    "description": "Telephone sets, including smartphones and mobile phones for cellular networks",
+    "rate_bp": 1200,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "8528",
+    "description": "Monitors and projectors, television receivers, led television",
+    "rate_bp": 2800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "8536",
+    "description": "Electrical apparatus for switching or protecting electrical circuits, switches, plugs, sockets",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "8544",
+    "description": "Insulated wire, cable and other insulated electric conductors",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "8708",
+    "description": "Parts and accessories of motor vehicles",
+    "rate_bp": 2800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "9403",
+    "description": "Other furniture and parts thereof",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "9503",
+    "description": "Tricycles, scooters, toys, dolls and puzzles",
+    "rate_bp": 1200,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "9608",
+    "description": "Ball point pens, felt tipped pens and other pens",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "9954",
+    "description": "Construction services of buildings, roads and bridges",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "9983",
+    "description": "Other professional, technical and business services",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  },
+  {
+    "code": "9987",
+    "description": "Maintenance, repair and installation services",
+    "rate_bp": 1800,
+    "effective_from": "2017-07-01"
+  }
+]

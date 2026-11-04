@@ -403,6 +403,8 @@ export const SPEC: TableSpec[] = [
       payload_json: c.json(),
       suggestion_json: c.json(),
       diff_json: c.json(),
+      /** What the user changed before accepting (suggestion -> accepted value); feeds evals. */
+      correction_json: c.json(),
       source: c.text(),
       model: c.text(),
       confidence: c.int(),
@@ -410,6 +412,22 @@ export const SPEC: TableSpec[] = [
       accepted_at: c.ts(),
     },
     indexes: [{ cols: ['business_id', 'status'] }],
+  },
+  {
+    name: 'ai_calls',
+    kind: 'tenant-lite',
+    // metadata only: never the prompt or the response
+    cols: {
+      feature: c.text().nn,
+      capability: c.text().nn,
+      provider: c.text().nn,
+      model: c.text(),
+      input_tokens: c.int(),
+      output_tokens: c.int(),
+      latency_ms: c.int().nn.default(0),
+      outcome: c.text().nn,
+    },
+    indexes: [{ cols: ['business_id', 'feature'] }],
   },
   {
     name: 'audit_log',

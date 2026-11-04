@@ -1,0 +1,39 @@
+{
+  "name": "bill Das Stores",
+  "input": {
+    "kind": "text",
+    "text": "TAX INVOICE DS/771 Das Stores dated 2025-10-21"
+  },
+  "expected": {
+    "supplierName": "Das Stores",
+    "supplierGstin": null,
+    "invoiceNumber": "DS/771",
+    "date": "2025-10-21",
+    "lines": [
+      {
+        "description": "Ball pen box",
+        "hsn": "9608",
+        "qty": 5,
+        "ratePaise": 24000,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 141600
+  },
+  "mock": {
+    "supplierName": "Das Stores",
+    "supplierGstin": null,
+    "invoiceNumber": "DS/771",
+    "date": "2025-10-21",
+    "lines": [
+      {
+        "description": "Ball pen box",
+        "hsn": "9608",
+        "qty": 5,
+        "ratePaise": 24000,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 141600
+  }
+}

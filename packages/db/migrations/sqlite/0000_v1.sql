@@ -1,3 +1,23 @@
+CREATE TABLE `ai_calls` (
+	`id` text PRIMARY KEY NOT NULL,
+	`org_id` text NOT NULL,
+	`business_id` text NOT NULL,
+	`created_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
+	`feature` text NOT NULL,
+	`capability` text NOT NULL,
+	`provider` text NOT NULL,
+	`model` text,
+	`input_tokens` integer,
+	`output_tokens` integer,
+	`latency_ms` integer DEFAULT 0 NOT NULL,
+	`outcome` text NOT NULL,
+	FOREIGN KEY (`org_id`) REFERENCES `organisations`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`business_id`) REFERENCES `businesses`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE INDEX `ai_calls_business_id_feature_idx` ON `ai_calls` (`business_id`,`feature`);--> statement-breakpoint
+CREATE INDEX `ai_calls_business_id_idx` ON `ai_calls` (`business_id`);--> statement-breakpoint
+CREATE INDEX `ai_calls_org_id_idx` ON `ai_calls` (`org_id`);--> statement-breakpoint
 CREATE TABLE `attachments` (
 	`id` text PRIMARY KEY NOT NULL,
 	`org_id` text NOT NULL,
@@ -566,6 +586,7 @@ CREATE TABLE `review_items` (
 	`payload_json` text,
 	`suggestion_json` text,
 	`diff_json` text,
+	`correction_json` text,
 	`source` text,
 	`model` text,
 	`confidence` integer,

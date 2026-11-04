@@ -12,19 +12,27 @@ export const SEARCH_COLUMNS: Record<string, string[]> = {
   parties: ['name', 'trade_name', 'gstin', 'phone', 'email'],
   items: ['name', 'sku', 'barcode', 'hsn'],
   documents: ['number', 'party_name', 'notes'],
+  hsn_master: ['code', 'description'],
 };
+
+/** Reference tables have no business_id. */
+const GLOBAL_SEARCH = new Set(['hsn_master']);
+
+/** Reference text is natural language: stem it. Names and numbers are not. */
+const STEMMED = new Set(['hsn_master']);
 
 function sqliteExtras(): string[] {
   const out: string[] = [];
   for (const [table, cols] of Object.entries(SEARCH_COLUMNS)) {
     const fts = `${table}_fts`;
+    const scoped = !GLOBAL_SEARCH.has(table);
+    const lead = scoped ? ['id', 'business_id'] : ['id'];
     out.push(
-      `CREATE VIRTUAL TABLE ${fts} USING fts5(id UNINDEXED, business_id UNINDEXED, ${cols.join(', ')}, tokenize='unicode61 remove_diacritics 2')`,
+      `CREATE VIRTUAL TABLE ${fts} USING fts5(${lead.map((c) => `${c} UNINDEXED`).join(', ')}, ${cols.join(', ')}, tokenize='${STEMMED.has(table) ? 'porter ' : ''}unicode61 remove_diacritics 2')`,
     );
-    const colList = ['id', 'business_id', ...cols].join(', ');
+    const colList = [...lead, ...cols].join(', ');
     const newVals = [
-      'new.id',
-      'new.business_id',
+      ...lead.map((c) => `new.${c}`),
       ...cols.map((c) => `coalesce(new.${c}, '')`),
     ].join(', ');
     out.push(
@@ -51,7 +59,7 @@ function pgExtras(): string[] {
   for (const [table, cols] of Object.entries(SEARCH_COLUMNS)) {
     const expr = cols.map((c) => `coalesce(${c}, '')`).join(` || ' ' || `);
     out.push(
-      `ALTER TABLE ${table} ADD COLUMN search tsvector GENERATED ALWAYS AS (to_tsvector('simple', ${expr})) STORED`,
+      `ALTER TABLE ${table} ADD COLUMN search tsvector GENERATED ALWAYS AS (to_tsvector('${STEMMED.has(table) ? 'english' : 'simple'}', ${expr})) STORED`,
       `CREATE INDEX ${table}_search_idx ON ${table} USING gin (search)`,
     );
   }

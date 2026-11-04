@@ -1,3 +1,18 @@
+CREATE TABLE "ai_calls" (
+	"id" uuid PRIMARY KEY NOT NULL,
+	"org_id" uuid NOT NULL,
+	"business_id" uuid NOT NULL,
+	"created_at" bigint DEFAULT (extract(epoch from now()) * 1000)::bigint NOT NULL,
+	"feature" text NOT NULL,
+	"capability" text NOT NULL,
+	"provider" text NOT NULL,
+	"model" text,
+	"input_tokens" integer,
+	"output_tokens" integer,
+	"latency_ms" integer DEFAULT 0 NOT NULL,
+	"outcome" text NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "attachments" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"org_id" uuid NOT NULL,
@@ -446,6 +461,7 @@ CREATE TABLE "review_items" (
 	"payload_json" jsonb,
 	"suggestion_json" jsonb,
 	"diff_json" jsonb,
+	"correction_json" jsonb,
 	"source" text,
 	"model" text,
 	"confidence" integer,
@@ -548,6 +564,8 @@ CREATE TABLE "users" (
 	CONSTRAINT "users_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
+ALTER TABLE "ai_calls" ADD CONSTRAINT "ai_calls_org_id_organisations_id_fk" FOREIGN KEY ("org_id") REFERENCES "public"."organisations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "ai_calls" ADD CONSTRAINT "ai_calls_business_id_businesses_id_fk" FOREIGN KEY ("business_id") REFERENCES "public"."businesses"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "attachments" ADD CONSTRAINT "attachments_org_id_organisations_id_fk" FOREIGN KEY ("org_id") REFERENCES "public"."organisations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "attachments" ADD CONSTRAINT "attachments_business_id_businesses_id_fk" FOREIGN KEY ("business_id") REFERENCES "public"."businesses"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "audit_log" ADD CONSTRAINT "audit_log_org_id_organisations_id_fk" FOREIGN KEY ("org_id") REFERENCES "public"."organisations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -624,6 +642,9 @@ ALTER TABLE "templates" ADD CONSTRAINT "templates_org_id_organisations_id_fk" FO
 ALTER TABLE "templates" ADD CONSTRAINT "templates_business_id_businesses_id_fk" FOREIGN KEY ("business_id") REFERENCES "public"."businesses"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "units" ADD CONSTRAINT "units_org_id_organisations_id_fk" FOREIGN KEY ("org_id") REFERENCES "public"."organisations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "units" ADD CONSTRAINT "units_business_id_businesses_id_fk" FOREIGN KEY ("business_id") REFERENCES "public"."businesses"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "ai_calls_business_id_feature_idx" ON "ai_calls" USING btree ("business_id","feature");--> statement-breakpoint
+CREATE INDEX "ai_calls_business_id_idx" ON "ai_calls" USING btree ("business_id");--> statement-breakpoint
+CREATE INDEX "ai_calls_org_id_idx" ON "ai_calls" USING btree ("org_id");--> statement-breakpoint
 CREATE INDEX "attachments_owner_table_owner_id_idx" ON "attachments" USING btree ("owner_table","owner_id");--> statement-breakpoint
 CREATE INDEX "attachments_business_id_idx" ON "attachments" USING btree ("business_id");--> statement-breakpoint
 CREATE INDEX "attachments_org_id_idx" ON "attachments" USING btree ("org_id");--> statement-breakpoint

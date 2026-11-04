@@ -1,0 +1,53 @@
+{
+  "name": "bill Iyer & Sons",
+  "input": {
+    "kind": "text",
+    "text": "TAX INVOICE IS-1187 Iyer & Sons dated 2025-09-02"
+  },
+  "expected": {
+    "supplierName": "Iyer & Sons",
+    "supplierGstin": "33AABCI1234F1ZP",
+    "invoiceNumber": "IS-1187",
+    "date": "2025-09-02",
+    "lines": [
+      {
+        "description": "Cotton fabric",
+        "hsn": "5208",
+        "qty": 50,
+        "ratePaise": 12000,
+        "gstRateBp": 500
+      },
+      {
+        "description": "Packing tape",
+        "hsn": "3923",
+        "qty": 20,
+        "ratePaise": 3500,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 70350
+  },
+  "mock": {
+    "supplierName": "Iyer & Sons",
+    "supplierGstin": "33AABCI1234F1ZP",
+    "invoiceNumber": "IS-1187",
+    "date": "2025-09-02",
+    "lines": [
+      {
+        "description": "Cotton fabric",
+        "hsn": "5208",
+        "qty": 50,
+        "ratePaise": 12000,
+        "gstRateBp": 500
+      },
+      {
+        "description": "Packing tape",
+        "hsn": "3923",
+        "qty": 20,
+        "ratePaise": 3500,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 70350
+  }
+}

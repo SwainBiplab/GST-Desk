@@ -1,0 +1,82 @@
+[
+  {
+    "description": "copper wire 2.5 sqmm",
+    "expectedCode": "7408"
+  },
+  {
+    "description": "cotton fabric",
+    "expectedCode": "5208"
+  },
+  {
+    "description": "laptop computer",
+    "expectedCode": "8471"
+  },
+  {
+    "description": "mobile phone smartphone",
+    "expectedCode": "8517"
+  },
+  {
+    "description": "toilet soap bar",
+    "expectedCode": "3401"
+  },
+  {
+    "description": "washing powder detergent",
+    "expectedCode": "3402"
+  },
+  {
+    "description": "steel pipes",
+    "expectedCode": "7306"
+  },
+  {
+    "description": "nuts and bolts",
+    "expectedCode": "7318"
+  },
+  {
+    "description": "refrigerator",
+    "expectedCode": "8418"
+  },
+  {
+    "description": "ball pen",
+    "expectedCode": "9608"
+  },
+  {
+    "description": "notebooks and registers",
+    "expectedCode": "4820"
+  },
+  {
+    "description": "plastic packing lids",
+    "expectedCode": "3923"
+  },
+  {
+    "description": "t-shirt knitted",
+    "expectedCode": "6109"
+  },
+  {
+    "description": "floor tiles ceramic",
+    "expectedCode": "6907"
+  },
+  {
+    "description": "glass bottle",
+    "expectedCode": "7010"
+  },
+  {
+    "description": "portland cement",
+    "expectedCode": "2523"
+  },
+  {
+    "description": "biscuits and cakes",
+    "expectedCode": "1905"
+  },
+  {
+    "description": "tea leaves",
+    "expectedCode": "0902"
+  },
+  {
+    "description": "led television monitor",
+    "expectedCode": "8528"
+  },
+  {
+    "description": "furniture",
+    "expectedCode": "9403"
+  }
+]

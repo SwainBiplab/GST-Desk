@@ -15,7 +15,8 @@
     "e2e": "turbo run e2e",
     "perf": "turbo run perf",
     "format": "prettier --write .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "ai:eval": "pnpm --filter @gst/ai run ai:eval"
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.3",

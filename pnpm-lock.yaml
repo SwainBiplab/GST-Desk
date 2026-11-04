@@ -44,6 +44,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@gst/ai':
+        specifier: workspace:*
+        version: link:../../packages/ai
       '@gst/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -119,13 +122,26 @@ importers:
         version: 5.1.0(@types/node@26.6.6)(@vitest/coverage-v8@5.1.0)(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))
 
   packages/ai:
+    dependencies:
+      '@gst/db':
+        specifier: workspace:*
+        version: link:../db
+      zod:
+        specifier: ^4.6.7
+        version: 4.6.7
     devDependencies:
       '@gst/config':
         specifier: workspace:*
         version: link:../config
+      '@types/node':
+        specifier: ^26.6.6
+        version: 26.6.6
       eslint:
         specifier: ^9.39.0
         version: 9.39.5(jiti@2.7.0)
+      tsx:
+        specifier: ^4.23.15
+        version: 4.23.15
       typescript:
         specifier: ~6.0.0
         version: 6.0.3

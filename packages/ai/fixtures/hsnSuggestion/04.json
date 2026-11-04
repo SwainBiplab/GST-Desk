@@ -1,0 +1,28 @@
+{
+  "name": "hsn mobile phone smartphone",
+  "input": {
+    "feature": "hsn_lookup",
+    "input": {
+      "description": "mobile phone smartphone",
+      "limit": 3
+    }
+  },
+  "expected": {
+    "suggestions": [
+      {
+        "code": "8517"
+      }
+    ]
+  },
+  "mock": {
+    "suggestions": [
+      {
+        "code": "8517",
+        "description": "x",
+        "rateBp": 1800,
+        "cessBp": 0,
+        "score": 1
+      }
+    ]
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "name": "bill Sharma Traders",
+  "input": {
+    "kind": "text",
+    "text": "TAX INVOICE SH/25-26/0042 Sharma Traders dated 2025-08-14"
+  },
+  "expected": {
+    "supplierName": "Sharma Traders",
+    "supplierGstin": "27AAPFU0939F1ZV",
+    "invoiceNumber": "SH/25-26/0042",
+    "date": "2025-08-14",
+    "lines": [
+      {
+        "description": "Copper wire 2.5mm",
+        "hsn": "7408",
+        "qty": 10,
+        "ratePaise": 95000,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 112100
+  },
+  "mock": {
+    "supplierName": "Sharma Traders",
+    "supplierGstin": "27AAPFU0939F1ZV",
+    "invoiceNumber": "SH/25-26/0042",
+    "date": "2025-08-14",
+    "lines": [
+      {
+        "description": "Copper wire 2.5mm",
+        "hsn": "7408",
+        "qty": 10,
+        "ratePaise": 95000,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 112100
+  }
+}

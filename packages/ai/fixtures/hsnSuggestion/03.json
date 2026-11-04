@@ -1,0 +1,28 @@
+{
+  "name": "hsn laptop computer",
+  "input": {
+    "feature": "hsn_lookup",
+    "input": {
+      "description": "laptop computer",
+      "limit": 3
+    }
+  },
+  "expected": {
+    "suggestions": [
+      {
+        "code": "8471"
+      }
+    ]
+  },
+  "mock": {
+    "suggestions": [
+      {
+        "code": "8471",
+        "description": "x",
+        "rateBp": 1800,
+        "cessBp": 0,
+        "score": 1
+      }
+    ]
+  }
+}

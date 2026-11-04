@@ -6,18 +6,27 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./db": "./src/db/index.ts",
+    "./fixtures/*": "./fixtures/*"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json --noEmit",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "ai:eval": "tsx scripts/eval.ts"
   },
   "devDependencies": {
     "@gst/config": "workspace:*",
+    "@types/node": "^26.6.6",
     "eslint": "^9.39.0",
+    "tsx": "^4.23.15",
     "typescript": "~6.0.0",
     "vitest": "^5.1.0"
+  },
+  "dependencies": {
+    "@gst/db": "workspace:*",
+    "zod": "^4.6.7"
   }
 }

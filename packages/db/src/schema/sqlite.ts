@@ -28,6 +28,7 @@ export const stock_movements = t.stock_movements;
 export const templates = t.templates;
 export const attachments = t.attachments;
 export const review_items = t.review_items;
+export const ai_calls = t.ai_calls;
 export const audit_log = t.audit_log;
 export const settings = t.settings;
 export const sync_state = t.sync_state;

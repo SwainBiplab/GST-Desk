@@ -482,11 +482,17 @@ export class ReviewRepo extends BaseRepo {
     return this.list(ctx, { where: eq(this.t.status, 'pending') });
   }
 
-  accept(ctx: Ctx, id: string, expectedVersion: number) {
+  /** `correction` records what the user changed before accepting (for evals). */
+  accept(ctx: Ctx, id: string, expectedVersion: number, correction?: unknown) {
     return this.update(
       ctx,
       id,
-      { status: 'accepted', accepted_by: ctx.actor, accepted_at: Date.now() },
+      {
+        status: 'accepted',
+        accepted_by: ctx.actor,
+        accepted_at: Date.now(),
+        ...(correction !== undefined ? { correction_json: correction } : {}),
+      },
       expectedVersion,
     );
   }

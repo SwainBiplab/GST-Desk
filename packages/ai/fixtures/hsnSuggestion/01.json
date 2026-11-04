@@ -1,0 +1,28 @@
+{
+  "name": "hsn copper wire 2.5 sqmm",
+  "input": {
+    "feature": "hsn_lookup",
+    "input": {
+      "description": "copper wire 2.5 sqmm",
+      "limit": 3
+    }
+  },
+  "expected": {
+    "suggestions": [
+      {
+        "code": "7408"
+      }
+    ]
+  },
+  "mock": {
+    "suggestions": [
+      {
+        "code": "7408",
+        "description": "x",
+        "rateBp": 1800,
+        "cessBp": 0,
+        "score": 1
+      }
+    ]
+  }
+}

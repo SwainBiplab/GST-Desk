@@ -34,6 +34,7 @@ export default defineConfig({
       '@gst/db': pkg('db'),
       '@gst/ui/tokens': path.resolve(import.meta.dirname, '../../packages/ui/tokens'),
       '@gst/ui': pkg('ui'),
+      '@gst/ai/fixtures': path.resolve(import.meta.dirname, '../../packages/ai/fixtures'),
       '@gst/ai': pkg('ai'),
       '@gst/i18n': pkg('i18n'),
     },
