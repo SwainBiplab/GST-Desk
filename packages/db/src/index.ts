@@ -13,3 +13,5 @@ export * from './repositories/parties';
 export * from './repositories/hsn-master';
 export { ItemValidationError, type BulkBatch, type RateChangeRow } from './repositories/items';
 export * from './repositories/document-flow';
+export * from './repositories/numbering';
+export * from './repositories/period-lock';

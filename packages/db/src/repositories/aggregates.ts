@@ -1,5 +1,5 @@
 import { DEFAULT_UNIT_CODES, canIssue, uqcName, type DocumentType } from '@gst/domain';
-import { and, desc, eq, gte, isNull, lte, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNull, lte, sql } from 'drizzle-orm';
 
 import type { Database } from '../database';
 import type { NewRow, Row } from '../schema';
@@ -544,6 +544,59 @@ export class AuditRepo {
         .from(t)
         .where(and(eq(t.business_id, ctx.businessId), eq(t.table_name, table), eq(t.row_id, rowId)))
         .orderBy(t.at, t.created_at);
+    });
+  }
+
+  /** Filtered, newest first. `from` and `to` are epoch milliseconds, inclusive. */
+  search(
+    ctx: Ctx,
+    f: {
+      table?: string;
+      actor?: string;
+      rowId?: string;
+      from?: number;
+      to?: number;
+      limit?: number;
+      offset?: number;
+    } = {},
+  ): Promise<Row[]> {
+    return runInTx(this.d, ctx, async (tx) => {
+      const t = this.d.schema.audit_log;
+      const where = [eq(t.business_id, ctx.businessId)];
+      if (f.table) where.push(eq(t.table_name, f.table));
+      if (f.actor) where.push(eq(t.actor, f.actor));
+      if (f.rowId) where.push(eq(t.row_id, f.rowId));
+      if (f.from !== undefined) where.push(gte(t.at, f.from));
+      if (f.to !== undefined) where.push(lte(t.at, f.to));
+      return tx
+        .select()
+        .from(t)
+        .where(and(...where))
+        .orderBy(desc(t.at), desc(t.created_at))
+        .limit(f.limit ?? 200)
+        .offset(f.offset ?? 0);
+    });
+  }
+
+  /** Who changed what on one document: its own rows, its lines and any period-lock override. */
+  documentHistory(ctx: Ctx, documentId: string): Promise<Row[]> {
+    return runInTx(this.d, ctx, async (tx) => {
+      const lines = this.d.schema.document_lines;
+      const lineIds: string[] = (
+        await tx
+          .select({ id: lines.id })
+          .from(lines)
+          .where(and(eq(lines.business_id, ctx.businessId), eq(lines.document_id, documentId)))
+      ).map((r: Row) => r['id']);
+      const t = this.d.schema.audit_log;
+      const rows: Row[] = await tx
+        .select()
+        .from(t)
+        .where(and(eq(t.business_id, ctx.businessId), inArray(t.row_id, [documentId, ...lineIds])))
+        .orderBy(t.at, t.created_at);
+      return rows.filter((r) =>
+        ['documents', 'document_lines', 'period_lock'].includes(String(r['table_name'])),
+      );
     });
   }
 

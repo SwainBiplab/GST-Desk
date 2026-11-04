@@ -10,6 +10,8 @@ export interface Ctx {
   businessId: string;
   actor: string;
   deviceId: string;
+  /** The actor's role in the business. Absent means the local owner of a single-user install. */
+  role?: 'owner' | 'admin' | 'accountant' | 'staff' | 'ca' | 'viewer';
   /** Existing transaction, set by `runInTx`. Repositories open their own when absent. */
   tx?: any;
 }

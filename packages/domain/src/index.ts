@@ -6,6 +6,7 @@ export * from './words';
 export * from './fy';
 export * from './gstin';
 export * from './numbering';
+export * from './series';
 export * from './turnover';
 export * from './tax';
 export * from './ledger/posting';

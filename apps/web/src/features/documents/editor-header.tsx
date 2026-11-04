@@ -1,4 +1,4 @@
-import type { Row } from '@gst/db';
+import type { Row, SeriesView } from '@gst/db';
 import { STATES, addDays, supplyOf, type DraftDocument, type DraftIssue } from '@gst/domain';
 import {
   Badge,
@@ -38,6 +38,8 @@ export function EditorHeader({
   readOnly,
   businessState,
   numberLabel,
+  series = [],
+  seriesLocked = false,
   simple = false,
   onPartyPicked,
   onChange,
@@ -49,6 +51,10 @@ export function EditorHeader({
   readOnly: boolean;
   businessState: string;
   numberLabel: string;
+  /** The series this type can be numbered from (more than one shows a picker). */
+  series?: SeriesView[];
+  /** Numbered documents keep the series they were issued from. */
+  seriesLocked?: boolean;
   /** Shop: just who and when. */
   simple?: boolean;
   /** Called after a party is chosen, so the cursor can move on to the lines. */
@@ -333,7 +339,28 @@ export function EditorHeader({
       ))}
 
       <Field label={t('docs.header.series')} hint={t('docs.header.seriesHelp')}>
-        {(c) => <Input {...c} readOnly disabled value={t('docs.header.seriesAuto')} />}
+        {(c) =>
+          series.length > 1 && !seriesLocked && !readOnly ? (
+            <Select
+              value={draft.seriesKey ?? 'default'}
+              onValueChange={(v) => set({ seriesKey: v === 'default' ? null : v })}
+            >
+              <SelectTrigger {...c} data-testid="doc-series">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">{t('docs.header.seriesAuto')}</SelectItem>
+                {series.map((x) => (
+                  <SelectItem key={x.key} value={x.key}>
+                    {x.isDefault ? t('docs.header.seriesDefault', { name: x.name }) : x.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <Input {...c} readOnly disabled value={t('docs.header.seriesAuto')} />
+          )
+        }
       </Field>
       <Field label={t('docs.header.template')} hint={t('docs.header.templateHelp')}>
         {(c) => <Input {...c} readOnly disabled value={t('docs.header.templateStandard')} />}

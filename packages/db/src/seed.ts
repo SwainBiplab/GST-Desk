@@ -248,7 +248,10 @@ export async function seedDemo(d: Database, opts: SeedOptions = {}): Promise<See
         const row = {
           ...stamp(0),
           document_type: type,
-          prefix: `${PREFIX[type]}/${fy}/`,
+          name: 'Default',
+          series_key: `default-${type}`,
+          is_default: true,
+          prefix: `${PREFIX[type]}/{FY}/`,
           fy,
           padding: 4,
           next_number: 1,

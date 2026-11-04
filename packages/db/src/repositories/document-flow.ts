@@ -7,8 +7,13 @@
 import {
   POSTS_TO_LEDGER,
   canIssue,
+  cancelBlocker,
+  classifyEdit,
+  formatDocumentNumber,
   fyOf,
+  isProvisional,
   postDocument,
+  provisionalNumber,
   stockEffect,
   takeNext,
   type AccountKey,
@@ -19,9 +24,19 @@ import { and, desc, eq, gte, isNull, lte } from 'drizzle-orm';
 import type { Database } from '../database';
 import type { NewRow, Row } from '../schema';
 
-import { BusinessRepo, DocumentRepo, type DocumentWithLines } from './aggregates';
-import { BaseRepo, ConflictError, NotFoundError, RuleError, runInTx, type Ctx } from './base';
+import { BusinessRepo, DocumentRepo, SettingsRepo, type DocumentWithLines } from './aggregates';
+import {
+  BaseRepo,
+  ConflictError,
+  NotFoundError,
+  RuleError,
+  newId,
+  runInTx,
+  type Ctx,
+} from './base';
 import { consistencyValidator } from './line-math';
+import { NumberingRepo, type ShellName } from './numbering';
+import { PeriodLockRepo, type LockOverride } from './period-lock';
 
 const DEFAULT_PREFIX: Record<string, string> = {
   tax_invoice: 'INV/{FY}/',
@@ -81,6 +96,71 @@ export interface SaveDraftResult extends DocumentWithLines {
 export interface IssueOptions {
   /** Post stock movements for tracked items. */
   inventoryEnabled?: boolean;
+  /** Issue from this series (its `series_key`); otherwise the shell's default, then the type's default. */
+  seriesKey?: string | null;
+  shell?: ShellName;
+  /** Needed (with an owner role) to issue a document dated inside a locked period. */
+  lockOverride?: LockOverride;
+}
+
+export interface CancelOptions {
+  /** Date of the reversing entries; defaults to today. */
+  date?: string;
+  lockOverride?: LockOverride;
+}
+
+export interface CancelResult {
+  document: Row;
+  /** Documents cancelled with it (a reverse-charge bill's self-invoice). */
+  alsoCancelled: Row[];
+  /** Payments that were applied to the document and are now unallocated, to warn about. */
+  unallocated: { paymentId: string; documentId: string; amountPaise: number }[];
+}
+
+export interface ReviseOptions {
+  inventoryEnabled?: boolean;
+  lockOverride?: LockOverride;
+}
+
+export interface ReviseResult extends DocumentWithLines {
+  changed: boolean;
+  /** `financial` bumped the revision; `non_financial` did not; `none` wrote nothing. */
+  kind: 'none' | 'non_financial' | 'financial';
+  /** Payments now exceed what the document is worth. */
+  overAllocatedPaise: number;
+}
+
+/**
+ * One issue, cancel or revision at a time per database: the number a document takes and the ledger it
+ * posts are decided in a single queue, so concurrent callers can never see the same counter value.
+ */
+const queues = new WeakMap<object, Promise<unknown>>();
+function serialised<T>(d: Database, fn: () => Promise<T>): Promise<T> {
+  const prev = queues.get(d) ?? Promise.resolve();
+  const run = prev.then(fn, fn);
+  queues.set(
+    d,
+    run.catch(() => undefined),
+  );
+  return run;
+}
+
+const omit = (o: Record<string, unknown>, keys: string[]): Record<string, unknown> =>
+  Object.fromEntries(Object.entries(o).filter(([k]) => !keys.includes(k)));
+
+/** Header fields an edit changed, with the editor-only reference numbers told apart from the rest. */
+function changedFields(current: Row, next: NewRow): string[] {
+  const out: string[] = [];
+  for (const [k, v] of Object.entries(next)) {
+    if (k === 'metadata_json') {
+      const a = (current[k] ?? {}) as Record<string, unknown>;
+      const b = (v ?? {}) as Record<string, unknown>;
+      const strip = (m: Record<string, unknown>) => omit(m, ['refs', 'seriesKey']);
+      if (!same(strip(a), strip(b))) out.push(k);
+      if (!same(a['refs'] ?? {}, b['refs'] ?? {})) out.push('reference');
+    } else if (!same(current[k], v)) out.push(k);
+  }
+  return out;
 }
 
 export interface IssueResult {
@@ -122,9 +202,15 @@ export class DocumentFlowRepo extends BaseRepo {
   private readonly series: BaseRepo;
   private readonly movements: BaseRepo;
   private readonly accounts: BaseRepo;
+  private readonly numbering: NumberingRepo;
+  private readonly lock: PeriodLockRepo;
+  private readonly allocations: BaseRepo;
 
   constructor(d: Database) {
     super(d, 'documents');
+    this.numbering = new NumberingRepo(d);
+    this.lock = new PeriodLockRepo(d);
+    this.allocations = new BaseRepo(d, 'payment_allocations');
     this.docs = new DocumentRepo(d, consistencyValidator);
     this.lineRepo = new BaseRepo(d, 'document_lines');
     this.ledger = new BaseRepo(d, 'ledger_entries');
@@ -191,26 +277,44 @@ export class DocumentFlowRepo extends BaseRepo {
         throw new ConflictError('documents', input.id, input.version);
       }
 
-      const existing = await this.currentLinesIn(tx, c, input.id);
-      const byNo = new Map(existing.map((l) => [Number(l['line_no']), l]));
-      const out: Row[] = [];
-      for (const l of lines) {
-        const old = byNo.get(Number(l.line_no));
-        byNo.delete(Number(l.line_no));
-        if (!old) {
-          out.push(await (this.lineRepo as any).createIn(tx, c, { ...l, document_id: input.id }));
-          changed = true;
-        } else if (differs(old, l)) {
-          out.push(await (this.lineRepo as any).updateIn(tx, c, old['id'], l, old['version']));
-          changed = true;
-        } else out.push(old);
-      }
-      for (const extra of byNo.values()) {
-        await this.lineRepo.softDelete(c, extra['id'], extra['version']);
-        changed = true;
-      }
-      return { document, lines: out, changed };
+      const written = await this.writeLinesIn(tx, c, input.id, lines);
+      if (written.changed) changed = true;
+      return { document, lines: written.lines, changed };
     });
+  }
+
+  /** Write only the lines that differ from what is stored: new, changed, and removed ones. */
+  private async writeLinesIn(
+    tx: any,
+    c: Ctx,
+    documentId: string,
+    lines: NewRow[],
+  ): Promise<{ lines: Row[]; changed: boolean }> {
+    let changed = false;
+    const existing = await this.currentLinesIn(tx, c, documentId);
+    const byNo = new Map(existing.map((l) => [Number(l['line_no']), l]));
+    const out: Row[] = [];
+    for (const l of lines) {
+      const old = byNo.get(Number(l.line_no));
+      byNo.delete(Number(l.line_no));
+      if (!old) {
+        out.push(await (this.lineRepo as any).createIn(tx, c, { ...l, document_id: documentId }));
+        changed = true;
+      } else if (differs(old, l)) {
+        out.push(await (this.lineRepo as any).updateIn(tx, c, old['id'], l, old['version']));
+        changed = true;
+      } else out.push(old);
+    }
+    for (const extra of byNo.values()) {
+      await this.lineRepo.softDelete(c, extra['id'], extra['version']);
+      changed = true;
+    }
+    return { lines: out, changed };
+  }
+
+  /** Documents with this number (a number is unique per type, so a few at most). */
+  async findByNumber(ctx: Ctx, number: string): Promise<Row[]> {
+    return this.list(ctx, { where: eq(this.t.number, number) });
   }
 
   /** Drafts, most recently touched first. */
@@ -240,13 +344,18 @@ export class DocumentFlowRepo extends BaseRepo {
     return made['id'];
   }
 
-  /** The next number for a document type. The default series is created the first time it is needed. */
+  /**
+   * The next number for a document of `type` dated `date`, from the series the caller named, else the
+   * shell's default, else the type's default series. Each series keeps a counter per financial year.
+   * The default series is created the first time it is needed.
+   */
   private async takeNumberIn(
     tx: any,
     ctx: Ctx,
     type: string,
     date: string,
     fyStartMonth: number,
+    opts: { seriesKey?: string | null; shell?: ShellName; forceCounter?: boolean } = {},
   ): Promise<{ number: string; seriesId: string }> {
     const t = this.d.schema.number_series;
     const all: Row[] = await tx
@@ -256,24 +365,49 @@ export class DocumentFlowRepo extends BaseRepo {
         and(eq(t.business_id, ctx.businessId), eq(t.document_type, type), isNull(t.deleted_at)),
       )
       .orderBy(t.created_at);
-    const first = all[0];
+    const groups = new Map<string, Row[]>();
+    for (const r of all) {
+      const k = (r['series_key'] as string | null) ?? `legacy-${type}`;
+      groups.set(k, [...(groups.get(k) ?? []), r]);
+    }
+    const list = [...groups.values()];
+    let chosen: Row[] | undefined;
+    if (opts.seriesKey) {
+      chosen = groups.get(opts.seriesKey);
+      if (!chosen) throw new RuleError('That number series no longer exists. Pick another.');
+    } else {
+      chosen =
+        (opts.shell
+          ? list.find((g) => g.some((r) => r['shell_default'] === opts.shell))
+          : undefined) ??
+        list.find((g) => g.some((r) => r['is_default'])) ??
+        list[0];
+    }
+    const first = chosen?.[0];
     const label = fyOf(date, fyStartMonth).label;
     // one counter per financial year, so a back-dated invoice never reuses or disturbs a number
     const found =
       first?.['reset'] === 'never'
         ? first
-        : (all.find((r) => r['fy'] === label) ?? all.find((r) => r['fy'] === null));
+        : (chosen?.find((r) => r['fy'] === label) ?? chosen?.find((r) => r['fy'] === null));
+    const start = Number(first?.['start_number'] ?? 1);
     const row: Row =
       found ??
       (await (this.series as any).createIn(tx, ctx, {
         document_type: type,
+        series_key:
+          (first?.['series_key'] as string | null) ?? (first ? `legacy-${type}` : newId()),
+        name: first?.['name'] ?? 'Default',
+        is_default: first ? !!first['is_default'] : true,
+        shell_default: first?.['shell_default'] ?? null,
+        start_number: start,
         prefix:
           first?.['prefix'] ?? DEFAULT_PREFIX[type] ?? `${type.slice(0, 3).toUpperCase()}/{FY}/`,
         suffix: first?.['suffix'] ?? '',
         padding: first?.['padding'] ?? 4,
         reset: first?.['reset'] ?? 'fy',
         fy: label,
-        next_number: 1,
+        next_number: start,
       }));
     const spec = {
       prefix: row['prefix'],
@@ -281,6 +415,17 @@ export class DocumentFlowRepo extends BaseRepo {
       padding: row['padding'],
       reset: row['reset'],
     };
+
+    // several devices: numbers come from this device's reserved range, or are provisional until one is given
+    if (!opts.forceCounter && (await this.numbering.getMode(ctx)) === 'synced') {
+      const range = await this.numbering.activeRangeIn(tx, ctx, row['id']);
+      if (range) {
+        const n = await this.numbering.consumeFromIn(tx, ctx, range);
+        return { number: formatDocumentNumber(spec, n, date, fyStartMonth), seriesId: row['id'] };
+      }
+      return { number: await this.nextProvisionalIn(ctx), seriesId: row['id'] };
+    }
+
     let taken = takeNext(
       spec,
       { next: Number(row['next_number']), fy: (row['fy'] as string | null) ?? null },
@@ -315,6 +460,44 @@ export class DocumentFlowRepo extends BaseRepo {
     return { number: taken.number, seriesId: row['id'] };
   }
 
+  /** `PROV-0001`, `PROV-0002`, ... for a device that has no range yet. Never reused. */
+  private async nextProvisionalIn(ctx: Ctx): Promise<string> {
+    const settings = new SettingsRepo(this.d);
+    const n = ((await settings.getValue<number>(ctx, 'provisional_counter')) ?? 0) + 1;
+    await settings.set(ctx, 'provisional_counter', n);
+    return provisionalNumber(n);
+  }
+
+  /**
+   * Replace a provisional number with a real one from the series counter. The hook for prompt 41:
+   * sync calls it once the device is connected to the authority that owns the counter.
+   */
+  async finaliseNumber(ctx: Ctx, id: string): Promise<Row> {
+    return serialised(this.d, () =>
+      runInTx(this.d, ctx, async (tx) => {
+        const c: Ctx = { ...ctx, tx };
+        const doc = await this.getIn(tx, c, id);
+        if (!doc) throw new NotFoundError('documents', id);
+        if (!isProvisional(doc['number'] as string | null)) return doc;
+        const business = await new BusinessRepo(this.d).get(c);
+        const fyStart = Number(business?.['fy_start_month'] ?? 4);
+        const s = this.d.schema.number_series;
+        const [counter]: Row[] = doc['series_id']
+          ? await tx.select().from(s).where(eq(s.id, doc['series_id'])).limit(1)
+          : [];
+        const { number, seriesId } = await this.takeNumberIn(
+          tx,
+          c,
+          String(doc['type']),
+          String(doc['date']),
+          fyStart,
+          { seriesKey: (counter?.['series_key'] as string | null) ?? null, forceCounter: true },
+        );
+        return this.updateIn(tx, c, id, { number, series_id: seriesId }, doc['version']);
+      }),
+    );
+  }
+
   /**
    * Issue a draft: give it its number, post the ledger, move stock and, for a reverse-charge
    * purchase bill, create the linked self-invoice. All or nothing.
@@ -325,48 +508,65 @@ export class DocumentFlowRepo extends BaseRepo {
     expectedVersion: number,
     opts: IssueOptions = {},
   ): Promise<IssueResult> {
-    return runInTx(this.d, ctx, async (tx) => {
-      const c: Ctx = { ...ctx, tx };
-      const current = await this.getIn(tx, c, id);
-      if (!current) throw new NotFoundError('documents', id);
-      if (current['status'] !== 'draft') throw new RuleError('only draft documents can be issued');
-      const type = String(current['type']) as DocumentType;
+    const run = () =>
+      runInTx(this.d, ctx, async (tx) => {
+        const c: Ctx = { ...ctx, tx };
+        const current = await this.getIn(tx, c, id);
+        if (!current) throw new NotFoundError('documents', id);
+        if (current['status'] !== 'draft')
+          throw new RuleError('only draft documents can be issued');
+        const type = String(current['type']) as DocumentType;
+        await this.lock.assertOpen(
+          c,
+          String(current['date']),
+          { action: 'issue', documentId: id },
+          opts.lockOverride,
+        );
 
-      const business = await new BusinessRepo(this.d).get(c);
-      const scheme = business?.['scheme'] === 'composition' ? 'composition' : 'regular';
-      const check = canIssue(type, scheme);
-      if (!check.ok) throw new RuleError(check.reason);
-      const fyStart = Number(business?.['fy_start_month'] ?? 4);
+        const business = await new BusinessRepo(this.d).get(c);
+        const scheme = business?.['scheme'] === 'composition' ? 'composition' : 'regular';
+        const check = canIssue(type, scheme);
+        if (!check.ok) throw new RuleError(check.reason);
+        const fyStart = Number(business?.['fy_start_month'] ?? 4);
 
-      const lines = await this.currentLinesIn(tx, c, id);
-      if (lines.length === 0) throw new RuleError('a blank document cannot be issued');
-      const errors = consistencyValidator(current, lines);
-      if (errors.length > 0) throw new RuleError(`document totals rejected: ${errors.join('; ')}`);
+        const lines = await this.currentLinesIn(tx, c, id);
+        if (lines.length === 0) throw new RuleError('a blank document cannot be issued');
+        const errors = consistencyValidator(current, lines);
+        if (errors.length > 0)
+          throw new RuleError(`document totals rejected: ${errors.join('; ')}`);
 
-      const { number, seriesId } = await this.takeNumberIn(
-        tx,
-        c,
-        type,
-        String(current['date']),
-        fyStart,
-      );
-      const issued = await this.updateIn(
-        tx,
-        c,
-        id,
-        { status: 'issued', number, series_id: seriesId },
-        expectedVersion,
-      );
+        const picked = (current['metadata_json'] as { seriesKey?: string | null } | null)
+          ?.seriesKey;
+        const { number, seriesId } = await this.takeNumberIn(
+          tx,
+          c,
+          type,
+          String(current['date']),
+          fyStart,
+          {
+            seriesKey: opts.seriesKey ?? picked ?? null,
+            ...(opts.shell ? { shell: opts.shell } : {}),
+          },
+        );
+        const issued = await this.updateIn(
+          tx,
+          c,
+          id,
+          { status: 'issued', number, series_id: seriesId },
+          expectedVersion,
+        );
 
-      await this.postLedgerIn(tx, c, issued);
-      if (opts.inventoryEnabled) await this.moveStockIn(tx, c, issued, lines);
+        await this.postLedgerIn(tx, c, issued);
+        if (opts.inventoryEnabled) await this.moveStockIn(tx, c, issued, lines);
 
-      let selfInvoice: Row | null = null;
-      if (type === 'purchase_bill' && current['reverse_charge']) {
-        selfInvoice = await this.selfInvoiceIn(tx, c, issued, lines, fyStart);
-      }
-      return { document: issued, selfInvoice };
-    });
+        let selfInvoice: Row | null = null;
+        if (type === 'purchase_bill' && current['reverse_charge']) {
+          selfInvoice = await this.selfInvoiceIn(tx, c, issued, lines, fyStart);
+        }
+        return { document: issued, selfInvoice };
+      });
+    // inside the caller's transaction the caller already holds the database
+    return ctx.tx ? run() : serialised(this.d, run);
   }
 
   private async postLedgerIn(tx: any, ctx: Ctx, doc: Row): Promise<void> {
@@ -541,6 +741,375 @@ export class DocumentFlowRepo extends BaseRepo {
         purchasesTaxablePaise: purchases > 0n ? purchases : 0n,
       };
     });
+  }
+
+  /* ------------------------------------------------------------------ after issue */
+
+  /**
+   * Zero out what a document has posted to the ledger: one contra entry per account and party for
+   * whatever net amount is still there. Works for a cancellation and for each revision, because it
+   * reverses the running net, never the original rows twice.
+   */
+  private async reverseLedgerIn(
+    tx: any,
+    ctx: Ctx,
+    doc: Row,
+    date: string,
+    narration: string,
+  ): Promise<void> {
+    const t = this.d.schema.ledger_entries;
+    const rows: Row[] = await tx
+      .select()
+      .from(t)
+      .where(
+        and(
+          eq(t.business_id, ctx.businessId),
+          eq(t.document_id, doc['id']),
+          isNull(t.payment_id),
+          isNull(t.deleted_at),
+        ),
+      );
+    const net = new Map<string, { account: string; party: string | null; net: number }>();
+    for (const r of rows) {
+      const key = `${r['account_id']}|${r['party_id'] ?? ''}`;
+      const cur = net.get(key) ?? {
+        account: r['account_id'],
+        party: (r['party_id'] as string | null) ?? null,
+        net: 0,
+      };
+      cur.net += Number(r['debit_paise']) - Number(r['credit_paise']);
+      net.set(key, cur);
+    }
+    for (const n of net.values()) {
+      if (n.net === 0) continue;
+      await (this.ledger as any).createIn(tx, ctx, {
+        document_id: doc['id'],
+        party_id: n.party,
+        account_id: n.account,
+        debit_paise: n.net < 0 ? -n.net : 0,
+        credit_paise: n.net > 0 ? n.net : 0,
+        date,
+        narration,
+      });
+    }
+  }
+
+  /** Put back the stock a document moved: one opposite movement per item and godown for the net. */
+  private async reverseStockIn(
+    tx: any,
+    ctx: Ctx,
+    doc: Row,
+    date: string,
+    note: string,
+  ): Promise<boolean> {
+    const t = this.d.schema.stock_movements;
+    const rows: Row[] = await tx
+      .select()
+      .from(t)
+      .where(
+        and(eq(t.business_id, ctx.businessId), eq(t.document_id, doc['id']), isNull(t.deleted_at)),
+      );
+    const net = new Map<
+      string,
+      { item: string; godown: string | null; qty: number; rate: number }
+    >();
+    for (const r of rows) {
+      const key = `${r['item_id']}|${r['godown_id'] ?? ''}`;
+      const cur = net.get(key) ?? {
+        item: r['item_id'],
+        godown: (r['godown_id'] as string | null) ?? null,
+        qty: 0,
+        rate: Number(r['rate_paise'] ?? 0),
+      };
+      cur.qty += Number(r['qty_micros']);
+      net.set(key, cur);
+    }
+    for (const n of net.values()) {
+      if (n.qty === 0) continue;
+      await (this.movements as any).createIn(tx, ctx, {
+        item_id: n.item,
+        godown_id: n.godown,
+        kind: n.qty < 0 ? 'in' : 'out',
+        qty_micros: -n.qty,
+        rate_paise: n.rate,
+        document_id: doc['id'],
+        date,
+        note,
+      });
+    }
+    return rows.length > 0;
+  }
+
+  private async allocationsOfIn(tx: any, ctx: Ctx, documentId: string): Promise<Row[]> {
+    const a = this.d.schema.payment_allocations;
+    const rows: Row[] = await tx
+      .select()
+      .from(a)
+      .where(and(eq(a.business_id, ctx.businessId), isNull(a.deleted_at)));
+    return rows.filter(
+      (r) => r['document_id'] === documentId || r['source_document_id'] === documentId,
+    );
+  }
+
+  /**
+   * Cancel an issued document. The number stays, the document leaves every total (its status is no
+   * longer `issued`), the ledger and stock it posted are reversed with contra entries, and payments
+   * applied to it are unallocated (they stay with the party as unapplied money). All in one
+   * transaction: if any step fails the document is still issued.
+   */
+  async cancelDocument(
+    ctx: Ctx,
+    id: string,
+    expectedVersion: number,
+    reason: string,
+    opts: CancelOptions = {},
+  ): Promise<CancelResult> {
+    const run = () =>
+      runInTx(this.d, ctx, async (tx) => {
+        const c: Ctx = { ...ctx, tx };
+        const why = reason.trim();
+        if (!why) throw new RuleError('Say why the document is being cancelled.');
+        const alsoCancelled: Row[] = [];
+        const unallocated: CancelResult['unallocated'] = [];
+        const document = await this.cancelOneIn(tx, c, id, expectedVersion, why, opts, {
+          alsoCancelled,
+          unallocated,
+        });
+        return { document, alsoCancelled, unallocated };
+      });
+    return ctx.tx ? run() : serialised(this.d, run);
+  }
+
+  private async cancelOneIn(
+    tx: any,
+    c: Ctx,
+    id: string,
+    expectedVersion: number | null,
+    why: string,
+    opts: CancelOptions,
+    out: Pick<CancelResult, 'alsoCancelled' | 'unallocated'>,
+  ): Promise<Row> {
+    const current = await this.getIn(tx, c, id);
+    if (!current) throw new NotFoundError('documents', id);
+    const blocker = cancelBlocker({
+      status: String(current['status']),
+      hasIrn: !!current['irn'],
+    });
+    if (blocker) throw new RuleError(blocker);
+    await this.lock.assertOpen(
+      c,
+      String(current['date']),
+      { action: 'cancel', documentId: id },
+      opts.lockOverride,
+    );
+    const on = opts.date ?? new Date().toISOString().slice(0, 10);
+    const label = `Cancelled ${current['number'] ?? ''}: ${why}`.trim();
+
+    const cancelled = await this.updateIn(
+      tx,
+      c,
+      id,
+      { status: 'cancelled', cancelled_at: Date.now(), cancel_reason: why },
+      expectedVersion ?? current['version'],
+    );
+    await this.reverseLedgerIn(tx, c, current, on, label);
+    await this.reverseStockIn(tx, c, current, on, label);
+
+    for (const a of await this.allocationsOfIn(tx, c, id)) {
+      await this.allocations.softDelete(c, a['id'], a['version']);
+      if (a['kind'] === 'payment')
+        out.unallocated.push({
+          paymentId: a['payment_id'],
+          documentId: a['document_id'],
+          amountPaise: Number(a['amount_paise']),
+        });
+    }
+
+    // a reverse-charge bill's self-invoice cannot outlive it
+    const docs = this.d.schema.documents;
+    const linked: Row[] = await tx
+      .select()
+      .from(docs)
+      .where(
+        and(
+          eq(docs.business_id, c.businessId),
+          eq(docs.source_document_id, id),
+          eq(docs.type, 'rcm_self_invoice'),
+          eq(docs.status, 'issued'),
+          isNull(docs.deleted_at),
+        ),
+      );
+    for (const l of linked) {
+      out.alsoCancelled.push(
+        await this.cancelOneIn(
+          tx,
+          c,
+          l['id'],
+          null,
+          `Cancelled with ${current['number']}`,
+          opts,
+          out,
+        ),
+      );
+    }
+    return cancelled;
+  }
+
+  /**
+   * Edit notes, terms, reference numbers or the due date of an issued document. Allowed at any time,
+   * even in a locked period, because nothing financial changes. The audit log keeps before and after.
+   */
+  async editIssuedNotes(
+    ctx: Ctx,
+    id: string,
+    expectedVersion: number,
+    patch: {
+      notes?: string | null;
+      terms?: string | null;
+      dueDate?: string | null;
+      reference?: Record<string, string>;
+    },
+  ): Promise<Row> {
+    return runInTx(this.d, ctx, async (tx) => {
+      const c: Ctx = { ...ctx, tx };
+      const current = await this.getIn(tx, c, id);
+      if (!current) throw new NotFoundError('documents', id);
+      if (current['status'] !== 'issued')
+        throw new RuleError('Only an issued document can be edited this way.');
+      const next: NewRow = {};
+      if (patch.notes !== undefined) next['notes'] = patch.notes;
+      if (patch.terms !== undefined) next['terms'] = patch.terms;
+      if (patch.dueDate !== undefined) next['due_date'] = patch.dueDate;
+      if (patch.reference !== undefined)
+        next['metadata_json'] = {
+          ...((current['metadata_json'] as Record<string, unknown> | null) ?? {}),
+          refs: patch.reference,
+        };
+      if (changedFields(current, next).length === 0) return current;
+      return this.updateIn(tx, c, id, next, expectedVersion);
+    });
+  }
+
+  /**
+   * Save changes to an issued document from the editor. Notes, terms and references go straight
+   * through. Anything financial needs an open period and a document that is not e-invoiced; it
+   * rewrites the lines, reverses and reposts the ledger and stock, and bumps `revision`. The number,
+   * type and status never change.
+   */
+  async reviseIssued(
+    ctx: Ctx,
+    input: { id: string; version: number; doc: NewRow; lines: NewRow[] },
+    opts: ReviseOptions = {},
+  ): Promise<ReviseResult> {
+    const run = () =>
+      runInTx(this.d, ctx, async (tx) => {
+        const c: Ctx = { ...ctx, tx };
+        const current = await this.getIn(tx, c, input.id);
+        if (!current) throw new NotFoundError('documents', input.id);
+        if (current['status'] !== 'issued')
+          throw new RuleError('Only an issued document can be revised.');
+        const lines = input.lines.map((l, i) => ({ ...l, line_no: i + 1 }));
+        // number, type, status and series are not the editor's to change
+        const doc = omit(input.doc as Record<string, unknown>, [
+          'number',
+          'type',
+          'status',
+          'series_id',
+          'revision',
+          'cancelled_at',
+          'cancel_reason',
+        ]);
+        const fields = changedFields(current, doc as NewRow);
+
+        const existing = await this.currentLinesIn(tx, c, input.id);
+        const linesDiffer =
+          existing.length !== lines.length ||
+          lines.some((l, i) => {
+            const old = existing.find((x) => Number(x['line_no']) === i + 1);
+            return !old || differs(old, l as NewRow);
+          });
+        const kind =
+          fields.length === 0 && !linesDiffer
+            ? 'none'
+            : linesDiffer
+              ? 'financial'
+              : classifyEdit(fields);
+        if (kind === 'none') {
+          return {
+            document: current,
+            lines: existing,
+            changed: false,
+            kind,
+            overAllocatedPaise: 0,
+          } as ReviseResult;
+        }
+
+        if (kind === 'non_financial') {
+          const document = await this.updateIn(tx, c, input.id, doc as NewRow, input.version);
+          return {
+            document,
+            lines: existing,
+            changed: true,
+            kind,
+            overAllocatedPaise: 0,
+          } as ReviseResult;
+        }
+
+        // financial
+        if (current['irn'])
+          throw new RuleError(
+            'An e-invoiced document cannot be changed. Cancel it on the portal or issue a credit note.',
+          );
+        if (
+          current['type'] === 'rcm_self_invoice' ||
+          (current['type'] === 'purchase_bill' && current['reverse_charge'])
+        )
+          throw new RuleError(
+            'A reverse-charge bill and its self-invoice cannot be edited after issue. Cancel it and enter it again.',
+          );
+        const newDate = String((doc as Record<string, unknown>)['date'] ?? current['date']);
+        const business = await new BusinessRepo(this.d).get(c);
+        const fyStart = Number(business?.['fy_start_month'] ?? 4);
+        if (fyOf(newDate, fyStart).label !== fyOf(String(current['date']), fyStart).label)
+          throw new RuleError(
+            'The date cannot move to another financial year; its number belongs to the year it was issued in.',
+          );
+        for (const date of new Set([String(current['date']), newDate])) {
+          await this.lock.assertOpen(
+            c,
+            date,
+            { action: 'revise', documentId: input.id },
+            opts.lockOverride,
+          );
+        }
+        const errors = consistencyValidator({ ...current, ...(doc as NewRow) }, lines as Row[]);
+        if (errors.length > 0)
+          throw new RuleError(`document totals rejected: ${errors.join('; ')}`);
+
+        const on = String(current['date']);
+        const revision = Number(current['revision'] ?? 1) + 1;
+        const document = await this.updateIn(
+          tx,
+          c,
+          input.id,
+          { ...(doc as NewRow), revision },
+          input.version,
+        );
+        const written = await this.writeLinesIn(tx, c, input.id, lines);
+        await this.reverseLedgerIn(tx, c, current, on, `Revision ${revision}: reversal`);
+        await this.postLedgerIn(tx, c, document);
+        const hadStock = await this.reverseStockIn(tx, c, current, on, `Revision ${revision}`);
+        if (hadStock || opts.inventoryEnabled)
+          await this.moveStockIn(tx, c, document, written.lines);
+
+        let allocated = 0;
+        for (const a of await this.allocationsOfIn(tx, c, input.id)) {
+          if (a['document_id'] === input.id) allocated += Number(a['amount_paise']);
+        }
+        const overAllocatedPaise = Math.max(0, allocated - Number(document['total_paise']));
+        return { document, lines: written.lines, changed: true, kind, overAllocatedPaise };
+      });
+    return ctx.tx ? run() : serialised(this.d, run);
   }
 
   /** Delete a draft (soft delete; issued documents are cancelled, never deleted). */

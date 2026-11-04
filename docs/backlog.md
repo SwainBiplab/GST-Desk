@@ -19,3 +19,11 @@
 | B-015 | Editor: attachments live in the browser database only; sync them and clean up when a document is deleted                                                          | P3                 | open   |
 | B-016 | Web: a Reset local data button on the Could not open the local database screen                                                                                    | P1                 | open   |
 | B-017 | Editor: column visibility is saved per business in this browser, not with the business settings                                                                   | P2                 | open   |
+| B-018 | Numbering: finalise provisional numbers on reconnect and block sharing a document that still has one (the repository hook `finaliseNumber` exists; sync calls it) | prompt 41          | open   |
+| B-019 | Cancellation: cancel an e-invoiced document on the portal first, then here; stamp CANCELLED on the printed PDF                                                    | prompts 32 and 17  | open   |
+| B-020 | Numbering: translate the series validation messages (they come from the domain package in English)                                                                | prompt 22          | open   |
+| B-021 | Cancellation: show unapplied money on the party and offer to apply it to another document                                                                         | prompt 16          | open   |
+| B-022 | Editing after issue: allow financial edits of reverse-charge bills and their self-invoices (today: cancel and enter again)                                        | P2                 | open   |
+| B-023 | Audit: diff view for list-valued fields (lines are shown per line today), and a printable audit report for a document                                             | P2                 | open   |
+| B-024 | Roles: the owner check uses `ctx.role`, which is empty on a single-user install; wire real roles when sign-in arrives                                             | prompt 40          | open   |
+| B-025 | Numbering: a settings screen for synced mode and range sizes (the repository supports it; there is no screen yet)                                                 | prompt 41          | open   |

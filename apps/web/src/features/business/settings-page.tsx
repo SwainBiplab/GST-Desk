@@ -51,6 +51,8 @@ import { useAppDb } from '@/app/db';
 import { useLocationInfo } from '@/app/hooks';
 import { useAppStore } from '@/app/store';
 import { useUnsavedGuard } from '@/app/unsaved';
+import { AuditViewer } from '@/features/numbering/audit-viewer';
+import { NumberingTab } from '@/features/numbering/numbering-tab';
 import { Field } from '@/features/onboarding/field';
 
 const MONTHS = [
@@ -439,6 +441,8 @@ const TABS = [
   'branding',
   'features',
   'documents',
+  'numbering',
+  'audit',
   'businesses',
   'inventory',
   'thermal',
@@ -485,6 +489,12 @@ export function SettingsPage() {
         </TabsContent>
         <TabsContent value="documents">
           <DocumentsTab key={business['id'] + business['version']} business={business} />
+        </TabsContent>
+        <TabsContent value="numbering">
+          <NumberingTab />
+        </TabsContent>
+        <TabsContent value="audit">
+          <AuditViewer />
         </TabsContent>
         <TabsContent value="businesses">
           <BusinessesTab />

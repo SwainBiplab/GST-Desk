@@ -41,6 +41,7 @@ export interface DraftMeta {
   supplierInvoiceNo: string;
   supplierInvoiceDate: string | null;
   itcEligible: boolean;
+  seriesKey?: string | null;
 }
 
 export function metaOf(d: DraftDocument): DraftMeta {
@@ -77,6 +78,7 @@ export function metaOf(d: DraftDocument): DraftMeta {
     supplierInvoiceNo: d.supplierInvoiceNo,
     supplierInvoiceDate: d.supplierInvoiceDate,
     itcEligible: d.itcEligible,
+    seriesKey: d.seriesKey,
   };
 }
 
@@ -189,6 +191,7 @@ export function draftFromRows(
     supplierInvoiceNo: meta.supplierInvoiceNo ?? '',
     supplierInvoiceDate: meta.supplierInvoiceDate ?? null,
     itcEligible: meta.itcEligible ?? true,
+    seriesKey: meta.seriesKey ?? null,
     lines: [...lines]
       .sort((a, b) => Number(a['line_no']) - Number(b['line_no']))
       .map((l): DraftLine => ({

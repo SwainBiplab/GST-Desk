@@ -1,4 +1,11 @@
-import { DocumentFlowRepo, PartyRepo, SettingsRepo, type Row } from '@gst/db';
+import {
+  DocumentFlowRepo,
+  NumberingRepo,
+  PartyRepo,
+  SettingsRepo,
+  type Row,
+  type SeriesView,
+} from '@gst/db';
 import {
   CONVERSIONS,
   convertDraft,
@@ -34,9 +41,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { adoptedIds } from './adopt';
+import { CancelDialog } from './cancel-dialog';
 import { ConvertDialog } from './convert-dialog';
 import { EditorFooter } from './editor-footer';
 import { EditorHeader } from './editor-header';
+import { HistoryTab } from './history-tab';
 import { ItemPicker } from './item-picker';
 import { LineGrid, type LineGridHandle } from './line-grid';
 import { DocumentPreview } from './preview';
@@ -59,6 +68,7 @@ import { useAppDb, useLiveQuery } from '@/app/db';
 import type { Shell } from '@/app/store';
 import { useUnits } from '@/features/items/hooks';
 import { ItemEditor } from '@/features/items/item-editor';
+import { useLockOverride } from '@/features/numbering/lock-override';
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
 
@@ -77,7 +87,7 @@ const SHOP_HIDDEN: readonly GridColumn[] = [
 ];
 const COLUMNS_KEY = 'documents.hidden_columns';
 
-type Side = 'preview' | 'attachment';
+type Side = 'preview' | 'attachment' | 'history';
 
 /**
  * The document editor: header, line grid, footer, a live preview and the calculation trace. The same
@@ -97,8 +107,16 @@ export function EditorPage({
   const { database, ctx, business } = useAppDb();
   const unitRows = useUnits().data;
   const units = useMemo(() => unitRows ?? [], [unitRows]);
-  const editor = useDocumentEditor({ type, id });
+  const editor = useDocumentEditor({ type, id, shell });
   const { draft, built, meta, readOnly } = editor;
+  const isDraft = meta.status === 'draft';
+  const { ask: askOverride, dialog: overrideDialog } = useLockOverride();
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const seriesQuery = useLiveQuery<SeriesView[]>({
+    tables: ['number_series'],
+    key: ['series', draft.type],
+    fn: (d, c) => new NumberingRepo(d).listSeries(c, draft.type),
+  });
   const simple = shell === 'shop';
   const purchase = isPurchase(draft.type);
   const businessState: string = business?.['state_code'] ?? '';
@@ -149,12 +167,14 @@ export function EditorPage({
     if (!meta.id || meta.id === lastUrlId.current) return;
     lastUrlId.current = meta.id;
     adoptedIds.add(meta.id);
+    // stay on the route we are on (Sell and New document are different routes; going from one to the
+    // other would remount the editor and lose whatever it was in the middle of)
     void router.navigate({
-      to: editorPath(shell) as never,
+      to: router.state.location.pathname as never,
       search: { type: draft.type, id: meta.id } as never,
       replace: true,
     });
-  }, [meta.id, router, shell, draft.type]);
+  }, [meta.id, router, draft.type]);
 
   /* ---------------------------------------------------------------- items */
 
@@ -189,7 +209,14 @@ export function EditorPage({
   const doIssue = async (after?: 'print' | 'share') => {
     setBusy(true);
     try {
-      const { issues, number } = await editor.issue();
+      let result = await editor.issue();
+      if (result.locked) {
+        // a closed period: only an owner with a reason can go on
+        const reason = await askOverride(result.locked.until);
+        if (!reason) return;
+        result = await editor.issue({ reason });
+      }
+      const { issues, number } = result;
       if (issues.length > 0 || !number) {
         setShowIssues(true);
         toast.error(problemsText(issues)[0] ?? t('docs.issue.issue_failed'));
@@ -227,7 +254,65 @@ export function EditorPage({
     );
   };
 
+  /** Save the changes to an issued document (a new revision when anything financial changed). */
+  const doSaveRevision = async () => {
+    setBusy(true);
+    try {
+      let out = await editor.saveRevision();
+      if (out.locked) {
+        const reason = await askOverride(out.locked.until);
+        if (!reason) return;
+        out = await editor.saveRevision({ reason });
+      }
+      if (!out.ok) {
+        if (out.error) toast.error(out.error);
+        return;
+      }
+      toast.success(
+        out.kind === 'financial'
+          ? t('docs.revision.saved')
+          : out.kind === 'none'
+            ? t('docs.revision.nothing')
+            : t('docs.revision.savedNotes'),
+      );
+      if (out.overAllocatedPaise)
+        toast.warning(
+          t('docs.revision.overAllocated', { amount: formatPaise(BigInt(out.overAllocatedPaise)) }),
+        );
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const doCancel = async (reason: string) => {
+    setBusy(true);
+    try {
+      let out = await editor.cancel(reason);
+      if (out.locked) {
+        const why = await askOverride(out.locked.until);
+        if (!why) return;
+        out = await editor.cancel(reason, { reason: why });
+      }
+      if (!out.ok) {
+        if (out.error) toast.error(out.error);
+        return;
+      }
+      setCancelOpen(false);
+      toast.success(t('docs.cancel.done', { number: meta.number ?? '' }));
+      if (out.unallocated.length > 0) {
+        const sum = out.unallocated.reduce((n, u) => n + BigInt(u.amountPaise), 0n);
+        toast.warning(
+          t('docs.cancel.unallocated', { count: out.unallocated.length, amount: formatPaise(sum) }),
+        );
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const saveNow = async () => {
+    if (editor.revising) return doSaveRevision();
+    if (!isDraft) return;
     const ok = await editor.save();
     if (ok) toast.success(t('docs.save.saved'));
   };
@@ -274,7 +359,7 @@ export function EditorPage({
       if (e.key === 's') {
         e.preventDefault();
         void saveNow();
-      } else if (e.key === 'Enter' && !readOnly) {
+      } else if (e.key === 'Enter' && isDraft) {
         e.preventDefault();
         void doIssue();
       }
@@ -320,14 +405,23 @@ export function EditorPage({
       <PageHeader
         title={t(`docs.types.${draft.type}`)}
         description={
-          readOnly
-            ? t('docs.readOnly', { status: t(`docs.status.${meta.status}`) })
-            : t('docs.draftHelp')
+          editor.revising
+            ? t('docs.revising')
+            : meta.status === 'cancelled'
+              ? t('docs.readOnlyCancelled')
+              : readOnly
+                ? t('docs.readOnly', { status: t(`docs.status.${meta.status}`) })
+                : t('docs.draftHelp')
         }
         actions={
           <div className="flex flex-wrap items-center gap-2">
             {meta.number && <Badge data-testid="doc-issued-number">{meta.number}</Badge>}
             <Badge data-testid="doc-status">{t(`docs.status.${meta.status}`)}</Badge>
+            {!isDraft && meta.revision > 1 && (
+              <Badge tone="info" data-testid="doc-revision">
+                {t('docs.revision.badge', { n: meta.revision })}
+              </Badge>
+            )}
             <span
               className="text-xs text-fg-muted"
               aria-live="polite"
@@ -336,7 +430,36 @@ export function EditorPage({
             >
               {saveLabel}
             </span>
-            {!readOnly && (
+            {meta.status === 'issued' && !editor.revising && (
+              <Button
+                variant="outline"
+                data-testid="doc-edit"
+                disabled={meta.hasIrn}
+                title={meta.hasIrn ? t('docs.revision.einvoiced') : undefined}
+                onClick={editor.startRevision}
+              >
+                {t('docs.revision.edit')}
+              </Button>
+            )}
+            {editor.revising && (
+              <>
+                <Button
+                  variant="outline"
+                  data-testid="doc-revise-discard"
+                  onClick={editor.cancelRevision}
+                >
+                  {t('docs.revision.discard')}
+                </Button>
+                <Button
+                  data-testid="doc-revise-save"
+                  disabled={busy}
+                  onClick={() => void doSaveRevision()}
+                >
+                  {t('docs.revision.save')}
+                </Button>
+              </>
+            )}
+            {isDraft && (
               <>
                 <Button variant="outline" data-testid="doc-save" onClick={() => void saveNow()}>
                   {t('docs.actions.save')}
@@ -357,7 +480,7 @@ export function EditorPage({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {!readOnly && !simple && (
+                {isDraft && !simple && (
                   <>
                     <DropdownMenuItem
                       data-testid="doc-issue-print"
@@ -373,7 +496,7 @@ export function EditorPage({
                     </DropdownMenuItem>
                   </>
                 )}
-                {readOnly && (
+                {!isDraft && (
                   <DropdownMenuItem data-testid="doc-print" onSelect={() => window.print()}>
                     {t('docs.actions.print')}
                   </DropdownMenuItem>
@@ -394,7 +517,16 @@ export function EditorPage({
                     {t('docs.actions.convert', { to: t(`docs.types.${target}`) })}
                   </DropdownMenuItem>
                 ))}
-                {!readOnly && meta.id && (
+                {meta.status === 'issued' && (
+                  <DropdownMenuItem
+                    data-testid="doc-cancel"
+                    disabled={meta.hasIrn}
+                    onSelect={() => setCancelOpen(true)}
+                  >
+                    {t('docs.cancel.action')}
+                  </DropdownMenuItem>
+                )}
+                {isDraft && meta.id && (
                   <DropdownMenuItem
                     data-testid="doc-discard"
                     onSelect={() =>
@@ -426,6 +558,24 @@ export function EditorPage({
         />
       )}
 
+      {meta.status === 'cancelled' && (
+        <p
+          role="status"
+          className="rounded-md border border-danger p-2 text-sm text-danger"
+          data-testid="doc-cancelled-banner"
+        >
+          {t('docs.cancel.banner', { reason: meta.cancelReason ?? '' })}
+        </p>
+      )}
+      {editor.revising && (
+        <p
+          role="status"
+          className="rounded-md border border-border bg-surface-1 p-2 text-sm"
+          data-testid="doc-revising-banner"
+        >
+          {t('docs.revising')}
+        </p>
+      )}
       {issueProblems.length > 0 && (
         <ul
           role="alert"
@@ -460,6 +610,8 @@ export function EditorPage({
             readOnly={readOnly}
             businessState={businessState}
             numberLabel={numberLabel}
+            series={seriesQuery.data ?? []}
+            seriesLocked={!isDraft}
             simple={simple}
             onPartyPicked={() =>
               requestAnimationFrame(() =>
@@ -538,6 +690,7 @@ export function EditorPage({
               business={business}
               units={unitCodes}
               number={meta.number}
+              status={meta.status}
             />
           </div>
         ) : (
@@ -559,6 +712,11 @@ export function EditorPage({
                     {t('docs.side.attachment')}
                   </TabsTrigger>
                 )}
+                {meta.id && !isDraft && (
+                  <TabsTrigger value="history" data-testid="tab-history">
+                    {t('docs.history.tab')}
+                  </TabsTrigger>
+                )}
               </TabsList>
               <TabsContent value="preview" className="min-h-0 flex-1">
                 <DocumentPreview
@@ -567,8 +725,14 @@ export function EditorPage({
                   business={business}
                   units={unitCodes}
                   number={meta.number}
+                  status={meta.status}
                 />
               </TabsContent>
+              {meta.id && !isDraft && (
+                <TabsContent value="history" className="min-h-0 flex-1 overflow-auto">
+                  <HistoryTab documentId={meta.id} version={meta.version} />
+                </TabsContent>
+              )}
               {attachmentTab && (
                 <TabsContent value="attachment" className="min-h-0 flex-1">
                   <AttachmentPane
@@ -644,6 +808,20 @@ export function EditorPage({
           </SheetContent>
         </Sheet>
       )}
+      {cancelOpen && meta.number && (
+        <CancelDialog
+          number={meta.number}
+          busy={busy}
+          canCreditNote={targets.includes('credit_note')}
+          onConfirm={(reason) => void doCancel(reason)}
+          onCreditNote={() => {
+            setCancelOpen(false);
+            setConvertTo('credit_note');
+          }}
+          onClose={() => setCancelOpen(false)}
+        />
+      )}
+      {overrideDialog}
       {convertTo && (
         <ConvertDialog
           draft={draft}

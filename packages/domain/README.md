@@ -62,3 +62,7 @@ micro-units; rates are basis points. Every calculation returns `{ result, trace 
 ## Tests
 
 `pnpm --filter @gst/domain test` runs vectors, fast-check properties (totals add up, CGST = SGST intra, IGST only inter, discount allocation exact, ledger balances), numbering edge cases, a 500-line performance check and a guard test that greps `src/` for `Number(` or `Math.round` on paise. `pnpm --filter @gst/domain test:coverage` enforces 95% lines.
+
+## Series, period lock and cancellation rules (prompt 15)
+
+`series.ts` holds the pure rules behind numbering settings and after-issue changes: `validateSeries` and `previewSeries` (GST character set, worst-case 16-character width with each `{FY}`, `{YYYY}`, `{MM}` token at its widest), `seriesClash`, `provisionalNumber`, `isLockedDate`, `classifyEdit` (which fields can change after issue without a new revision), `reverseEntries` and `cancelBlocker`. The repositories in `@gst/db` apply them; see `docs/compliance/numbering-and-cancellation.md`.

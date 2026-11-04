@@ -77,6 +77,8 @@ export interface DraftDocument {
   supplierInvoiceNo: string;
   supplierInvoiceDate: string | null;
   itcEligible: boolean;
+  /** The number series to issue from; null means the default for the type and shell. */
+  seriesKey: string | null;
 }
 
 export const emptyDraftLine = (key: string): DraftLine => ({
@@ -128,6 +130,7 @@ export const emptyDraft = (
   supplierInvoiceNo: '',
   supplierInvoiceDate: null,
   itcEligible: true,
+  seriesKey: null,
 });
 
 /** A line the editor can price: it has something to sell and a quantity. */

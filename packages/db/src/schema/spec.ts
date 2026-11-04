@@ -222,6 +222,16 @@ export const SPEC: TableSpec[] = [
     kind: 'tenant',
     cols: {
       document_type: c.text().nn,
+      /** Shown in settings and the series picker; counters of one series share `series_key`. */
+      name: c.text(),
+      /** One logical series has a counter row per financial year (or one row if it never resets). */
+      series_key: c.text(),
+      /** Used when the editor does not pick a series. */
+      is_default: c.bool().nn.default(false),
+      /** A series that Books or Shop uses by default for this type (overrides `is_default` there). */
+      shell_default: c.text().oneOf(['books', 'shop']),
+      /** First number after a start or reset. */
+      start_number: c.int().nn.default(1),
       prefix: c.text().nn.default(''),
       suffix: c.text().nn.default(''),
       padding: c.int().nn.default(4),
@@ -240,6 +250,8 @@ export const SPEC: TableSpec[] = [
       device_id: c.uuid().ref('devices'),
       from_number: c.int().nn,
       to_number: c.int().nn,
+      /** Numbers consumed from the start of the range. */
+      used: c.int().nn.default(0),
       status: c.text().nn.default('active').oneOf(['active', 'used', 'released']),
     },
     indexes: [{ cols: ['series_id'] }],
@@ -282,6 +294,8 @@ export const SPEC: TableSpec[] = [
       eway_valid_until: c.ts(),
       cancelled_at: c.ts(),
       cancel_reason: c.text(),
+      /** Bumped by every financial edit after issue; 1 means as first issued. */
+      revision: c.int().nn.default(1),
       source_document_id: c.uuid().ref('documents'),
       metadata_json: c.json(),
     },

@@ -53,12 +53,14 @@ export function DocumentPreview({
   business,
   units,
   number,
+  status = 'draft',
 }: {
   draft: DraftDocument;
   built: BuiltDocument;
   business: Row | null;
   units: ReadonlyMap<string, string>;
   number: string | null;
+  status?: string;
 }) {
   const { t } = useTranslation();
   const [paper, setPaper] = useState<PaperSize>('a4');
@@ -110,6 +112,7 @@ export function DocumentPreview({
             business={business}
             units={units}
             number={number}
+            status={status}
           />
         </div>
       </div>
@@ -129,6 +132,7 @@ const PreviewSheet = memo(function PreviewSheet({
   business,
   units,
   number,
+  status,
 }: {
   draft: DraftDocument;
   built: BuiltDocument;
@@ -137,6 +141,7 @@ const PreviewSheet = memo(function PreviewSheet({
   business: Row | null;
   units: ReadonlyMap<string, string>;
   number: string | null;
+  status: string;
 }) {
   const { t } = useTranslation();
   const scheme = business?.['scheme'] === 'composition' ? 'composition' : 'regular';
@@ -160,9 +165,20 @@ const PreviewSheet = memo(function PreviewSheet({
       id="print-area"
       data-testid="preview-sheet"
       data-paper={paper}
-      className="origin-top-left bg-white p-6 text-[12px] leading-snug text-black shadow-sm"
+      className="relative origin-top-left bg-white p-6 text-[12px] leading-snug text-black shadow-sm"
       style={{ width, transform: `scale(${zoom / 100})` }}
     >
+      {status === 'cancelled' && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 flex items-center justify-center"
+          data-testid="preview-cancelled"
+        >
+          <span className="-rotate-[20deg] rounded border-4 border-red-600/50 px-4 py-1 text-5xl font-bold text-red-600/50">
+            {t('docs.cancel.stamp')}
+          </span>
+        </div>
+      )}
       <header className="flex justify-between gap-4 border-b border-black pb-2">
         <div>
           <h2 className="text-base font-bold" data-testid="preview-business">
