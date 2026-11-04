@@ -79,10 +79,15 @@ export const SPEC: TableSpec[] = [
     cols: {
       kind: c.text().nn.oneOf(['bank', 'upi', 'cash', 'wallet']),
       name: c.text().nn,
+      holder_name: c.text(),
       account_no: c.text(),
       ifsc: c.text(),
+      /** savings, current, ... for a bank account. */
+      account_type: c.text(),
       upi_id: c.text(),
       is_default: c.bool().nn.default(false),
+      /** Printed on documents and receipts. */
+      show_on_documents: c.bool().nn.default(true),
     },
   },
   {
@@ -357,11 +362,19 @@ export const SPEC: TableSpec[] = [
       date: c.date().nn,
       /** received = from a customer, made = to a supplier. */
       direction: c.text().nn.default('received').oneOf(['received', 'made']),
-      mode: c.text().nn.oneOf(['cash', 'upi', 'card', 'bank', 'cheque', 'other']),
+      mode: c.text().nn.oneOf(['cash', 'upi', 'card', 'bank', 'cheque', 'other', 'adjustment']),
       account_id: c.uuid().ref('business_accounts'),
       party_id: c.uuid().ref('parties'),
+      /** Everything received or paid, including `tcs_paise`. */
       amount_paise: c.big().nn,
+      /** Cheque number, UPI or bank reference. */
       reference: c.text(),
+      cheque_date: c.date(),
+      notes: c.text(),
+      /** TCS u/s 206C(1H) collected with a receipt (part of the amount; not a settlement). */
+      tcs_paise: c.big().nn.default(0),
+      /** The receipt voucher document made for this payment. */
+      voucher_id: c.uuid().ref('documents'),
       status: c.text().nn.default('cleared').oneOf(['pending', 'cleared', 'bounced', 'cancelled']),
     },
     indexes: [{ cols: ['party_id'] }],
@@ -370,10 +383,12 @@ export const SPEC: TableSpec[] = [
     name: 'payment_allocations',
     kind: 'tenant',
     cols: {
-      payment_id: c.uuid().nn.ref('payments'),
+      /** Empty for credit applied from a credit note (no money moved). */
+      payment_id: c.uuid().ref('payments'),
       document_id: c.uuid().nn.ref('documents'),
       amount_paise: c.big().nn,
-      kind: c.text().nn.default('payment').oneOf(['payment', 'credit_applied']),
+      /** `write_off` is a round-off difference closed on the document, not money. */
+      kind: c.text().nn.default('payment').oneOf(['payment', 'credit_applied', 'write_off']),
       source_document_id: c.uuid().ref('documents'),
     },
     indexes: [{ cols: ['payment_id'] }, { cols: ['document_id'] }],

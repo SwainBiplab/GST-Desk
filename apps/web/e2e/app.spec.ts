@@ -196,7 +196,9 @@ test.describe('command bar', () => {
     await expect(intent).toContainText('Pay ₹5,000.00 to');
     await page.keyboard.press('Enter');
     await expect(page).toHaveURL(/\/books\/payments/);
-    await expect(page.getByTestId('intent')).toContainText('Pay ₹5,000.00 to Sharma');
+    // the payments page opens the form for a payment made, with the amount filled in
+    await expect(page.getByTestId('pay-form')).toHaveAttribute('data-direction', 'made');
+    await expect(page.getByTestId('pay-amount')).toHaveValue('5000.00');
   });
 
   test('offers the assistant for free text and says it is not available yet', async ({ page }) => {

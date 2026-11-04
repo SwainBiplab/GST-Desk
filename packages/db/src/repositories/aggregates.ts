@@ -84,6 +84,7 @@ const CHART = [
   ['5000', 'Purchases', 'expense'],
   ['5100', 'Expenses', 'expense'],
   ['5200', 'Round-off', 'expense'],
+  ['5300', 'Adjustments', 'expense'],
 ] as const;
 
 export class BusinessRepo {

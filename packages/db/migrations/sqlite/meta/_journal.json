@@ -15,6 +15,13 @@
       "when": 1793792692490,
       "tag": "0001_blushing_crusher_hogan",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1793795628296,
+      "tag": "0002_luxuriant_bill_hollister",
+      "breakpoints": true
     }
   ]
 }

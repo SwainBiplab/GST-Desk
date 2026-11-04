@@ -15,3 +15,4 @@ export { ItemValidationError, type BulkBatch, type RateChangeRow } from './repos
 export * from './repositories/document-flow';
 export * from './repositories/numbering';
 export * from './repositories/period-lock';
+export * from './repositories/payment-flow';

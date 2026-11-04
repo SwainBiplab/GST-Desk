@@ -54,7 +54,7 @@ const DEFAULT_PREFIX: Record<string, string> = {
 };
 
 /** Ledger account for each posting key: [code, name, type]. Created on demand for older businesses. */
-const ACCOUNTS: Record<AccountKey, [string, string, string]> = {
+export const ACCOUNTS: Record<AccountKey, [string, string, string]> = {
   cash: ['1000', 'Cash', 'asset'],
   bank: ['1100', 'Bank', 'asset'],
   receivables: ['1200', 'Accounts Receivable', 'asset'],
@@ -63,6 +63,7 @@ const ACCOUNTS: Record<AccountKey, [string, string, string]> = {
   purchases: ['5000', 'Purchases', 'expense'],
   expenses: ['5100', 'Expenses', 'expense'],
   roundOff: ['5200', 'Round-off', 'expense'],
+  adjustments: ['5300', 'Adjustments', 'expense'],
   openingEquity: ['3100', 'Opening Balance Equity', 'equity'],
   tcsPayable: ['2200', 'TCS Payable', 'liability'],
   outputCgst: ['2100', 'Output GST', 'liability'],
@@ -135,7 +136,7 @@ export interface ReviseResult extends DocumentWithLines {
  * posts are decided in a single queue, so concurrent callers can never see the same counter value.
  */
 const queues = new WeakMap<object, Promise<unknown>>();
-function serialised<T>(d: Database, fn: () => Promise<T>): Promise<T> {
+export function serialised<T>(d: Database, fn: () => Promise<T>): Promise<T> {
   const prev = queues.get(d) ?? Promise.resolve();
   const run = prev.then(fn, fn);
   queues.set(
@@ -326,7 +327,7 @@ export class DocumentFlowRepo extends BaseRepo {
     });
   }
 
-  private async accountIdIn(tx: any, ctx: Ctx, key: AccountKey): Promise<string> {
+  async accountIdIn(tx: any, ctx: Ctx, key: AccountKey): Promise<string> {
     const [code, name, type] = ACCOUNTS[key];
     const t = this.d.schema.ledger_accounts;
     const [row]: Row[] = await tx
@@ -349,7 +350,7 @@ export class DocumentFlowRepo extends BaseRepo {
    * shell's default, else the type's default series. Each series keeps a counter per financial year.
    * The default series is created the first time it is needed.
    */
-  private async takeNumberIn(
+  async takeNumberIn(
     tx: any,
     ctx: Ctx,
     type: string,

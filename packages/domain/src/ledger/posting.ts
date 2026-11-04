@@ -19,6 +19,7 @@ export type AccountKey =
   | 'roundOff'
   | 'openingEquity'
   | 'tcsPayable'
+  | 'adjustments'
   | `output${TaxHead}`
   | `input${TaxHead}`;
 
@@ -145,14 +146,27 @@ export function postDocument(doc: PostableDocument): LedgerLine[] {
 
 export interface PostablePayment {
   direction: 'received' | 'made';
-  mode: 'cash' | 'upi' | 'card' | 'bank' | 'cheque' | 'other';
+  mode: 'cash' | 'upi' | 'card' | 'bank' | 'cheque' | 'other' | 'adjustment';
+  /** Everything received or paid, including any TCS collected on a receipt. */
   amountPaise: bigint;
+  /** TCS u/s 206C(1H) collected with a receipt: part of the amount, a liability, not a settlement. */
+  tcsPaise?: bigint;
 }
 
-/** Receipt from a customer or payment to a supplier. */
+/**
+ * Receipt from a customer or payment to a supplier. Cash goes to cash, an adjustment (a set-off or
+ * discount, no money moves) to the adjustments account, everything else to bank. TCS collected on a
+ * receipt is credited to TCS payable, so only the rest settles the customer's account.
+ */
 export function postPayment(p: PostablePayment): LedgerLine[] {
   if (p.amountPaise <= 0n) throw new PostingError('payment amount must be positive');
-  const money: AccountKey = p.mode === 'cash' ? 'cash' : 'bank';
+  const tcs = p.tcsPaise ?? 0n;
+  if (tcs < 0n || tcs >= p.amountPaise)
+    throw new PostingError('TCS must be positive and less than the amount received');
+  if (tcs > 0n && p.direction !== 'received')
+    throw new PostingError('TCS is collected on receipts only');
+  const money: AccountKey =
+    p.mode === 'cash' ? 'cash' : p.mode === 'adjustment' ? 'adjustments' : 'bank';
   const lines: LedgerLine[] =
     p.direction === 'received'
       ? [
@@ -160,13 +174,48 @@ export function postPayment(p: PostablePayment): LedgerLine[] {
           {
             account: 'receivables',
             debitPaise: 0n,
-            creditPaise: p.amountPaise,
+            creditPaise: p.amountPaise - tcs,
             narration: 'receipt',
           },
+          ...(tcs > 0n
+            ? [
+                {
+                  account: 'tcsPayable' as AccountKey,
+                  debitPaise: 0n,
+                  creditPaise: tcs,
+                  narration: 'TCS collected on receipt',
+                },
+              ]
+            : []),
         ]
       : [
           { account: 'payables', debitPaise: p.amountPaise, creditPaise: 0n, narration: 'payment' },
           { account: money, debitPaise: 0n, creditPaise: p.amountPaise, narration: 'payment' },
+        ];
+  assertBalanced(lines);
+  return lines;
+}
+
+/**
+ * A small round-off difference written off against a document: the customer owes (or we owe) a few
+ * paise less. Receivables are credited and round-off debited; for a supplier bill the sides swap.
+ */
+export function postWriteOff(direction: 'received' | 'made', amountPaise: bigint): LedgerLine[] {
+  if (amountPaise <= 0n) throw new PostingError('write-off must be positive');
+  const lines: LedgerLine[] =
+    direction === 'received'
+      ? [
+          { account: 'roundOff', debitPaise: amountPaise, creditPaise: 0n, narration: 'write-off' },
+          {
+            account: 'receivables',
+            debitPaise: 0n,
+            creditPaise: amountPaise,
+            narration: 'write-off',
+          },
+        ]
+      : [
+          { account: 'payables', debitPaise: amountPaise, creditPaise: 0n, narration: 'write-off' },
+          { account: 'roundOff', debitPaise: 0n, creditPaise: amountPaise, narration: 'write-off' },
         ];
   assertBalanced(lines);
   return lines;

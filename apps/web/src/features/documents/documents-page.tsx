@@ -27,6 +27,8 @@ import { useAppDb, useLiveQuery } from '@/app/db';
 import { useAppNavigate, useLocationInfo } from '@/app/hooks';
 import type { Shell } from '@/app/store';
 import { useFeatureFlags } from '@/features/business/hooks';
+import { usePositions } from '@/features/payments/hooks';
+import { PayStatusBadge } from '@/features/payments/status-badge';
 
 const ALL_TYPES: DocumentType[] = [
   'tax_invoice',
@@ -85,7 +87,11 @@ export function DocumentsPage({ shell }: { shell: Shell }) {
     )
     .slice(0, SHOWN);
 
-  const open = (r: Row) => navigate(editorPath(shell), { type: r['type'], id: r['id'] });
+  const positions = usePositions();
+  const open = (r: Row) =>
+    r['type'] === 'receipt_voucher'
+      ? navigate(`/${shell}/payments`, { voucher: r['id'] })
+      : navigate(editorPath(shell), { type: r['type'], id: r['id'] });
   const discard = async (r: Row) => {
     if (!database || !ctx) return;
     await new DocumentFlowRepo(database).discardDraft(ctx, r['id'], r['version']);
@@ -210,6 +216,7 @@ export function DocumentsPage({ shell }: { shell: Shell }) {
                 <th className="p-2">{t('docs.list.party')}</th>
                 <th className="p-2 text-right">{t('docs.totals.total')}</th>
                 <th className="p-2">{t('docs.list.status')}</th>
+                <th className="p-2">{t('docs.list.payment')}</th>
               </tr>
             </thead>
             <tbody>
@@ -237,6 +244,11 @@ export function DocumentsPage({ shell }: { shell: Shell }) {
                   </td>
                   <td className="p-2">
                     <Badge>{t(`docs.status.${r['status']}`)}</Badge>
+                  </td>
+                  <td className="p-2">
+                    {r['status'] === 'issued' && (
+                      <PayStatusBadge position={positions.get(r['id'])} />
+                    )}
                   </td>
                 </tr>
               ))}

@@ -27,3 +27,9 @@
 | B-023 | Audit: diff view for list-valued fields (lines are shown per line today), and a printable audit report for a document                                             | P2                 | open   |
 | B-024 | Roles: the owner check uses `ctx.role`, which is empty on a single-user install; wire real roles when sign-in arrives                                             | prompt 40          | open   |
 | B-025 | Numbering: a settings screen for synced mode and range sizes (the repository supports it; there is no screen yet)                                                 | prompt 41          | open   |
+| B-026 | Payments: cheques as pending until cleared, and a bounced cheque that reopens its invoices (the balance logic already ignores payments that are not cleared)      | P2                 | open   |
+| B-027 | Payments: a payment voucher document for payments made (receipts have one; payments made do not)                                                                  | P2                 | open   |
+| B-028 | Payments: refund a credit note or an advance back to the party as money out                                                                                       | P2                 | open   |
+| B-029 | Payments: TCS on receipt uses the default 0.1% rate; a rate and PAN-based 1% (no PAN) choice per party                                                            | P2                 | open   |
+| B-030 | Payments: payment links, gateway reconciliation and reminder sending                                                                                              | prompts 44 and 45  | open   |
+| B-031 | Payments: receipts as a PDF on the template designer, with the accounts chosen for documents                                                                      | prompt 17          | open   |

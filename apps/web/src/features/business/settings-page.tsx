@@ -54,6 +54,7 @@ import { useUnsavedGuard } from '@/app/unsaved';
 import { AuditViewer } from '@/features/numbering/audit-viewer';
 import { NumberingTab } from '@/features/numbering/numbering-tab';
 import { Field } from '@/features/onboarding/field';
+import { AccountsTab } from '@/features/payments/accounts-tab';
 
 const MONTHS = [
   'January',
@@ -442,6 +443,7 @@ const TABS = [
   'features',
   'documents',
   'numbering',
+  'accounts',
   'audit',
   'businesses',
   'inventory',
@@ -492,6 +494,9 @@ export function SettingsPage() {
         </TabsContent>
         <TabsContent value="numbering">
           <NumberingTab />
+        </TabsContent>
+        <TabsContent value="accounts">
+          <AccountsTab />
         </TabsContent>
         <TabsContent value="audit">
           <AuditViewer />

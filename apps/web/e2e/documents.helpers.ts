@@ -39,7 +39,15 @@ const rowHeight = (page: Page) =>
 
 /** Put the cursor on the item cell of a grid row with a click (the first move; the rest is keyboard). */
 export async function clickItemCell(page: Page, row = 0) {
-  const frame = (await page.getByTestId('grid-frame').boundingBox())!;
+  // the grid can still be moving (a list of problems above it appears, a panel opens): click once it is still
+  let frame = (await page.getByTestId('grid-frame').boundingBox())!;
+  for (let i = 0; i < 20; i++) {
+    await page.waitForTimeout(60);
+    const next = (await page.getByTestId('grid-frame').boundingBox())!;
+    const still = next.x === frame.x && next.y === frame.y && next.height === frame.height;
+    frame = next;
+    if (still) break;
+  }
   const h = await rowHeight(page);
   await page.mouse.click(frame.x + 150, frame.y + 36 + h * row + h / 2);
 }
@@ -48,8 +56,8 @@ export async function clickItemCell(page: Page, row = 0) {
  * Enter opens the item picker; type to search, Tab to the quantity, type it, Enter. The cursor then
  * waits on the next line's item cell.
  */
-export async function keyLine(page: Page, query: string, qty = '1') {
-  await page.keyboard.press('Enter');
+export async function keyLine(page: Page, query: string, qty = '1', opened = false) {
+  if (!opened) await page.keyboard.press('Enter');
   await expect(page.getByTestId('item-picker-input')).toBeVisible();
   await page.keyboard.type(query);
   await expect(page.getByTestId('item-result').first()).toBeVisible();
@@ -63,8 +71,18 @@ export async function keyLine(page: Page, query: string, qty = '1') {
 
 /** Add a line (starting from a click on the first free item cell). */
 export async function addLine(page: Page, row: number, query: string, qty = '1') {
-  await clickItemCell(page, row);
-  await keyLine(page, query, qty);
+  // a click that lands while the layout is still moving can miss the cell: click again, as a person would
+  const picker = page.getByTestId('item-picker-input');
+  for (let attempt = 0; attempt < 4; attempt++) {
+    await clickItemCell(page, row);
+    await page.keyboard.press('Enter');
+    const open = await picker
+      .waitFor({ state: 'visible', timeout: 1500 })
+      .then(() => true)
+      .catch(() => false);
+    if (open) break;
+  }
+  await keyLine(page, query, qty, true);
 }
 
 const text = (page: Page, id: string) => page.getByTestId(id).innerText();

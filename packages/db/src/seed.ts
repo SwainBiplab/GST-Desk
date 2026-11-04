@@ -3,12 +3,20 @@
  * financial years, payments and stock. Same seed => byte-identical rows (ids and timestamps included).
  * Bulk-inserts directly (no per-row audit_log), inside one transaction.
  */
-import { withCheckDigit } from '@gst/domain';
+import {
+  POSTS_TO_LEDGER,
+  postDocument,
+  postPayment,
+  withCheckDigit,
+  type DocumentType,
+  type LedgerLine,
+} from '@gst/domain';
 import { sql } from 'drizzle-orm';
 
 import type { Database } from './database';
 import { BusinessRepo, createOrganisation, createUser } from './repositories/aggregates';
 import type { Ctx } from './repositories/base';
+import { ACCOUNTS } from './repositories/document-flow';
 import { computeLine, computeTotals } from './repositories/line-math';
 import type { Row } from './schema';
 
@@ -415,6 +423,65 @@ export async function seedDemo(d: Database, opts: SeedOptions = {}): Promise<See
     await chunked(tx, s.document_lines, lineRows, 50);
     await chunked(tx, s.payments, paymentRows);
     await chunked(tx, s.payment_allocations, allocRows);
+
+    // The books: every issued document and every payment posts to the ledger, as it does when made
+    // through the app, so party balances, document balances and the ledger can be reconciled.
+    const accountIds = new Map<string, string>(
+      (await tx.select().from(s.ledger_accounts)).map((a: Row) => [a['code'], a['id']]),
+    );
+    const ledgerRows: Row[] = [];
+    const post = (
+      lines: LedgerLine[],
+      at: { date: string; party: string | null; doc?: string; pay?: string },
+    ) => {
+      for (const l of lines) {
+        const code = ACCOUNTS[l.account][0];
+        ledgerRows.push({
+          ...stamp(0),
+          document_id: at.doc ?? null,
+          payment_id: at.pay ?? null,
+          party_id: l.account === 'receivables' || l.account === 'payables' ? at.party : null,
+          account_id: accountIds.get(code),
+          debit_paise: Number(l.debitPaise),
+          credit_paise: Number(l.creditPaise),
+          date: at.date,
+          narration: l.narration,
+        });
+      }
+    };
+    for (const dc of docs) {
+      if (dc['status'] !== 'issued' || !POSTS_TO_LEDGER.has(dc['type'] as DocumentType)) continue;
+      const n = (k: string) => BigInt(Math.trunc(Number(dc[k] ?? 0)));
+      post(
+        postDocument({
+          type: dc['type'] as DocumentType,
+          status: 'issued',
+          taxablePaise: n('total_taxable_paise'),
+          cgstPaise: n('total_cgst_paise'),
+          sgstPaise: n('total_sgst_paise'),
+          utgstPaise: n('total_utgst_paise'),
+          igstPaise: n('total_igst_paise'),
+          cessPaise: n('total_cess_paise'),
+          tcsPaise: n('tcs_paise'),
+          roundOffPaise: n('round_off_paise'),
+          totalPaise: n('total_paise'),
+          reverseCharge: false,
+        }),
+        { date: dc['date'], party: dc['party_id'], doc: dc['id'] },
+      );
+    }
+    for (const pm of paymentRows) {
+      post(
+        postPayment({
+          direction: pm['direction'],
+          mode: pm['mode'],
+          amountPaise: BigInt(pm['amount_paise']),
+        }),
+        { date: pm['date'], party: pm['party_id'], pay: pm['id'] },
+      );
+    }
+    await chunked(tx, s.ledger_entries, ledgerRows);
+    counts['ledger_entries'] = ledgerRows.length;
     await chunked(tx, s.stock_movements, stock);
     Object.assign(counts, {
       documents: docs.length,

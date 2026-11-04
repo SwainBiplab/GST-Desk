@@ -18,6 +18,7 @@ import { DocumentsPage } from '@/features/documents/documents-page';
 import { EditorRoute } from '@/features/documents/editor-route';
 import { ItemsPage } from '@/features/items/items-page';
 import { PartiesPage } from '@/features/parties/parties-page';
+import { PaymentsPage } from '@/features/payments/payments-page';
 
 /** Question-led card slots. Reports (prompt 18) fill them in. */
 export function DashboardFrame({ shell }: { shell: Shell }) {
@@ -135,6 +136,13 @@ export function PlaceholderPage({ page, shell }: { page: PageId; shell: Shell })
     return (
       <div data-shell={shell}>
         <EditorRoute shell={shell} />
+      </div>
+    );
+  }
+  if (page === 'payments' && ctx) {
+    return (
+      <div data-shell={shell}>
+        <PaymentsPage shell={shell} />
       </div>
     );
   }

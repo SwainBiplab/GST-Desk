@@ -24,6 +24,7 @@ import {
   runInTx,
   type Ctx,
 } from './base';
+import { PaymentFlowRepo } from './payment-flow';
 
 /** Ledger account codes for the keys the domain posting rules use. */
 const ACCOUNT_CODE: Partial<Record<AccountKey, string>> = {
@@ -340,6 +341,8 @@ export interface PartyAccount {
 
 const big = (v: unknown) => BigInt(Math.trunc(Number(v ?? 0)));
 
+const onlyDoc = (partyId?: string) => (partyId ? sql`AND dc.party_id = ${partyId}` : sql``);
+
 /** Issued documents and cleared payments of one party (or all), grouped by party. */
 async function loadAccounts(
   d: Database,
@@ -362,11 +365,23 @@ async function loadAccounts(
     sql`SELECT id, party_id, number, type, date, due_date, total_paise FROM documents
         WHERE business_id = ${b} AND deleted_at IS NULL AND status = 'issued' AND party_id IS NOT NULL ${only}`,
   );
+  // TCS collected with a receipt is not part of what settles the account
   const pays = await queryRows(
     d,
     tx,
-    sql`SELECT id, party_id, date, direction, amount_paise, mode, reference FROM payments
+    sql`SELECT id, party_id, date, direction, amount_paise - coalesce(tcs_paise, 0) AS amount_paise, mode, reference FROM payments
         WHERE business_id = ${b} AND deleted_at IS NULL AND status = 'cleared' AND party_id IS NOT NULL ${only}`,
+  );
+  // round-off differences written off against a document settle the account like a small payment
+  const writeOffs = await queryRows(
+    d,
+    tx,
+    sql`SELECT a.id AS id, dc.party_id AS party_id, p.date AS date, p.direction AS direction, a.amount_paise AS amount_paise
+        FROM payment_allocations a
+        JOIN payments p ON p.id = a.payment_id
+        JOIN documents dc ON dc.id = a.document_id
+        WHERE a.business_id = ${b} AND a.deleted_at IS NULL AND a.kind = 'write_off'
+          AND p.deleted_at IS NULL AND p.status = 'cleared' AND dc.status = 'issued' AND dc.party_id IS NOT NULL ${onlyDoc(partyId)}`,
   );
 
   const map = new Map<string, PartyAccountInput>();
@@ -396,6 +411,16 @@ async function loadAccounts(
       amountPaise: big(r['amount_paise']),
       mode: String(r['mode']),
       reference: (r['reference'] as string | null) ?? null,
+    });
+  }
+  for (const r of writeOffs) {
+    map.get(String(r['party_id']))?.payments.push({
+      id: String(r['id']),
+      date: String(r['date']),
+      direction: r['direction'] as AccountPayment['direction'],
+      amountPaise: big(r['amount_paise']),
+      mode: 'write_off',
+      reference: 'Round-off written off',
     });
   }
   return map;
@@ -447,16 +472,15 @@ export async function getPartyAccount(
   return runInTx(d, ctx, async (tx) => {
     const input = (await loadAccounts(d, ctx, tx, partyId)).get(partyId);
     if (!input) throw new NotFoundError('parties', partyId);
-    const alloc = await queryRows(
-      d,
+    // one definition of "what is still owed on a document", shared with payments
+    const { documents, credits } = await new PaymentFlowRepo(d).positionsIn(
       tx,
-      sql`SELECT a.document_id AS id, coalesce(sum(a.amount_paise), 0) AS paid
-          FROM payment_allocations a JOIN documents dc ON dc.id = a.document_id
-          WHERE a.business_id = ${ctx.businessId} AND a.deleted_at IS NULL AND dc.party_id = ${partyId}
-          GROUP BY a.document_id`,
+      ctx,
+      todayIso,
+      partyId,
     );
-    const paid = new Map(alloc.map((r) => [String(r['id']), big(r['paid'])]));
-    const due = new Map(input.docs.map((x) => [x.id, x.totalPaise - (paid.get(x.id) ?? 0n)]));
+    const owed = new Map([...documents, ...credits].map((x) => [x.id, x.balancePaise]));
+    const due = new Map(input.docs.map((x) => [x.id, owed.get(x.id) ?? x.totalPaise]));
     return { ...summarise(partyId, input, todayIso), input, documentDue: due };
   });
 }

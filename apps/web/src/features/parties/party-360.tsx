@@ -40,6 +40,8 @@ import {
 import { useAppDb, useLiveQuery } from '@/app/db';
 import { useAppNavigate } from '@/app/hooks';
 import type { Shell } from '@/app/store';
+import { usePositions } from '@/features/payments/hooks';
+import { PayStatusBadge } from '@/features/payments/status-badge';
 
 const BUCKETS = ['current', 'd0_30', 'd31_60', 'd61_90', 'd90plus'] as const;
 
@@ -179,6 +181,7 @@ function LedgerTab({ party }: { party: Row }) {
 function DocumentsTab({ partyId, due }: { partyId: string; due: Map<string, bigint> | undefined }) {
   const { t } = useTranslation();
   const { data } = usePartyDocuments(partyId);
+  const positions = usePositions(partyId);
   if (!data) return <p className="text-fg-muted">{t('empty.loading')}</p>;
   if (data.length === 0) return <EmptyState title={t('parties.docs.empty')} />;
   return (
@@ -192,6 +195,7 @@ function DocumentsTab({ partyId, due }: { partyId: string; due: Map<string, bigi
           <TableHeaderCell className="text-right">{t('parties.docs.total')}</TableHeaderCell>
           <TableHeaderCell className="text-right">{t('parties.docs.unpaid')}</TableHeaderCell>
           <TableHeaderCell>{t('parties.docs.status')}</TableHeaderCell>
+          <TableHeaderCell>{t('docs.list.payment')}</TableHeaderCell>
         </TableRow>
       </TableHead>
       <TableBody>
@@ -211,6 +215,9 @@ function DocumentsTab({ partyId, due }: { partyId: string; due: Map<string, bigi
             </TableCell>
             <TableCell>
               <StatusPill status={d['status']} />
+            </TableCell>
+            <TableCell>
+              {d['status'] === 'issued' && <PayStatusBadge position={positions.get(d['id'])} />}
             </TableCell>
           </TableRow>
         ))}

@@ -15,6 +15,7 @@ import { BaseRepo, RuleError, type Ctx } from './repositories/base';
 import { DocumentFlowRepo } from './repositories/document-flow';
 import { computeLine } from './repositories/line-math';
 import { NumberingRepo } from './repositories/numbering';
+import { BusinessAccountRepo, PaymentFlowRepo } from './repositories/payment-flow';
 import { PeriodLockRepo } from './repositories/period-lock';
 import * as stats from './repositories/stats';
 import { DIALECTS, openTestDb } from './testing/harness';
@@ -109,6 +110,8 @@ describe.each(DIALECTS)('every repository call needs a business (%s)', (dialect)
       .map(([k, v]) => [k, v as never]);
     classes.push(['DocumentFlowRepo', DocumentFlowRepo as never]);
     classes.push(['NumberingRepo', NumberingRepo as never]);
+    classes.push(['PaymentFlowRepo', PaymentFlowRepo as never]);
+    classes.push(['BusinessAccountRepo', BusinessAccountRepo as never]);
     classes.push(['PeriodLockRepo', PeriodLockRepo as never]);
     classes.push([
       'BaseRepo',

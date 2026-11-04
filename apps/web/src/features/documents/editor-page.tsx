@@ -69,8 +69,18 @@ import type { Shell } from '@/app/store';
 import { useUnits } from '@/features/items/hooks';
 import { ItemEditor } from '@/features/items/item-editor';
 import { useLockOverride } from '@/features/numbering/lock-override';
+import { ApplyCreditBanner } from '@/features/payments/apply-credit-banner';
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
+
+/** Documents money settles, so credit can be applied to them. */
+const PAYABLE_TYPES: readonly string[] = [
+  'tax_invoice',
+  'bill_of_supply',
+  'debit_note',
+  'purchase_bill',
+  'expense',
+];
 
 export const editorPath = (shell: Shell) =>
   shell === 'shop' ? '/shop/sell' : '/books/documents/new';
@@ -112,6 +122,9 @@ export function EditorPage({
   const isDraft = meta.status === 'draft';
   const { ask: askOverride, dialog: overrideDialog } = useLockOverride();
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [creditFor, setCreditFor] = useState<{ id: string; number: string; party: string } | null>(
+    null,
+  );
   const seriesQuery = useLiveQuery<SeriesView[]>({
     tables: ['number_series'],
     key: ['series', draft.type],
@@ -226,6 +239,10 @@ export function EditorPage({
       }
       setShowIssues(false);
       toast.success(t('docs.issued', { number }));
+      // a party with an advance or a credit note can have it applied to what was just issued
+      const issuedId = editor.currentId();
+      if (issuedId && draft.partyId && PAYABLE_TYPES.includes(draft.type))
+        setCreditFor({ id: issuedId, number, party: draft.partyName });
       if (after === 'print') setTimeout(() => window.print(), 300);
       if (after === 'share') await share(number);
     } finally {
@@ -558,6 +575,14 @@ export function EditorPage({
         />
       )}
 
+      {creditFor && (
+        <ApplyCreditBanner
+          documentId={creditFor.id}
+          number={creditFor.number}
+          partyName={creditFor.party}
+          onClose={() => setCreditFor(null)}
+        />
+      )}
       {meta.status === 'cancelled' && (
         <p
           role="status"
