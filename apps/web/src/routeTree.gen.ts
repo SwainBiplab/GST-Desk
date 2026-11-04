@@ -8,106 +8,106 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root';
-import { Route as IndexRouteImport } from './routes/index';
-import { Route as BooksRouteRouteImport } from './routes/books/route';
-import { Route as ShopRouteRouteImport } from './routes/shop/route';
-import { Route as WelcomeRouteImport } from './routes/welcome';
-import { Route as BooksIndexRouteImport } from './routes/books/index';
-import { Route as BooksPageRouteImport } from './routes/books/$page';
-import { Route as BooksCrashRouteImport } from './routes/books/[_]crash';
-import { Route as BooksKitRouteImport } from './routes/books/[_]kit';
-import { Route as ShopIndexRouteImport } from './routes/shop/index';
-import { Route as ShopPageRouteImport } from './routes/shop/$page';
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as BooksRouteRouteImport } from './routes/books/route'
+import { Route as ShopRouteRouteImport } from './routes/shop/route'
+import { Route as WelcomeRouteImport } from './routes/welcome'
+import { Route as BooksIndexRouteImport } from './routes/books/index'
+import { Route as BooksPageRouteImport } from './routes/books/$page'
+import { Route as BooksCrashRouteImport } from './routes/books/[_]crash'
+import { Route as BooksKitRouteImport } from './routes/books/[_]kit'
+import { Route as ShopIndexRouteImport } from './routes/shop/index'
+import { Route as ShopPageRouteImport } from './routes/shop/$page'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const BooksRouteRoute = BooksRouteRouteImport.update({
   id: '/books',
   path: '/books',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ShopRouteRoute = ShopRouteRouteImport.update({
   id: '/shop',
   path: '/shop',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const WelcomeRoute = WelcomeRouteImport.update({
   id: '/welcome',
   path: '/welcome',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const BooksIndexRoute = BooksIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => BooksRouteRoute,
-} as any);
+} as any)
 const BooksPageRoute = BooksPageRouteImport.update({
   id: '/$page',
   path: '/$page',
   getParentRoute: () => BooksRouteRoute,
-} as any);
+} as any)
 const BooksCrashRoute = BooksCrashRouteImport.update({
   id: '/_crash',
   path: '/_crash',
   getParentRoute: () => BooksRouteRoute,
-} as any);
+} as any)
 const BooksKitRoute = BooksKitRouteImport.update({
   id: '/_kit',
   path: '/_kit',
   getParentRoute: () => BooksRouteRoute,
-} as any);
+} as any)
 const ShopIndexRoute = ShopIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => ShopRouteRoute,
-} as any);
+} as any)
 const ShopPageRoute = ShopPageRouteImport.update({
   id: '/$page',
   path: '/$page',
   getParentRoute: () => ShopRouteRoute,
-} as any);
+} as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute;
-  '/books': typeof BooksRouteRouteWithChildren;
-  '/shop': typeof ShopRouteRouteWithChildren;
-  '/welcome': typeof WelcomeRoute;
-  '/books/$page': typeof BooksPageRoute;
-  '/books/_crash': typeof BooksCrashRoute;
-  '/books/_kit': typeof BooksKitRoute;
-  '/shop/$page': typeof ShopPageRoute;
-  '/books/': typeof BooksIndexRoute;
-  '/shop/': typeof ShopIndexRoute;
+  '/': typeof IndexRoute
+  '/books': typeof BooksRouteRouteWithChildren
+  '/shop': typeof ShopRouteRouteWithChildren
+  '/welcome': typeof WelcomeRoute
+  '/books/$page': typeof BooksPageRoute
+  '/books/_crash': typeof BooksCrashRoute
+  '/books/_kit': typeof BooksKitRoute
+  '/shop/$page': typeof ShopPageRoute
+  '/books/': typeof BooksIndexRoute
+  '/shop/': typeof ShopIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute;
-  '/welcome': typeof WelcomeRoute;
-  '/books/$page': typeof BooksPageRoute;
-  '/books/_crash': typeof BooksCrashRoute;
-  '/books/_kit': typeof BooksKitRoute;
-  '/shop/$page': typeof ShopPageRoute;
-  '/books': typeof BooksIndexRoute;
-  '/shop': typeof ShopIndexRoute;
+  '/': typeof IndexRoute
+  '/welcome': typeof WelcomeRoute
+  '/books/$page': typeof BooksPageRoute
+  '/books/_crash': typeof BooksCrashRoute
+  '/books/_kit': typeof BooksKitRoute
+  '/shop/$page': typeof ShopPageRoute
+  '/books': typeof BooksIndexRoute
+  '/shop': typeof ShopIndexRoute
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport;
-  '/': typeof IndexRoute;
-  '/books': typeof BooksRouteRouteWithChildren;
-  '/shop': typeof ShopRouteRouteWithChildren;
-  '/welcome': typeof WelcomeRoute;
-  '/books/$page': typeof BooksPageRoute;
-  '/books/_crash': typeof BooksCrashRoute;
-  '/books/_kit': typeof BooksKitRoute;
-  '/shop/$page': typeof ShopPageRoute;
-  '/books/': typeof BooksIndexRoute;
-  '/shop/': typeof ShopIndexRoute;
+  __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
+  '/books': typeof BooksRouteRouteWithChildren
+  '/shop': typeof ShopRouteRouteWithChildren
+  '/welcome': typeof WelcomeRoute
+  '/books/$page': typeof BooksPageRoute
+  '/books/_crash': typeof BooksCrashRoute
+  '/books/_kit': typeof BooksKitRoute
+  '/shop/$page': typeof ShopPageRoute
+  '/books/': typeof BooksIndexRoute
+  '/shop/': typeof ShopIndexRoute
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath;
+  fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/books'
@@ -118,8 +118,8 @@ export interface FileRouteTypes {
     | '/books/_kit'
     | '/shop/$page'
     | '/books/'
-    | '/shop/';
-  fileRoutesByTo: FileRoutesByTo;
+    | '/shop/'
+  fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/welcome'
@@ -128,7 +128,7 @@ export interface FileRouteTypes {
     | '/books/_kit'
     | '/shop/$page'
     | '/books'
-    | '/shop';
+    | '/shop'
   id:
     | '__root__'
     | '/'
@@ -140,96 +140,96 @@ export interface FileRouteTypes {
     | '/books/_kit'
     | '/shop/$page'
     | '/books/'
-    | '/shop/';
-  fileRoutesById: FileRoutesById;
+    | '/shop/'
+  fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute;
-  BooksRouteRoute: typeof BooksRouteRouteWithChildren;
-  ShopRouteRoute: typeof ShopRouteRouteWithChildren;
-  WelcomeRoute: typeof WelcomeRoute;
+  IndexRoute: typeof IndexRoute
+  BooksRouteRoute: typeof BooksRouteRouteWithChildren
+  ShopRouteRoute: typeof ShopRouteRouteWithChildren
+  WelcomeRoute: typeof WelcomeRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
     '/': {
-      id: '/';
-      path: '/';
-      fullPath: '/';
-      preLoaderRoute: typeof IndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/books': {
-      id: '/books';
-      path: '/books';
-      fullPath: '/books';
-      preLoaderRoute: typeof BooksRouteRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/books'
+      path: '/books'
+      fullPath: '/books'
+      preLoaderRoute: typeof BooksRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/shop': {
-      id: '/shop';
-      path: '/shop';
-      fullPath: '/shop';
-      preLoaderRoute: typeof ShopRouteRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/shop'
+      path: '/shop'
+      fullPath: '/shop'
+      preLoaderRoute: typeof ShopRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/welcome': {
-      id: '/welcome';
-      path: '/welcome';
-      fullPath: '/welcome';
-      preLoaderRoute: typeof WelcomeRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof WelcomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/books/': {
-      id: '/books/';
-      path: '/';
-      fullPath: '/books/';
-      preLoaderRoute: typeof BooksIndexRouteImport;
-      parentRoute: typeof BooksRouteRoute;
-    };
+      id: '/books/'
+      path: '/'
+      fullPath: '/books/'
+      preLoaderRoute: typeof BooksIndexRouteImport
+      parentRoute: typeof BooksRouteRoute
+    }
     '/books/$page': {
-      id: '/books/$page';
-      path: '/$page';
-      fullPath: '/books/$page';
-      preLoaderRoute: typeof BooksPageRouteImport;
-      parentRoute: typeof BooksRouteRoute;
-    };
+      id: '/books/$page'
+      path: '/$page'
+      fullPath: '/books/$page'
+      preLoaderRoute: typeof BooksPageRouteImport
+      parentRoute: typeof BooksRouteRoute
+    }
     '/books/_crash': {
-      id: '/books/_crash';
-      path: '/_crash';
-      fullPath: '/books/_crash';
-      preLoaderRoute: typeof BooksCrashRouteImport;
-      parentRoute: typeof BooksRouteRoute;
-    };
+      id: '/books/_crash'
+      path: '/_crash'
+      fullPath: '/books/_crash'
+      preLoaderRoute: typeof BooksCrashRouteImport
+      parentRoute: typeof BooksRouteRoute
+    }
     '/books/_kit': {
-      id: '/books/_kit';
-      path: '/_kit';
-      fullPath: '/books/_kit';
-      preLoaderRoute: typeof BooksKitRouteImport;
-      parentRoute: typeof BooksRouteRoute;
-    };
+      id: '/books/_kit'
+      path: '/_kit'
+      fullPath: '/books/_kit'
+      preLoaderRoute: typeof BooksKitRouteImport
+      parentRoute: typeof BooksRouteRoute
+    }
     '/shop/': {
-      id: '/shop/';
-      path: '/';
-      fullPath: '/shop/';
-      preLoaderRoute: typeof ShopIndexRouteImport;
-      parentRoute: typeof ShopRouteRoute;
-    };
+      id: '/shop/'
+      path: '/'
+      fullPath: '/shop/'
+      preLoaderRoute: typeof ShopIndexRouteImport
+      parentRoute: typeof ShopRouteRoute
+    }
     '/shop/$page': {
-      id: '/shop/$page';
-      path: '/$page';
-      fullPath: '/shop/$page';
-      preLoaderRoute: typeof ShopPageRouteImport;
-      parentRoute: typeof ShopRouteRoute;
-    };
+      id: '/shop/$page'
+      path: '/$page'
+      fullPath: '/shop/$page'
+      preLoaderRoute: typeof ShopPageRouteImport
+      parentRoute: typeof ShopRouteRoute
+    }
   }
 }
 
 interface BooksRouteRouteChildren {
-  BooksPageRoute: typeof BooksPageRoute;
-  BooksCrashRoute: typeof BooksCrashRoute;
-  BooksKitRoute: typeof BooksKitRoute;
-  BooksIndexRoute: typeof BooksIndexRoute;
+  BooksPageRoute: typeof BooksPageRoute
+  BooksCrashRoute: typeof BooksCrashRoute
+  BooksKitRoute: typeof BooksKitRoute
+  BooksIndexRoute: typeof BooksIndexRoute
 }
 
 const BooksRouteRouteChildren: BooksRouteRouteChildren = {
@@ -237,28 +237,32 @@ const BooksRouteRouteChildren: BooksRouteRouteChildren = {
   BooksCrashRoute: BooksCrashRoute,
   BooksKitRoute: BooksKitRoute,
   BooksIndexRoute: BooksIndexRoute,
-};
+}
 
-const BooksRouteRouteWithChildren = BooksRouteRoute._addFileChildren(BooksRouteRouteChildren);
+const BooksRouteRouteWithChildren = BooksRouteRoute._addFileChildren(
+  BooksRouteRouteChildren,
+)
 
 interface ShopRouteRouteChildren {
-  ShopPageRoute: typeof ShopPageRoute;
-  ShopIndexRoute: typeof ShopIndexRoute;
+  ShopPageRoute: typeof ShopPageRoute
+  ShopIndexRoute: typeof ShopIndexRoute
 }
 
 const ShopRouteRouteChildren: ShopRouteRouteChildren = {
   ShopPageRoute: ShopPageRoute,
   ShopIndexRoute: ShopIndexRoute,
-};
+}
 
-const ShopRouteRouteWithChildren = ShopRouteRoute._addFileChildren(ShopRouteRouteChildren);
+const ShopRouteRouteWithChildren = ShopRouteRoute._addFileChildren(
+  ShopRouteRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BooksRouteRoute: BooksRouteRouteWithChildren,
   ShopRouteRoute: ShopRouteRouteWithChildren,
   WelcomeRoute: WelcomeRoute,
-};
+}
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>();
+  ._addFileTypes<FileRouteTypes>()
