@@ -84,6 +84,7 @@ export const a: LocaleBundle['ui'] = {
       duplicate_item: 'संभावित दोहरा सामान',
       hsn_suggestion: 'HSN सुझाव',
       prefiling_issue: 'फ़ाइलिंग जाँच',
+      gsp_job_stopped: 'पोर्टल का अनुरोध रुका',
       reconciliation_mismatch: 'मिलान में अंतर',
       sync_conflict: 'सिंक टकराव',
       reminder_due: 'भुगतान की याद',
@@ -144,6 +145,7 @@ export const a: LocaleBundle['ui'] = {
       draft_stale: 'एक ड्राफ़्ट ({{label}}) को {{days}} दिन से छुआ नहीं गया।',
       backup_failed: 'पिछला बैकअप पूरा नहीं हुआ: {{message}}',
       prefiling_issue: '{{message}}',
+      gsp_job_stopped: '{{number}}: भेजे जाने से पहले दस्तावेज़ बदल गया। उसे खोलकर फिर से भेजें।',
       generic: 'जाँच का इंतज़ार है।',
     },
     reasons: {

@@ -12,6 +12,7 @@ import { g } from './hi-parts/g';
 import { h } from './hi-parts/h';
 import { iHelp } from './hi-parts/i';
 import { j } from './hi-parts/j';
+import { k } from './hi-parts/k';
 
 import type { LocaleBundle } from '.';
 
@@ -169,7 +170,7 @@ const rest = {
 };
 
 export const bundle: LocaleBundle = {
-  ui: merge(first, a, b, c, d, e, f, g, h, j),
+  ui: merge(first, a, b, c, d, e, f, g, h, j, k),
   errors: merge(rest.errors, fErrors),
   help: merge(rest.help, iHelp),
 };

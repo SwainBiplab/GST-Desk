@@ -63,6 +63,8 @@ import { useConfirm } from '@/app/components/confirm';
 import { useRightPanel } from '@/app/components/panel';
 import { useAppDb, useLiveQuery } from '@/app/db';
 import type { Shell } from '@/app/store';
+import { useDocPortal } from '@/features/einvoice/hooks';
+import { EinvoicePanel } from '@/features/einvoice/panel';
 import { useUnits } from '@/features/items/hooks';
 import { ItemEditor } from '@/features/items/item-editor';
 import { useLockOverride } from '@/features/numbering/lock-override';
@@ -119,7 +121,7 @@ const COLUMNS_KEY = 'documents.hidden_columns';
 const SHOP_HIDDEN_SET: ReadonlySet<GridColumn> = new Set(SHOP_HIDDEN);
 const NO_ISSUES: DraftIssue[] = [];
 
-type Side = 'preview' | 'attachment' | 'history';
+type Side = 'preview' | 'attachment' | 'history' | 'einvoice';
 
 /**
  * The document editor: header, line grid, footer, a live preview and the calculation trace. The same
@@ -177,6 +179,27 @@ export function EditorPage({
   const baseSpec = specOf(templates.options, templateId);
   const partyQuery = useParty(draft.partyId);
   const printContext = usePrintContext();
+  const portal = useDocPortal(meta.id);
+  const einv = portal?.einv && portal.einv['status'] === 'active' ? portal.einv : null;
+  const portalPrint = {
+    einvoice: einv
+      ? {
+          irn: String(einv['irn']),
+          ackNo: String(einv['ack_no'] ?? ''),
+          ackDate: String(einv['ack_date'] ?? ''),
+          signedQr: einv['signed_qr'] ? String(einv['signed_qr']) : null,
+        }
+      : null,
+    eway: portal?.ewbs.find((w) => w['status'] !== 'cancelled')?.['ewb_no'] ?? null,
+  };
+  // the queue records an IRN or its cancellation outside the editor: read the document again
+  const einvKey = `${String(einv?.['id'] ?? '')}:${String(portal?.einv?.['status'] ?? '')}`;
+  const lastEinvKey = useRef(einvKey);
+  useEffect(() => {
+    if (lastEinvKey.current === einvKey) return;
+    lastEinvKey.current = einvKey;
+    if (!editor.revising) editor.refresh();
+  }, [einvKey, editor]);
   const model = usePrintModel({
     draft,
     built,
@@ -184,6 +207,7 @@ export function EditorPage({
     status: meta.status,
     revision: meta.revision,
     party: partyQuery.data ?? null,
+    ...portalPrint,
   });
   // a party with a language of their own gets their copy in it
   const spec = withPartyLanguage(baseSpec, model?.party);
@@ -326,6 +350,7 @@ export function EditorPage({
       status: over?.status ?? meta.status,
       revision: meta.revision,
       party: partyQuery.data ?? null,
+      ...portalPrint,
     });
     const fonts = await loadFonts(familiesFor(m, spec));
     const bytes = await makePdf(m, spec, fonts.bytes, {
@@ -890,6 +915,11 @@ export function EditorPage({
                     {t('docs.side.attachment')}
                   </TabsTrigger>
                 )}
+                {meta.id && !isDraft && portal?.on && (
+                  <TabsTrigger value="einvoice" data-testid="tab-einvoice">
+                    {t('einv.panel.title')}
+                  </TabsTrigger>
+                )}
                 {meta.id && !isDraft && (
                   <TabsTrigger value="history" data-testid="tab-history">
                     {t('docs.history.tab')}
@@ -905,6 +935,15 @@ export function EditorPage({
                   onTemplate={setPickedTemplate}
                 />
               </TabsContent>
+              {meta.id && !isDraft && portal?.on && (
+                <TabsContent value="einvoice" className="min-h-0 flex-1 overflow-auto">
+                  <EinvoicePanel
+                    documentId={meta.id}
+                    number={meta.number ?? ''}
+                    type={draft.type}
+                  />
+                </TabsContent>
+              )}
               {meta.id && !isDraft && (
                 <TabsContent value="history" className="min-h-0 flex-1 overflow-auto">
                   <HistoryTab documentId={meta.id} version={meta.version} />

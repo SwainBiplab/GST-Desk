@@ -345,6 +345,7 @@ async function applyValue(db: Database, ctx: Ctx, kind: string, value: any): Pro
     case 'draft_stale':
     case 'backup_failed':
     case 'prefiling_issue':
+    case 'gsp_job_stopped':
       return; // acknowledging is all there is to do
     default: {
       const info = KIND_INFO[kind as InboxKind];

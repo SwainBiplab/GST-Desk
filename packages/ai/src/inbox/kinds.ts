@@ -17,6 +17,7 @@ export const INBOX_KINDS = [
   'draft_stale',
   'backup_failed',
   'rate_change',
+  'gsp_job_stopped',
 ] as const;
 export type InboxKind = (typeof INBOX_KINDS)[number];
 
@@ -107,6 +108,15 @@ export const backupFailedItem = z.object({
 });
 export type BackupFailedItem = z.infer<typeof backupFailedItem>;
 
+/** A request to the GST portal (an IRN or an e-way bill) stopped because its document changed. */
+export const gspJobStoppedItem = z.object({
+  documentId: z.string(),
+  number: z.string(),
+  job: z.string(),
+  message: z.string(),
+});
+export type GspJobStoppedItem = z.infer<typeof gspJobStoppedItem>;
+
 /** A problem the GST return check found in a period (a mistake in a document, a missing code, a gap). */
 export const prefilingIssueItem = z.object({
   /** Return period, MMYYYY. */
@@ -133,6 +143,7 @@ export const INBOX_SCHEMAS = {
   backup_failed: backupFailedItem,
   ai_extraction: genericItem,
   prefiling_issue: prefilingIssueItem,
+  gsp_job_stopped: gspJobStoppedItem,
   reconciliation_mismatch: genericItem,
   sync_conflict: genericItem,
 } as const satisfies Record<InboxKind, z.ZodType>;
@@ -176,6 +187,12 @@ export const KIND_INFO: Record<InboxKind, KindInfo> = {
   },
   hsn_suggestion: { label: 'HSN suggestion', informational: false, bulk: true, opens: 'item' },
   prefiling_issue: { label: 'Filing check', informational: true, bulk: false, opens: 'gst' },
+  gsp_job_stopped: {
+    label: 'Portal request stopped',
+    informational: true,
+    bulk: false,
+    opens: 'document',
+  },
   reconciliation_mismatch: {
     label: 'Reconciliation mismatch',
     informational: false,

@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@gst/ai": "workspace:*",
+    "@gst/gsp": "workspace:*",
     "@gst/i18n": "workspace:*",
     "@gst/print": "workspace:*",
     "@gst/ui": "workspace:*",

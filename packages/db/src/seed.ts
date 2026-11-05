@@ -176,6 +176,8 @@ export async function seedDemo(d: Database, opts: SeedOptions = {}): Promise<See
     trade_name: 'Demo Traders',
     gstin: gstinFor('27AABCD1234E1Z'),
     state_code: '27',
+    // a real-looking address, so the demo book can be taken through e-invoicing
+    address: { line1: '12 MG Road', city: 'Pune', pincode: '411001', stateCode: '27' },
     pan: 'AABCD1234E',
     // the demo shop keeps stock, so inventory is on: its items track quantities and reorder levels
     settings_json: { overrides: { inventory: true } },
@@ -215,6 +217,15 @@ export async function seedDemo(d: Database, opts: SeedOptions = {}): Promise<See
         city: pick(CITIES),
         country: 'India',
         state_code: state,
+        // derived from the number, not drawn, so the rest of the demo data stays as it was
+        addresses_json: [
+          {
+            kind: 'billing',
+            line1: `${10 + i} Market Road`,
+            pincode: String(400001 + i * 7),
+            stateCode: state,
+          },
+        ],
         credit_days: pick([0, 15, 30, 45]),
         opening_balance_paise: 0,
         is_unregistered: i % 9 === 8,

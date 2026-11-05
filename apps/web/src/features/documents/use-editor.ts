@@ -114,6 +114,8 @@ export interface DocumentEditor {
   revising: boolean;
   startRevision: () => void;
   cancelRevision: () => void;
+  /** Read an issued document again after a change made outside the editor. */
+  refresh: () => void;
   saveRevision: (override?: LockOverride) => Promise<RevisionOutcome>;
   cancel: (
     reason: string,
@@ -434,6 +436,12 @@ export function useDocumentEditor(opts: {
     setReload((n) => n + 1);
   }, []);
 
+  /** Read the document again, for a change made outside the editor (the GSP queue recorded an IRN). */
+  const refresh = useCallback(() => {
+    if (metaRef.current.status === 'draft') return;
+    setReload((n) => n + 1);
+  }, []);
+
   const saveRevision = useCallback(
     async (override?: LockOverride): Promise<RevisionOutcome> => {
       if (!database || !ctx) return { ok: false };
@@ -528,6 +536,7 @@ export function useDocumentEditor(opts: {
     revising,
     startRevision,
     cancelRevision,
+    refresh,
     saveRevision,
     cancel,
     loading,

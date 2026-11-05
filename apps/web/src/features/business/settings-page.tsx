@@ -55,6 +55,7 @@ import { DataTab } from '@/features/data/data-tab';
 import { TrashTab } from '@/features/data/trash-tab';
 import { isDesktop } from '@/features/desktop/bridge';
 import { DesktopTab } from '@/features/desktop/desktop-tab';
+import { PortalTab } from '@/features/einvoice/portal-tab';
 import { InventoryTab } from '@/features/inventory/settings-tab';
 import { AuditViewer } from '@/features/numbering/audit-viewer';
 import { NumberingTab } from '@/features/numbering/numbering-tab';
@@ -459,6 +460,7 @@ const TABS = [
   'backup',
   'trash',
   'privacy',
+  'portal',
   'desktop',
 ] as const;
 
@@ -539,6 +541,9 @@ export function SettingsPage() {
         </TabsContent>
         <TabsContent value="trash">
           <TrashTab />
+        </TabsContent>
+        <TabsContent value="portal">
+          <PortalTab />
         </TabsContent>
         <TabsContent value="privacy">
           <PrivacyTab />

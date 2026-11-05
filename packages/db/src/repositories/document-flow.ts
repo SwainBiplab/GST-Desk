@@ -920,9 +920,25 @@ export class DocumentFlowRepo extends BaseRepo {
   ): Promise<Row> {
     const current = await this.getIn(tx, c, id);
     if (!current) throw new NotFoundError('documents', id);
+    // an IRN blocks cancelling the document until the IRN itself has been cancelled on the portal
+    const irnCancelled = current['irn']
+      ? (
+          await tx
+            .select({ id: this.d.schema.einvoices.id })
+            .from(this.d.schema.einvoices)
+            .where(
+              and(
+                eq(this.d.schema.einvoices.business_id, c.businessId),
+                eq(this.d.schema.einvoices.document_id, id),
+                eq(this.d.schema.einvoices.status, 'cancelled'),
+                isNull(this.d.schema.einvoices.deleted_at),
+              ),
+            )
+        ).length > 0
+      : false;
     const blocker = cancelBlocker({
       status: String(current['status']),
-      hasIrn: !!current['irn'],
+      hasIrn: !!current['irn'] && !irnCancelled,
     });
     if (blocker) throw new RuleError(blocker);
     await this.lock.assertOpen(

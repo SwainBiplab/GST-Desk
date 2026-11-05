@@ -1,6 +1,6 @@
 import type { Row } from '@gst/db';
 import type { BuiltDocument, DraftDocument } from '@gst/domain';
-import { buildPrintModel, type PrintModel } from '@gst/print';
+import { buildPrintModel, type PrintInput, type PrintModel } from '@gst/print';
 import { useEffect, useMemo, useState } from 'react';
 
 import { loadPrintContext, printParty, printShipTo, type PrintContext } from './model';
@@ -34,6 +34,10 @@ export interface PrintModelInput {
   status: 'draft' | 'issued' | 'cancelled';
   revision: number;
   party: Row | null;
+  /** The recorded IRN and QR, when the document has been e-invoiced. */
+  einvoice?: PrintInput['einvoice'];
+  /** The active e-way bill number. */
+  eway?: string | null;
 }
 
 /**
@@ -48,7 +52,7 @@ export function usePrintModel(input: PrintModelInput, delayMs = 150): PrintModel
 
 /** The print model for exactly these values, now (not debounced): what a PDF or a share is made from. */
 export function modelNow(pc: PrintContext, input: PrintModelInput): PrintModel {
-  const { draft, built, number, status, revision, party } = input;
+  const { draft, built, number, status, revision, party, einvoice, eway } = input;
   return buildPrintModel({
     draft,
     built,
@@ -70,5 +74,7 @@ export function modelNow(pc: PrintContext, input: PrintModelInput): PrintModel {
     shipTo: printShipTo(party),
     accounts: pc.accounts,
     units: pc.units,
+    einvoice: einvoice ?? null,
+    eway: eway ?? null,
   });
 }

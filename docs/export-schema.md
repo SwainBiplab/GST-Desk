@@ -685,6 +685,119 @@ Kind: belongs to a business. In a business export.
 | `issue_key` | text | yes |  |
 | `reason` | text | yes |  |
 
+### `einvoices`
+
+Kind: belongs to a business. In a business export.
+
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `document_id` | id (text) | yes | refers to `documents` |
+| `irn` | text | yes |  |
+| `ack_no` | text |  |  |
+| `ack_date` | text |  |  |
+| `signed_invoice` | text |  |  |
+| `signed_qr` | text |  |  |
+| `status` | text | yes | one of `active`, `cancelled`; default "active" |
+| `recovered` | true or false | yes | default false |
+| `cancel_reason` | text |  |  |
+| `cancel_remarks` | text |  |  |
+| `cancelled_at` | text |  |  |
+
+### `ewaybills`
+
+Kind: belongs to a business. In a business export.
+
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `document_id` | id (text) |  | refers to `documents` |
+| `ewb_no` | text | yes |  |
+| `generated_at` | text | yes |  |
+| `valid_until` | text |  |  |
+| `status` | text | yes | one of `active`, `cancelled`; default "active" |
+| `distance_km` | integer |  |  |
+| `trans_mode` | text |  |  |
+| `vehicle_no` | text |  |  |
+| `transporter_id` | text |  |  |
+| `from_place` | text |  |  |
+| `from_state` | text |  |  |
+| `from_pincode` | text |  |  |
+| `cancel_reason` | text |  |  |
+| `cancelled_at` | text |  |  |
+| `history_json` | JSON |  |  |
+
+### `gsp_jobs`
+
+Kind: belongs to a business. In a business export.
+
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `kind` | text | yes | one of `irn`, `irn_cancel`, `ewb`, `ewb_cancel`, `ewb_extend`, `ewb_vehicle` |
+| `document_id` | id (text) |  | refers to `documents` |
+| `ewaybill_id` | id (text) |  | refers to `ewaybills` |
+| `idempotency_key` | text | yes |  |
+| `payload_json` | JSON |  |  |
+| `args_json` | JSON |  |  |
+| `doc_revision` | integer |  |  |
+| `status` | text | yes | one of `queued`, `running`, `done`, `failed`, `stopped`; default "queued" |
+| `attempts` | integer | yes | default 0 |
+| `next_at` | time (epoch milliseconds) |  |  |
+| `last_code` | text |  |  |
+| `last_message` | text |  |  |
+| `result_json` | JSON |  |  |
+
+### `gsp_log`
+
+Kind: belongs to a business. In a business export.
+
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `job_id` | id (text) |  | refers to `gsp_jobs` |
+| `document_id` | id (text) |  | refers to `documents` |
+| `portal` | text | yes |  |
+| `action` | text | yes |  |
+| `request_json` | JSON |  |  |
+| `response_json` | JSON |  |  |
+| `ok` | true or false | yes | default false |
+| `code` | text |  |  |
+| `message` | text |  |  |
+| `ms` | integer |  |  |
+
 ### `ledger_accounts`
 
 Kind: belongs to a business. In a business export.

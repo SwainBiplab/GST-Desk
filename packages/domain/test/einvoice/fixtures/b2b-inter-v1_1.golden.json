@@ -1,0 +1,64 @@
+{
+  "Version": "1.1",
+  "TranDtls": {
+    "TaxSch": "GST",
+    "SupTyp": "B2B",
+    "RegRev": "N",
+    "IgstOnIntra": "N"
+  },
+  "DocDtls": {
+    "Typ": "INV",
+    "No": "INV/24-25/0042",
+    "Dt": "01/05/2025"
+  },
+  "SellerDtls": {
+    "Gstin": "27AAPFU0939F1ZV",
+    "LglNm": "Demo Traders Private Limited",
+    "Addr1": "12 MG Road",
+    "Loc": "Pune",
+    "Pin": 411001,
+    "Stcd": "27"
+  },
+  "BuyerDtls": {
+    "Gstin": "29AABCU9603R1ZJ",
+    "LglNm": "Acme Retail",
+    "Addr1": "5 Brigade Road",
+    "Loc": "Bengaluru",
+    "Pin": 560001,
+    "Stcd": "29",
+    "Pos": "29"
+  },
+  "ItemList": [
+    {
+      "SlNo": "1",
+      "PrdDesc": "Steel flask 1 litre",
+      "IsServc": "N",
+      "HsnCd": "732393",
+      "Qty": 2,
+      "Unit": "NOS",
+      "UnitPrice": 500,
+      "TotAmt": 1000,
+      "Discount": 0,
+      "AssAmt": 1000,
+      "GstRt": 18,
+      "IgstAmt": 180,
+      "CgstAmt": 0,
+      "SgstAmt": 0,
+      "CesRt": 0,
+      "CesAmt": 0,
+      "OthChrg": 0,
+      "TotItemVal": 1180
+    }
+  ],
+  "ValDtls": {
+    "AssVal": 1000,
+    "CgstVal": 0,
+    "SgstVal": 0,
+    "IgstVal": 180,
+    "CesVal": 0,
+    "Discount": 0,
+    "OthChrg": 0,
+    "RndOffAmt": 0,
+    "TotInvVal": 1180
+  }
+}

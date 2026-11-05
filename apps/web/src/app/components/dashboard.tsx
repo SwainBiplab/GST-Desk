@@ -15,6 +15,7 @@ import { useConfirm } from './confirm';
 import { SettingsPage } from '@/features/business/settings-page';
 import { DocumentsPage } from '@/features/documents/documents-page';
 import { EditorRoute } from '@/features/documents/editor-route';
+import { EinvoicePage } from '@/features/einvoice/einvoice-page';
 import { GstPage } from '@/features/gst/gst-page';
 import { InboxPage } from '@/features/inbox/inbox-page';
 import { ItemsPage } from '@/features/items/items-page';
@@ -159,6 +160,13 @@ export function PlaceholderPage({ page, shell }: { page: PageId; shell: Shell })
     return (
       <div data-shell={shell} className="h-full overflow-auto">
         <GstPage shell={shell} />
+      </div>
+    );
+  }
+  if (page === 'einvoice' && ctx) {
+    return (
+      <div data-shell={shell} className="h-full overflow-auto">
+        <EinvoicePage shell={shell} />
       </div>
     );
   }

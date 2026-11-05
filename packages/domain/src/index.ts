@@ -31,3 +31,4 @@ export * from './inventory';
 export * from './backup';
 export * from './gstr';
 export * from './reconcile';
+export * from './einvoice';

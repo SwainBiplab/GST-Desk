@@ -62,6 +62,8 @@ export function openTarget(r: InboxRow): OpenTarget | null {
       return { to: 'document', search: { id: s['documentId'] } };
     case 'backup_failed':
       return { to: 'settings', search: { tab: 'backup' } };
+    case 'gsp_job_stopped':
+      return { to: 'document', search: { id: s['documentId'] } };
     case 'prefiling_issue':
       return s['documentId']
         ? { to: 'document', search: { id: s['documentId'] } }
@@ -151,6 +153,8 @@ export function describeArgs(r: InboxRow): Record<string, unknown> {
     case 'backup_failed':
     case 'prefiling_issue':
       return { message: s['message'] };
+    case 'gsp_job_stopped':
+      return { number: s['number'], message: s['message'] };
     default:
       return {};
   }

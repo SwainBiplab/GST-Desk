@@ -519,6 +519,98 @@ export const SPEC: TableSpec[] = [
     ],
   },
   {
+    name: 'einvoices',
+    kind: 'tenant',
+    cols: {
+      document_id: c.uuid().nn.ref('documents'),
+      irn: c.text().nn,
+      ack_no: c.text(),
+      /** As the portal gives it, IST: `YYYY-MM-DD HH:mm:ss`. */
+      ack_date: c.text(),
+      signed_invoice: c.text(),
+      signed_qr: c.text(),
+      status: c.text().nn.default('active').oneOf(['active', 'cancelled']),
+      /** The answer was a duplicate and the existing IRN was fetched. */
+      recovered: c.bool().nn.default(false),
+      cancel_reason: c.text(),
+      cancel_remarks: c.text(),
+      cancelled_at: c.text(),
+    },
+    indexes: [{ cols: ['business_id', 'document_id'], unique: true, where: 'deleted_at IS NULL' }],
+  },
+  {
+    name: 'ewaybills',
+    kind: 'tenant',
+    cols: {
+      /** Empty for an e-way bill made without a document of ours. */
+      document_id: c.uuid().ref('documents'),
+      ewb_no: c.text().nn,
+      generated_at: c.text().nn,
+      valid_until: c.text(),
+      status: c.text().nn.default('active').oneOf(['active', 'cancelled']),
+      distance_km: c.int(),
+      trans_mode: c.text(),
+      vehicle_no: c.text(),
+      transporter_id: c.text(),
+      from_place: c.text(),
+      from_state: c.text(),
+      from_pincode: c.text(),
+      cancel_reason: c.text(),
+      cancelled_at: c.text(),
+      /** Vehicle changes and extensions, oldest first. */
+      history_json: c.json(),
+    },
+    indexes: [{ cols: ['business_id', 'ewb_no'] }, { cols: ['document_id'] }],
+  },
+  {
+    name: 'gsp_jobs',
+    kind: 'tenant',
+    cols: {
+      kind: c
+        .text()
+        .nn.oneOf(['irn', 'irn_cancel', 'ewb', 'ewb_cancel', 'ewb_extend', 'ewb_vehicle']),
+      document_id: c.uuid().ref('documents'),
+      ewaybill_id: c.uuid().ref('ewaybills'),
+      /** The same request is never sent twice: a second queue of it returns the first job. */
+      idempotency_key: c.text().nn,
+      payload_json: c.json(),
+      args_json: c.json(),
+      /** The document's revision when queued; a different one stops the job. */
+      doc_revision: c.int(),
+      status: c
+        .text()
+        .nn.default('queued')
+        .oneOf(['queued', 'running', 'done', 'failed', 'stopped']),
+      attempts: c.int().nn.default(0),
+      next_at: c.ts(),
+      last_code: c.text(),
+      last_message: c.text(),
+      result_json: c.json(),
+    },
+    indexes: [
+      { cols: ['business_id', 'idempotency_key'], unique: true, where: 'deleted_at IS NULL' },
+      { cols: ['business_id', 'status'] },
+    ],
+  },
+  {
+    name: 'gsp_log',
+    kind: 'tenant',
+    cols: {
+      job_id: c.uuid().ref('gsp_jobs'),
+      document_id: c.uuid().ref('documents'),
+      portal: c.text().nn,
+      action: c.text().nn,
+      /** Secrets removed before it is written (`redact` in @gst/gsp). */
+      request_json: c.json(),
+      response_json: c.json(),
+      ok: c.bool().nn.default(false),
+      code: c.text(),
+      message: c.text(),
+      ms: c.int(),
+    },
+    indexes: [{ cols: ['business_id', 'document_id'] }, { cols: ['job_id'] }],
+  },
+  {
     name: 'ledger_accounts',
     kind: 'tenant',
     cols: {

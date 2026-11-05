@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Percent,
   Receipt,
+  ScanLine,
   Settings,
   ShoppingCart,
   Users,
@@ -25,6 +26,7 @@ export type PageId =
   | 'payments'
   | 'reports'
   | 'gst'
+  | 'einvoice'
   | 'inbox'
   | 'settings';
 
@@ -37,6 +39,7 @@ export const PAGE_IDS: PageId[] = [
   'payments',
   'reports',
   'gst',
+  'einvoice',
   'inbox',
   'settings',
 ];
@@ -133,7 +136,7 @@ export const BOOKS_NAV: NavSection[] = [
   {
     id: 'gst',
     label: 'nav.sections.gst',
-    items: [item('gst', Percent, { id: 'gst', label: 'nav.gst' })],
+    items: [item('gst', Percent, { id: 'gst', label: 'nav.gst' }), item('einvoice', ScanLine)],
   },
   {
     id: 'inbox',

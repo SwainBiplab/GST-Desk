@@ -20,9 +20,12 @@ export const TABLES_RECON = [
   'gstr2b_decisions',
   'gst_issue_acks',
 ] as const;
+/** The e-invoice and e-way bill tables: their guards are in `9005_extras_gsp`. */
+export const TABLES_GSP = ['einvoices', 'ewaybills', 'gsp_jobs', 'gsp_log'] as const;
 const later = (t: string) =>
   (TABLES_AFTER_V1 as readonly string[]).includes(t) ||
-  (TABLES_RECON as readonly string[]).includes(t);
+  (TABLES_RECON as readonly string[]).includes(t) ||
+  (TABLES_GSP as readonly string[]).includes(t);
 const V1_NO_DELETE = NO_DELETE_TABLES.filter((t) => !later(t));
 const V1_TENANT = TENANT_TABLES.filter((t) => !later(t));
 
@@ -223,3 +226,6 @@ export const gstExtrasSql = (dialect: Dialect): string => guardsSql(dialect, TAB
 
 /** The same guards for the GSTR-2B reconciliation tables. */
 export const reconExtrasSql = (dialect: Dialect): string => guardsSql(dialect, TABLES_RECON);
+
+/** The same guards for the e-invoice and e-way bill tables. */
+export const gspExtrasSql = (dialect: Dialect): string => guardsSql(dialect, TABLES_GSP);
