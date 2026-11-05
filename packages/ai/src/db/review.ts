@@ -24,6 +24,8 @@ export interface CreateReviewItemArgs<T> {
   model?: string;
   /** 0..1, stored as a whole percent. */
   confidence?: number;
+  /** Names what the suggestion is about, so the same finding is never raised twice. */
+  dedupeKey?: string;
 }
 
 /** Validate the suggestion, compute the diff against the payload and store a pending item. */
@@ -43,6 +45,7 @@ export async function createReviewItem<T>(a: CreateReviewItemArgs<T>): Promise<R
     source: a.source,
     model: a.model ?? null,
     confidence: a.confidence === undefined ? null : Math.round(a.confidence * 100),
+    dedupe_key: a.dedupeKey ?? null,
   });
 }
 
@@ -98,7 +101,8 @@ export async function rejectReviewItem(args: {
   ctx: Ctx;
   id: string;
   expectedVersion: number;
+  reason?: string;
 }): Promise<Row> {
   assertHuman(args.ctx);
-  return new ReviewRepo(args.db).reject(args.ctx, args.id, args.expectedVersion);
+  return new ReviewRepo(args.db).reject(args.ctx, args.id, args.expectedVersion, args.reason);
 }

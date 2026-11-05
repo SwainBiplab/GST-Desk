@@ -10,3 +10,4 @@ export * from './rules/duplicates';
 export * from './rules/provider';
 export * from './eval/harness';
 export * from './diff';
+export * from './inbox';

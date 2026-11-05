@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@gst/db": "workspace:*",
+    "@gst/i18n": "workspace:*",
     "zod": "^4.6.7"
   }
 }

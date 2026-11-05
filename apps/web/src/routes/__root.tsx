@@ -12,6 +12,7 @@ import { AppDbProvider, DEMO_REQUESTED, useAppDb } from '@/app/db';
 import { registerDefaultActions } from '@/app/default-actions';
 import { lastShell } from '@/app/store';
 import { BackgroundJobs } from '@/features/data/background';
+import { InboxJobs } from '@/features/inbox/jobs';
 
 registerDefaultActions();
 
@@ -52,6 +53,7 @@ function Root() {
         <TooltipProvider>
           <FirstRunGuard />
           <BackgroundJobs />
+          <InboxJobs />
           <ErrorBoundary>
             <Outlet />
           </ErrorBoundary>

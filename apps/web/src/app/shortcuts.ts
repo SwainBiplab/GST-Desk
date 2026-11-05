@@ -25,6 +25,12 @@ export const SHORTCUTS: Shortcut[] = [
   { keys: '/', description: 'Open the command bar (when not typing in a field)', scope: 'global' },
   { keys: '?', description: 'Show this keyboard map', scope: 'global' },
   { keys: 'Esc', description: 'Close the command bar or a dialog', scope: 'global' },
+  { keys: 'J / K', description: 'Inbox: move to the next or previous item', scope: 'global' },
+  { keys: 'A', description: 'Inbox: accept the selected item', scope: 'global' },
+  { keys: 'E', description: 'Inbox: change the selected item, then accept', scope: 'global' },
+  { keys: 'R', description: 'Inbox: reject the selected item', scope: 'global' },
+  { keys: 'S', description: 'Inbox: snooze the selected item', scope: 'global' },
+  { keys: 'O', description: 'Inbox: open the record the item is about', scope: 'global' },
   { keys: 'N', description: 'New document menu', scope: 'books' },
   ...Object.entries(GO_TO).map(([k, v]) => ({
     keys: `G then ${k.toUpperCase()}`,

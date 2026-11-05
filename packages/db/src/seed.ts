@@ -140,6 +140,8 @@ export interface SeedOptions {
   documents?: number;
   /** Add one extra party with this many issued invoices (used to test Party 360 at scale). */
   heavyParty?: number;
+  /** Add this many pending review items (synthetic filing checks), used to check the inbox stays quick at 5,000. */
+  inboxItems?: number;
 }
 
 export interface SeedResult {
@@ -492,6 +494,22 @@ export async function seedDemo(d: Database, opts: SeedOptions = {}): Promise<See
     }
     await chunked(tx, s.ledger_entries, ledgerRows);
     counts['ledger_entries'] = ledgerRows.length;
+
+    const synthetic = opts.inboxItems ?? 0;
+    if (synthetic > 0) {
+      // a kind no rule raises, so the nightly checks never close these
+      const rows = Array.from({ length: synthetic }, (_, i) => ({
+        ...stamp(0),
+        kind: 'prefiling_issue',
+        status: 'pending',
+        source: 'rules',
+        payload_json: {},
+        suggestion_json: { message: `Synthetic check ${i + 1}` },
+        dedupe_key: `prefiling_issue:synthetic-${i}`,
+      }));
+      await chunked(tx, s.review_items, rows, 100);
+      counts['review_items'] = synthetic;
+    }
     await chunked(tx, s.stock_movements, stock);
     Object.assign(counts, {
       documents: docs.length,

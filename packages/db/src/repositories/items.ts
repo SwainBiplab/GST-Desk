@@ -28,6 +28,7 @@ import {
   ftsIds,
   newId,
   runInTx,
+  writeAudit,
   type Ctx,
 } from './base';
 import { loadHsnResolver, lookupHsn, type HsnResolver } from './hsn-master';
@@ -53,6 +54,21 @@ export class ItemValidationError extends RuleError {
 export interface BulkBatch {
   id: string;
   entries: { id: string; before: Record<string, unknown>; afterVersion: number }[];
+}
+
+/** What a merge moved, so a person can see (and a later release could undo) what it did. */
+export interface ItemMergeRecord {
+  sourceId: string;
+  targetId: string;
+  moved: {
+    document_lines: string[];
+    stock_movements: string[];
+    batches: string[];
+    item_variants: string[];
+    attachments: string[];
+  };
+  sourceBefore: Row;
+  targetBefore: Row;
 }
 
 export interface RateChangeRow {
@@ -481,6 +497,83 @@ export class ItemRepo extends BaseRepo {
         });
       }
       return out.sort((a, b) => a.hsn.localeCompare(b.hsn) || a.name.localeCompare(b.name));
+    });
+  }
+
+  /**
+   * Fold `source` into `target`: its lines on documents, stock movements, batches, variants and files
+   * move to the target, empty fields on the target are filled from it, and the source is archived. One
+   * transaction, every moved row audited. Stock is the sum of movements, so the target now holds both
+   * stocks. Items of different kinds (goods and a service) are not merged.
+   */
+  async merge(ctx: Ctx, sourceId: string, targetId: string): Promise<ItemMergeRecord> {
+    if (sourceId === targetId) throw new RuleError('cannot merge an item into itself');
+    return runInTx(this.d, ctx, async (tx) => {
+      const c: Ctx = { ...ctx, tx };
+      const source = await this.getIn(tx, ctx, sourceId);
+      const target = await this.getIn(tx, ctx, targetId);
+      if (!source) throw new NotFoundError('items', sourceId);
+      if (!target) throw new NotFoundError('items', targetId);
+      if (source['kind'] !== target['kind'])
+        throw new RuleError('a product and a service cannot be merged');
+
+      const moved: ItemMergeRecord['moved'] = {
+        document_lines: [],
+        stock_movements: [],
+        batches: [],
+        item_variants: [],
+        attachments: [],
+      };
+      for (const table of Object.keys(moved) as (keyof typeof moved)[]) {
+        const t = this.d.schema[table];
+        const col = table === 'attachments' ? 'owner_id' : 'item_id';
+        const where =
+          table === 'attachments'
+            ? and(
+                eq(t.business_id, ctx.businessId),
+                eq(t.owner_table, 'items'),
+                eq(t.owner_id, sourceId),
+              )
+            : and(eq(t.business_id, ctx.businessId), eq(t[col], sourceId));
+        const rows: Row[] = await tx.select().from(t).where(where);
+        for (const r of rows) {
+          const [after]: Row[] = await tx
+            .update(t)
+            .set({ [col]: targetId })
+            .where(eq(t.id, r['id']))
+            .returning();
+          noteWrite(tx, table);
+          await writeAudit(this.d, tx, c, table, String(r['id']), 'update', r, after ?? null);
+          moved[table].push(String(r['id']));
+        }
+      }
+
+      // free the source's SKU and barcode so the target can take them if it has none
+      const fill: NewRow = {};
+      const clear: NewRow = {};
+      for (const f of ['barcode', 'sku'] as const) {
+        if (source[f]) {
+          clear[f] = null;
+          if (!target[f]) fill[f] = source[f];
+        }
+      }
+      if (Object.keys(clear).length > 0) await this.update(c, sourceId, clear, source['version']);
+      for (const f of ['hsn', 'description', 'unit_id', 'mrp_paise'] as const)
+        if (!target[f] && source[f]) fill[f] = source[f];
+      for (const f of ['sale_rate_paise', 'purchase_rate_paise'] as const)
+        if (!Number(target[f]) && Number(source[f])) fill[f] = source[f];
+      if (source['track_stock'] && !target['track_stock']) fill['track_stock'] = true;
+      fill['min_stock_micros'] = Math.max(
+        Number(target['min_stock_micros'] ?? 0),
+        Number(source['min_stock_micros'] ?? 0),
+      );
+      const tags = [...new Set([...(target['tags_json'] ?? []), ...(source['tags_json'] ?? [])])];
+      if (tags.length > (target['tags_json'] ?? []).length) fill['tags_json'] = tags;
+      await this.update(c, targetId, fill, target['version']);
+
+      const sourceNow = (await this.getIn(tx, ctx, sourceId))!;
+      await this.softDelete(c, sourceId, sourceNow['version']);
+      return { sourceId, targetId, moved, sourceBefore: source, targetBefore: target };
     });
   }
 

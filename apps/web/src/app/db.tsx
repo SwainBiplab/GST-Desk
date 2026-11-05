@@ -42,6 +42,11 @@ const Context = createContext<AppDbValue | null>(null);
 export const DEMO_REQUESTED = new URLSearchParams(location.search).get('demo') === '1';
 /** `?demo=1&heavy=1` also adds one party with 200 invoices, for scale checks. */
 const HEAVY_REQUESTED = new URLSearchParams(location.search).get('heavy') === '1';
+/** `?demo=1&inbox=5000` also adds that many waiting inbox items, for scale checks. */
+const INBOX_REQUESTED = Math.min(
+  20_000,
+  Math.max(0, Number(new URLSearchParams(location.search).get('inbox')) || 0),
+);
 
 const TABLES_ALL = [
   'businesses',
@@ -155,7 +160,10 @@ export function AppDbProvider({ children }: { children: ReactNode }) {
   const loadDemoData = useCallback(async () => {
     if (!database) return;
     const { seedDemo } = await import('@gst/db/seed');
-    const { ctx: seeded } = await seedDemo(database, HEAVY_REQUESTED ? { heavyParty: 200 } : {});
+    const { ctx: seeded } = await seedDemo(database, {
+      ...(HEAVY_REQUESTED ? { heavyParty: 200 } : {}),
+      ...(INBOX_REQUESTED > 0 ? { inboxItems: INBOX_REQUESTED } : {}),
+    });
     announce(database, TABLES_ALL);
     setBusinessId(seeded.businessId);
   }, [database, setBusinessId]);

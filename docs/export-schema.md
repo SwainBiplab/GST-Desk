@@ -738,6 +738,9 @@ Kind: belongs to a business. In a business export.
 | `confidence` | integer |  |  |
 | `accepted_by` | text |  |  |
 | `accepted_at` | time (epoch milliseconds) |  |  |
+| `snoozed_until` | time (epoch milliseconds) |  |  |
+| `reject_reason` | text |  |  |
+| `dedupe_key` | text |  |  |
 
 ### `ai_calls`
 

@@ -1,5 +1,5 @@
 import { DEFAULT_UNIT_CODES, canIssue, uqcName, type DocumentType } from '@gst/domain';
-import { and, desc, eq, gte, inArray, isNull, lte, sql } from 'drizzle-orm';
+import { and, desc, eq, gt, gte, inArray, isNotNull, isNull, lte, or, sql } from 'drizzle-orm';
 
 import type { Database } from '../database';
 import type { NewRow, Row } from '../schema';
@@ -505,6 +505,25 @@ export class LedgerRepo extends BaseRepo {
 
 /* ------------------------------------------------------------------ review, audit, settings */
 
+/** The three lists the inbox shows. */
+export type InboxView = 'open' | 'snoozed' | 'done';
+
+export interface InboxQuery {
+  view: InboxView;
+  kinds?: readonly string[];
+  /** The caller's clock: an item snoozed past this is hidden from `open`. */
+  now?: number;
+  limit?: number;
+}
+
+export interface SeenItem {
+  id: string;
+  status: string;
+  version: number;
+  kind: string;
+  dedupeKey: string;
+}
+
 export class ReviewRepo extends BaseRepo {
   constructor(d: Database) {
     super(d, 'review_items');
@@ -512,6 +531,113 @@ export class ReviewRepo extends BaseRepo {
 
   pending(ctx: Ctx) {
     return this.list(ctx, { where: eq(this.t.status, 'pending') });
+  }
+
+  /**
+   * What the inbox shows: `open` is waiting and not snoozed, `snoozed` is waiting for a later time,
+   * `done` is accepted, rejected or no longer true. Newest first.
+   */
+  async inbox(ctx: Ctx, q: InboxQuery): Promise<Row[]> {
+    return runInTx(this.d, ctx, async (tx) => {
+      const t = this.t;
+      const now = q.now ?? Date.now();
+      const status =
+        q.view === 'done'
+          ? or(eq(t.status, 'accepted'), eq(t.status, 'rejected'), eq(t.status, 'expired'))
+          : and(
+              eq(t.status, 'pending'),
+              q.view === 'open'
+                ? or(isNull(t.snoozed_until), lte(t.snoozed_until, now))
+                : gt(t.snoozed_until, now),
+            );
+      const rows: Row[] = await tx
+        .select()
+        .from(t)
+        .where(
+          and(
+            eq(t.business_id, ctx.businessId),
+            isNull(t.deleted_at),
+            status,
+            q.kinds && q.kinds.length > 0 ? inArray(t.kind, [...q.kinds]) : undefined,
+          ),
+        )
+        .orderBy(desc(t.created_at), desc(t.id))
+        .limit(q.limit ?? 20_000);
+      return rows;
+    });
+  }
+
+  /** Drafts nobody has touched since `before` (epoch milliseconds), oldest first. */
+  async staleDrafts(
+    ctx: Ctx,
+    before: number,
+  ): Promise<{ id: string; type: string; date: string; partyName: string; updatedAt: number }[]> {
+    return runInTx(this.d, ctx, async (tx) => {
+      const t = this.d.schema.documents;
+      const rows: Row[] = await tx
+        .select({
+          id: t.id,
+          type: t.type,
+          date: t.date,
+          party_name: t.party_name,
+          updated_at: t.updated_at,
+        })
+        .from(t)
+        .where(
+          and(
+            eq(t.business_id, ctx.businessId),
+            isNull(t.deleted_at),
+            eq(t.status, 'draft'),
+            lte(t.updated_at, before),
+          ),
+        )
+        .orderBy(t.updated_at)
+        .limit(5000);
+      return rows.map((r) => ({
+        id: String(r['id']),
+        type: String(r['type']),
+        date: String(r['date']),
+        partyName: r['party_name'] == null ? '' : String(r['party_name']),
+        updatedAt: Number(r['updated_at']),
+      }));
+    });
+  }
+
+  /** Every item ever raised for these kinds, by the key that names what it is about. */
+  async seen(ctx: Ctx, kinds: readonly string[]): Promise<Map<string, SeenItem>> {
+    return runInTx(this.d, ctx, async (tx) => {
+      if (kinds.length === 0) return new Map();
+      const t = this.t;
+      const rows: Row[] = await tx
+        .select({
+          id: t.id,
+          status: t.status,
+          version: t.version,
+          kind: t.kind,
+          dedupe_key: t.dedupe_key,
+        })
+        .from(t)
+        .where(
+          and(
+            eq(t.business_id, ctx.businessId),
+            isNull(t.deleted_at),
+            inArray(t.kind, [...kinds]),
+            isNotNull(t.dedupe_key),
+          ),
+        );
+      return new Map(
+        rows.map((r) => [
+          String(r['dedupe_key']),
+          {
+            id: String(r['id']),
+            status: String(r['status']),
+            version: Number(r['version']),
+            kind: String(r['kind']),
+            dedupeKey: String(r['dedupe_key']),
+          },
+        ]),
+      );
+    });
   }
 
   /** `correction` records what the user changed before accepting (for evals). */
@@ -523,14 +649,55 @@ export class ReviewRepo extends BaseRepo {
         status: 'accepted',
         accepted_by: ctx.actor,
         accepted_at: Date.now(),
+        snoozed_until: null,
         ...(correction !== undefined ? { correction_json: correction } : {}),
       },
       expectedVersion,
     );
   }
 
-  reject(ctx: Ctx, id: string, expectedVersion: number) {
-    return this.update(ctx, id, { status: 'rejected' }, expectedVersion);
+  /** Turn it down, with the reason when the person gave one. */
+  reject(ctx: Ctx, id: string, expectedVersion: number, reason?: string) {
+    return this.update(
+      ctx,
+      id,
+      {
+        status: 'rejected',
+        snoozed_until: null,
+        reject_reason: typeof reason === 'string' ? reason.trim() || null : null,
+      },
+      expectedVersion,
+    );
+  }
+
+  /** Hide it until `until` (epoch milliseconds); it comes back by itself. */
+  snooze(ctx: Ctx, id: string, until: number, expectedVersion: number) {
+    return this.update(ctx, id, { snoozed_until: until }, expectedVersion);
+  }
+
+  /** Bring a snoozed item back now. */
+  unsnooze(ctx: Ctx, id: string, expectedVersion: number) {
+    return this.update(ctx, id, { snoozed_until: null }, expectedVersion);
+  }
+
+  /** The finding is no longer true (the draft was issued, the stock came in): close it without anyone's answer. */
+  async expire(ctx: Ctx, ids: readonly string[]): Promise<number> {
+    return runInTx(this.d, ctx, async (tx) => {
+      let n = 0;
+      for (const id of ids) {
+        const row = await this.getIn(tx, ctx, id);
+        if (!row || row['status'] !== 'pending') continue;
+        await this.updateIn(
+          tx,
+          ctx,
+          id,
+          { status: 'expired', snoozed_until: null },
+          row['version'],
+        );
+        n += 1;
+      }
+      return n;
+    });
   }
 }
 

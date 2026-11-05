@@ -5,6 +5,7 @@
  */
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { DatabaseSync } from 'node:sqlite';
 
 import {
   InMemoryHsnLookup,
@@ -12,6 +13,7 @@ import {
   RulesProvider,
   SCHEMAS,
   formatReports,
+  hsnCasesFromAccepted,
   runEval,
   type AiProvider,
   type EvalCase,
@@ -45,12 +47,38 @@ if (!['mock', 'rules'].includes(providerName)) {
   process.exit(2);
 }
 
+/** --accepted <file.sqlite>: also score against what this device's user accepted in the inbox (read only). */
+function acceptedCases(schema: string): EvalCase[] {
+  const file = args.get('accepted');
+  if (!file || schema !== 'hsnSuggestion') return [];
+  const db = new DatabaseSync(file, { readOnly: true });
+  try {
+    const rows = db
+      .prepare(
+        "SELECT kind, suggestion_json, correction_json FROM review_items WHERE status = 'accepted' AND kind = 'hsn_suggestion' AND deleted_at IS NULL",
+      )
+      .all() as { kind: string; suggestion_json: string; correction_json: string | null }[];
+    return hsnCasesFromAccepted(
+      rows.map((r) => ({
+        kind: r.kind,
+        suggestion_json: JSON.parse(r.suggestion_json),
+        correction_json: r.correction_json ? JSON.parse(r.correction_json) : null,
+      })),
+    );
+  } finally {
+    db.close();
+  }
+}
+
 function loadCases(schema: string): EvalCase[] {
   const dir = join(root, schema);
-  return readdirSync(dir)
-    .filter((f) => f.endsWith('.json'))
-    .sort()
-    .map((f) => JSON.parse(readFileSync(join(dir, f), 'utf8')) as EvalCase);
+  return [
+    ...readdirSync(dir)
+      .filter((f) => f.endsWith('.json'))
+      .sort()
+      .map((f) => JSON.parse(readFileSync(join(dir, f), 'utf8')) as EvalCase),
+    ...acceptedCases(schema),
+  ];
 }
 
 const hsn = JSON.parse(readFileSync(join(root, 'hsn-master.json'), 'utf8'));

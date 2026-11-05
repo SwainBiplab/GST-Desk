@@ -59,11 +59,27 @@ A rule receives the feature input and a `RulesEnv` (`hsn`, `parties`) and return
 `rule_failed` and the router moves on. Built in: `hsn_lookup` (BM25 over descriptions: FTS5 on SQLite,
 tsvector on Postgres, or `InMemoryHsnLookup` in the browser) and `duplicate_party` (GSTIN, phone, normalised name).
 
+## The review inbox (Tier 0 assistants)
+
+`src/inbox` holds the twelve inbox kinds with a schema for each (`kinds.ts`), the pure detectors (`detectors.ts`:
+duplicate parties and items, HSN suggestions, GST rate changes, old drafts, overdue reminders, low stock, failed
+backups) and the lifecycle (`lifecycle.ts`: `pending → accepted | rejected | expired`, snooze as a time on a pending
+item, and `reconcile`, which turns "what the rules found now" and "every key ever raised" into what to create and
+what to close). `src/db/inbox.ts` is the part that touches the database: `runTier0` (idempotent), `applyReviewItem`
+and `acceptReviewItems` (apply through the owning repository in one transaction), `bulkCandidates`. See
+`docs/decisions/0012-review-inbox-and-tier-0-assistants.md`.
+
+To add a kind: a schema in `kinds.ts`, an entry in `KIND_INFO`, a detector, a case in `applyValue`, and a line in the
+web `features/inbox/model.ts`.
+
 ## Evals
 
 `pnpm ai:eval --provider mock [--schema purchaseBill]` runs a provider over `fixtures/<schema>/*.json`
 (`{ name, input, expected, mock? }`; `expected` may be partial) and prints field-level accuracy. Offline providers:
 `mock` and `rules`. Add a schema to `SCHEMAS` and a fixtures folder to cover a new feature.
+
+`--accepted <file.sqlite>` also scores `hsnSuggestion` against the HSN suggestions a person accepted in that local
+database, using their correction where they edited it (read only, nothing leaves the machine).
 
 ## Tests
 

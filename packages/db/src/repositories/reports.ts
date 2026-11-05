@@ -1645,7 +1645,7 @@ export async function getDashboard(d: Database, ctx: Ctx, today: string): Promis
       d,
       tx,
       sql`SELECT (SELECT count(*) FROM documents WHERE business_id = ${b} AND deleted_at IS NULL AND status = 'draft') AS drafts,
-                 (SELECT count(*) FROM review_items WHERE business_id = ${b} AND deleted_at IS NULL AND status = 'pending') AS inbox`,
+                 (SELECT count(*) FROM review_items WHERE business_id = ${b} AND deleted_at IS NULL AND status = 'pending' AND (snoozed_until IS NULL OR snoozed_until <= ${Date.now()})) AS inbox`,
     );
     const outputPaise = n(output[0]?.['v']);
     const inputPaise = n(input[0]?.['v']);

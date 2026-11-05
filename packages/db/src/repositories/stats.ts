@@ -34,7 +34,10 @@ export async function getCounts(d: Database, ctx: Ctx): Promise<Counts> {
       items: await one('items'),
       documents: await one('documents'),
       payments: await one('payments'),
-      reviewPending: await one('review_items', "AND status = 'pending'"),
+      reviewPending: await one(
+        'review_items',
+        `AND status = 'pending' AND (snoozed_until IS NULL OR snoozed_until <= ${Date.now()})`,
+      ),
       lowStock: (await new InventoryRepo(d).lowStock({ ...ctx, tx })).length,
     };
   });

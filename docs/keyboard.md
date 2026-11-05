@@ -11,6 +11,19 @@ Everything reachable with the mouse is reachable from the keyboard. Press `?` an
 | ?      | Show this keyboard map                                             |
 | Esc    | Close the command bar or a dialog; focus returns to where you were |
 
+## In the Inbox
+
+These work on the Inbox page, in both Shop and Books, and are ignored while you are typing in a field.
+
+| Keys  | Does                                                                        |
+| ----- | --------------------------------------------------------------------------- |
+| J / K | Inbox: move to the next or previous item                                    |
+| A     | Inbox: accept the selected item (the next one moves up, so keep pressing A) |
+| E     | Inbox: change the selected item, then accept                                |
+| R     | Inbox: reject the selected item (asks for an optional reason)               |
+| S     | Inbox: snooze the selected item                                             |
+| O     | Inbox: open the record the item is about                                    |
+
 ## Books only
 
 | Keys     | Does                   |

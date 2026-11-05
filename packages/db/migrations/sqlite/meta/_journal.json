@@ -22,6 +22,13 @@
       "when": 1793795628296,
       "tag": "0002_luxuriant_bill_hollister",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1793858912145,
+      "tag": "0003_bumpy_nitro",
+      "breakpoints": true
     }
   ]
 }

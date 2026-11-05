@@ -507,8 +507,17 @@ export const SPEC: TableSpec[] = [
       confidence: c.int(),
       accepted_by: c.text(),
       accepted_at: c.ts(),
+      /** Hidden from the inbox, and from the counts, until this time. */
+      snoozed_until: c.ts(),
+      /** Why a person turned it down. */
+      reject_reason: c.text(),
+      /**
+       * Names what the finding is about (`duplicate_party:<id>:<id>`), so the same finding is never
+       * raised twice, even after it was accepted, rejected or snoozed.
+       */
+      dedupe_key: c.text(),
     },
-    indexes: [{ cols: ['business_id', 'status'] }],
+    indexes: [{ cols: ['business_id', 'status'] }, { cols: ['business_id', 'kind', 'dedupe_key'] }],
   },
   {
     name: 'ai_calls',
