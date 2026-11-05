@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GST Desk: billing that stays on your computer</title>
+    <meta
+      name="description"
+      content="GST Desk is billing and books for small Indian businesses. GST worked out for you, works offline, and your data stays on your own computer. Beta."
+    />
+    <meta name="color-scheme" content="light dark" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; base-uri 'self'; form-action 'none'; object-src 'none'"
+    />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+    <script type="module" src="main.js"></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header class="top">
+      <a class="brand" href="#top" aria-label="GST Desk, home">
+        <img src="favicon.svg" alt="" width="28" height="28" />
+        <span>GST Desk</span>
+      </a>
+      <nav aria-label="Page sections">
+        <a href="#helps">What it does</a>
+        <a href="#different">How it differs</a>
+        <a href="#now">Available now</a>
+        <a href="#next">Coming next</a>
+        <a class="nav-app" href="/?app">Open app</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top" aria-labelledby="h1">
+        <div class="hero-copy">
+          <p class="badge">Beta · Windows first</p>
+          <h1 id="h1">Make the bill. GST is already done.</h1>
+          <p class="lede">
+            GST Desk is billing and books for small Indian businesses. It works out the tax, keeps
+            every number in order, and keeps your data on your own computer, with or without
+            internet.
+          </p>
+          <div class="cta">
+            <a class="btn btn-solid" href="/?app">Open the web app</a>
+            <a class="btn btn-line" href="#now">See what works today</a>
+          </div>
+          <p class="fine">
+            The web app runs in this browser and keeps your books in this browser on this computer.
+            A Windows desktop installer (about 8 MB, installs for one user, no administrator rights)
+            is not released yet. macOS and Linux builds are planned.
+          </p>
+        </div>
+
+        <figure
+          class="invoice"
+          id="invoice"
+          aria-label="A sample invoice being filled in by GST Desk"
+        >
+          <div class="inv-head">
+            <div>
+              <div class="inv-title">Tax Invoice</div>
+              <div class="inv-sub">Sample figures, not a real sale</div>
+            </div>
+            <div class="inv-no">INV/24-25/0042</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Item</th>
+                <th scope="col" class="num">Qty</th>
+                <th scope="col" class="num">Rate</th>
+                <th scope="col" class="num">GST</th>
+                <th scope="col" class="num">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="line">
+                <td>Cotton kurta</td>
+                <td class="num">2</td>
+                <td class="num">850.00</td>
+                <td class="num">5%</td>
+                <td class="num">1,700.00</td>
+              </tr>
+              <tr class="line">
+                <td>Steel flask</td>
+                <td class="num">1</td>
+                <td class="num">1,200.00</td>
+                <td class="num">18%</td>
+                <td class="num">1,200.00</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr class="line tax">
+                <th scope="row" colspan="4">CGST</th>
+                <td class="num">150.50</td>
+              </tr>
+              <tr class="line tax">
+                <th scope="row" colspan="4">SGST</th>
+                <td class="num">150.50</td>
+              </tr>
+              <tr class="line total">
+                <th scope="row" colspan="4">Total</th>
+                <td class="num"><span id="total" data-to="3201">3,201.00</span></td>
+              </tr>
+            </tfoot>
+          </table>
+          <div class="stamp" aria-hidden="true">Issued</div>
+        </figure>
+      </section>
+
+      <section id="helps" class="band" aria-labelledby="h-helps">
+        <h2 id="h-helps">What it helps you do</h2>
+        <ul class="rows">
+          <li>
+            <h3>Bill without doing the tax maths</h3>
+            <p>
+              Pick a customer and items. GST, CGST/SGST or IGST, rounding and amount in words are
+              worked out for you, and printed on an invoice you can send.
+            </p>
+          </li>
+          <li>
+            <h3>Know who owes you</h3>
+            <p>
+              Record payments and receipts against bills. See what each customer still owes and
+              which bills are overdue.
+            </p>
+          </li>
+          <li>
+            <h3>Keep honest records</h3>
+            <p>
+              Bill numbers run in order. A bill is cancelled, never deleted, and every change is
+              kept in an audit trail.
+            </p>
+          </li>
+          <li>
+            <h3>See how the business is doing</h3>
+            <p>
+              A dashboard and reports for sales, tax, stock and outstanding, ready to export for
+              your accountant.
+            </p>
+          </li>
+        </ul>
+      </section>
+
+      <section id="different" class="band alt" aria-labelledby="h-diff">
+        <h2 id="h-diff">How GST Desk compares with Tally, Vyapar and others</h2>
+        <p class="intro">
+          TallyPrime, Vyapar, Zoho Books and myBillBook are established products. GST Desk is a new
+          beta. This table uses what each vendor says on its own site, and says &ldquo;not
+          stated&rdquo; where the site did not say. It includes the places where they are ahead of
+          us today.
+        </p>
+        <div
+          class="table-wrap"
+          tabindex="0"
+          role="region"
+          aria-label="Comparison table, scrolls sideways on small screens"
+        >
+          <table class="compare">
+            <thead>
+              <tr>
+                <th scope="col">Question</th>
+                <th scope="col">TallyPrime</th>
+                <th scope="col">Vyapar</th>
+                <th scope="col">Zoho Books</th>
+                <th scope="col">myBillBook</th>
+                <th scope="col" class="us">GST Desk (beta)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Where is your data?</th>
+                <td>On your computer (desktop)</td>
+                <td>Saved on the device, synced to Vyapar&rsquo;s cloud</td>
+                <td>In the cloud; runs in a browser</td>
+                <td>Synced across PC, web and phone; storage place not stated</td>
+                <td class="us">A file on your computer</td>
+              </tr>
+              <tr>
+                <th scope="row">Works without internet?</th>
+                <td>Yes. Internet is needed for GST filing, e-invoice, e-way bill</td>
+                <td>Yes, offline billing</td>
+                <td>Runs in a browser, so it needs internet</td>
+                <td>Not stated</td>
+                <td class="us">Yes, everything it does today</td>
+              </tr>
+              <tr>
+                <th scope="row">E-invoice, e-way bill, GST returns</th>
+                <td>E-invoice and e-way bill built in</td>
+                <td>E-invoice and e-way bill; &ldquo;GST-ready reports&rdquo;</td>
+                <td>E-invoicing from the Standard plan; GST return filing listed</td>
+                <td>E-invoice and e-way bill; GSTR-1, GSTR-2, GSTR-3B reports</td>
+                <td class="us ahead">Not yet. GSTR-1/3B export is next</td>
+              </tr>
+              <tr>
+                <th scope="row">More than one person</th>
+                <td>Gold: several users on one local network. Silver: one computer</td>
+                <td>Staff logins with role-based access</td>
+                <td>1 user on Free; 3 to 25 on paid plans</td>
+                <td>Multi-user access for teams</td>
+                <td class="us ahead">One computer for now</td>
+              </tr>
+              <tr>
+                <th scope="row">Phone app</th>
+                <td>No dedicated app; reports and cloud access in a phone browser</td>
+                <td>Android and iOS</td>
+                <td>Android and iOS</td>
+                <td>Android and iOS</td>
+                <td class="us ahead">Not yet</td>
+              </tr>
+              <tr>
+                <th scope="row">Price (India, as listed by the vendor)</th>
+                <td>
+                  Silver &#8377;22,500 + 18% GST one-time; or &#8377;750 a month + GST. Gold
+                  &#8377;67,500 + GST
+                </td>
+                <td>Free plan available; paid prices not stated on the pages checked</td>
+                <td>Free plan; Standard &#8377;749 a month billed annually, taxes extra</td>
+                <td>Not stated on the page checked</td>
+                <td class="us">Not announced yet</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="duo">
+          <div>
+            <h3>Where GST Desk is different</h3>
+            <ul>
+              <li>
+                Hindi fully translated, and you can type names in Indian scripts by typing English
+                letters.
+              </li>
+              <li>Invoice and print labels in six languages.</li>
+              <li>
+                A review inbox that only suggests (duplicates, missing HSN codes, overdue
+                customers). Nothing changes until you accept.
+              </li>
+              <li>
+                Open exports (JSON, CSV) and verified backups, with a trash you can restore from.
+              </li>
+              <li>
+                Usage counters are off by default; if you opt in, they hold counts only, never your
+                content.
+              </li>
+              <li>Small per-user Windows installer, about 8 MB, no administrator rights.</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Where they are ahead today</h3>
+            <ul>
+              <li>Filing support: e-invoice, e-way bill and GST return workflows.</li>
+              <li>They are established products used by many businesses; we are a new beta.</li>
+              <li>Several users and phone apps.</li>
+              <li>
+                Wider accounting features, for example TallyPrime also lists payroll and banking. We
+                plan fuller accounting for a later phase.
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <p class="fine">
+          Vendor details were read from their own pages in November 2026:
+          <a href="https://tallysolutions.com/customer-hub/">Tally prices</a>,
+          <a href="https://tallysolutions.com/tally-prime-faq-guide/">Tally FAQ</a>,
+          <a href="https://vyaparapp.in/">Vyapar</a>,
+          <a href="https://www.zoho.com/in/books/pricing/">Zoho Books</a> and
+          <a href="https://mybillbook.in/">myBillBook</a>. Plans and prices change, so confirm there
+          before you decide. Trade-off, stated plainly: a file on your computer needs your own
+          backups (the app makes them easy) and has no multi-device sync yet.
+        </p>
+      </section>
+
+      <section id="now" class="band" aria-labelledby="h-now">
+        <h2 id="h-now">Available now, in the beta</h2>
+        <div class="cols">
+          <div>
+            <h3>Billing</h3>
+            <ul>
+              <li>Invoices and other document types</li>
+              <li>GST engine: CGST/SGST, IGST, rounding</li>
+              <li>Numbering, cancellation, audit trail</li>
+              <li>Payments and receipts</li>
+              <li>PDF and thermal printing, template designer</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Your records</h3>
+            <ul>
+              <li>Parties and items, with an HSN code list</li>
+              <li>Shop mode and Books mode</li>
+              <li>Basic inventory and low-stock alerts</li>
+              <li>Dashboard and reports</li>
+              <li>Review inbox: duplicates, missing HSN, overdue</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Safety and comfort</h3>
+            <ul>
+              <li>Backup, restore, export, import, trash</li>
+              <li>Hindi interface, typing in Indian scripts</li>
+              <li>Press F1 for help on any screen</li>
+              <li>Keyboard shortcuts and a command bar</li>
+              <li>Desktop app for Windows, installs for one user</li>
+            </ul>
+          </div>
+        </div>
+        <p class="fine">
+          Beta means rough edges. Installers are not signed yet, so your computer may warn you. The
+          starter HSN list and the tax rules are awaiting a chartered accountant&rsquo;s review, so
+          check your invoices before relying on them. Marathi, Tamil, Bengali and Gujarati screens
+          are mostly still in English.
+        </p>
+      </section>
+
+      <section id="next" class="band alt" aria-labelledby="h-next">
+        <h2 id="h-next">What is coming</h2>
+        <p class="intro">A plan, not a promise. Order can change and there are no dates yet.</p>
+        <ol class="road">
+          <li>
+            <h3>Next: filing and compliance</h3>
+            <ul>
+              <li>GSTR-1 and GSTR-3B export</li>
+              <li>GSTR-2B reconciliation, checks before filing</li>
+              <li>E-invoice and e-way bill</li>
+              <li>TDS and TCS</li>
+              <li>Move from Tally (XML)</li>
+              <li>Share between computers on one network</li>
+              <li>Offline AI help</li>
+            </ul>
+          </li>
+          <li>
+            <h3>Then: online and teams</h3>
+            <ul>
+              <li>Optional cloud account and sync</li>
+              <li>Staff roles and permissions</li>
+              <li>Mobile app</li>
+              <li>WhatsApp and email invoices</li>
+              <li>Collect payments</li>
+              <li>Accountant and customer portals</li>
+            </ul>
+          </li>
+          <li>
+            <h3>Later: full accounts</h3>
+            <ul>
+              <li>Double-entry ledger</li>
+              <li>Advanced inventory</li>
+              <li>Counter billing with barcodes</li>
+              <li>Bank statement import</li>
+              <li>Price lists, variants, orders, branches</li>
+            </ul>
+          </li>
+        </ol>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <div class="brand">
+        <img src="favicon.svg" alt="" width="24" height="24" />
+        <span>GST Desk</span>
+      </div>
+      <p>
+        Beta software. Not a substitute for advice from your chartered accountant. Your books never
+        leave your computer unless you send them.
+      </p>
+    </footer>
+  </body>
+</html>

@@ -25,7 +25,11 @@ describe('reset local data', () => {
     const { root, removed } = fakeRoot(['gst-desk', 'blobs']);
     const cleared: string[] = [];
     vi.stubGlobal('navigator', { storage: { getDirectory: async () => root } });
-    vi.stubGlobal('localStorage', { clear: () => cleared.push('local') });
+    vi.stubGlobal('localStorage', {
+      getItem: () => null,
+      setItem: () => undefined,
+      clear: () => cleared.push('local'),
+    });
     vi.stubGlobal('sessionStorage', { clear: () => cleared.push('session') });
     await resetLocalData();
     expect(removed).toEqual(['gst-desk', 'blobs']);
@@ -35,10 +39,32 @@ describe('reset local data', () => {
   it('keeps going and reports what could not be removed', async () => {
     const { root, removed } = fakeRoot(['gst-desk', 'blobs'], 'gst-desk');
     vi.stubGlobal('navigator', { storage: { getDirectory: async () => root } });
-    vi.stubGlobal('localStorage', { clear: () => undefined });
+    vi.stubGlobal('localStorage', {
+      getItem: () => null,
+      setItem: () => undefined,
+      clear: () => undefined,
+    });
     vi.stubGlobal('sessionStorage', { clear: () => undefined });
     await expect(resetLocalData()).rejects.toThrow(/gst-desk: locked by another window/);
     expect(removed).toEqual(['blobs']);
+  });
+
+  it('keeps the "this browser has opened the app" marker, so the person returns to the welcome screen and not the landing page', async () => {
+    const { root } = fakeRoot(['gst-desk']);
+    const store = new Map<string, string>([
+      ['gst.entered', '1'],
+      ['gst.shell', 'books'],
+      ['gst.lang', 'hi'],
+    ]);
+    vi.stubGlobal('navigator', { storage: { getDirectory: async () => root } });
+    vi.stubGlobal('localStorage', {
+      getItem: (k: string) => store.get(k) ?? null,
+      setItem: (k: string, v: string) => void store.set(k, v),
+      clear: () => store.clear(),
+    });
+    vi.stubGlobal('sessionStorage', { clear: () => undefined });
+    await resetLocalData();
+    expect([...store.keys()]).toEqual(['gst.entered']);
   });
 
   it('is offered only where the browser can do it', () => {

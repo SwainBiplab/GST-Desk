@@ -24,7 +24,11 @@ export async function resetLocalData(): Promise<void> {
     failures.push(e instanceof Error ? e.message : String(e));
   }
   try {
+    // `gst.entered` holds no data, only "this browser has opened the app" (see public/entry-gate.js).
+    // Keeping it sends the person back to the welcome screen, not to the landing page.
+    const entered = localStorage.getItem('gst.entered');
     localStorage.clear();
+    if (entered) localStorage.setItem('gst.entered', entered);
     sessionStorage.clear();
   } catch {
     // storage may be blocked; there is nothing to clear then

@@ -39,6 +39,8 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,wasm}'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: '/index.html',
+        // the landing page is static files, not part of the app's routes
+        navigateFallbackDenylist: [/^\/landing(\/|$)/],
         // the print fonts load on first use and are kept, so printing works offline afterwards
         runtimeCaching: [
           {
