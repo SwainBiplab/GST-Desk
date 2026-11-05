@@ -14,8 +14,10 @@ import { Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
 import { useAppDb } from '../db';
-import { useCounts, useLocationInfo } from '../hooks';
+import { useAppNavigate, useCounts, useLocationInfo } from '../hooks';
 import { useAppStore, type Shell } from '../store';
+
+import { useFeatureFlags } from '@/features/business/hooks';
 
 /** Business name with a menu to switch between businesses (FR-003). */
 export function BusinessSwitcher({ large = false }: { large?: boolean }) {
@@ -71,27 +73,56 @@ export function SyncPill() {
   );
 }
 
-/** Bell showing how many review items are waiting. */
+/** Bell: how many things need a look (reviews waiting, items low on stock), and a menu to each. */
 export function NotificationBell({ shell }: { shell: Shell }) {
   const { t } = useTranslation();
   const counts = useCounts();
-  const n = counts?.reviewPending ?? 0;
+  const flags = useFeatureFlags();
+  const navigate = useAppNavigate();
+  const review = counts?.reviewPending ?? 0;
+  const low = flags.inventory ? (counts?.lowStock ?? 0) : 0;
+  const n = review + low;
+  const label = [
+    `${t('chrome.notifications')}: ${t('chrome.notificationsCount', { count: review })}`,
+    ...(flags.inventory ? [t('chrome.lowStockCount', { count: low })] : []),
+  ].join(', ');
   return (
-    <Button variant="ghost" asChild className="relative min-w-(--control-h)">
-      <Link
-        to={`/${shell}/$page` as '/shop/$page'}
-        params={{ page: 'inbox' }}
-        aria-label={`${t('chrome.notifications')}: ${t('chrome.notificationsCount', { count: n })}`}
-        data-testid="bell"
-      >
-        <Bell size={16} aria-hidden />
-        {n > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 rounded-full bg-danger px-1 text-xs text-danger-fg">
-            {n}
-          </span>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          className="relative min-w-(--control-h)"
+          aria-label={label}
+          data-testid="bell"
+        >
+          <Bell size={16} aria-hidden />
+          {n > 0 && (
+            <span className="absolute -right-0.5 -top-0.5 rounded-full bg-danger px-1 text-xs text-danger-fg">
+              {n}
+            </span>
+          )}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem data-testid="bell-review" onSelect={() => navigate(`/${shell}/inbox`)}>
+          {t('chrome.notificationsCount', { count: review })}
+        </DropdownMenuItem>
+        {flags.inventory && (
+          <DropdownMenuItem
+            data-testid="bell-low-stock"
+            onSelect={() =>
+              navigate(`/${shell}/reports`, {
+                report: 'stock_summary',
+                preset: 'today',
+                type: 'low',
+              })
+            }
+          >
+            {t('chrome.lowStockCount', { count: low })}
+          </DropdownMenuItem>
         )}
-      </Link>
-    </Button>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 

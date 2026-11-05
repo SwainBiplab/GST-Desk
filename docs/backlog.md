@@ -8,7 +8,7 @@
 | B-004 | Items: transliteration-ready name input and Hindi, Tamil, Marathi, Bengali and Gujarati strings for the items and import screens (English only for now)           | prompt 22          | open   |
 | B-005 | Bulk edit undo survives a reload (today the undo batch lives in the page; the audit log already holds the old values)                                             | P1                 | open   |
 | B-006 | Effective-dated item prices and rates, so a future rate change can be scheduled per item                                                                          | prompt 54          | open   |
-| B-007 | Opening stock can be corrected after creation through a stock adjustment                                                                                          | prompt 19          | open   |
+| B-007 | Opening stock can be corrected after creation through a stock adjustment                                                                                          | prompt 19          | done   |
 | B-008 | Item pictures are stored by hash with no clean-up: delete the file when no item refers to it, and sync pictures with the database                                 | P3                 | open   |
 | B-009 | Import: choose an encoding and delimiter by hand when the guess is wrong; update existing items by SKU instead of only creating                                   | P2                 | open   |
 | B-010 | Reconcile the UQC list against the current GST Network list at each release                                                                                       | every release      | open   |
@@ -45,7 +45,7 @@
 | B-041 | Print: a Rust sidecar for bulk PDF on the desktop app, if the worker is too slow for thousands of documents                                                       | P3                 | open   |
 | B-042 | Reports: a summary table per business and month for one report, if the browser database proves too slow on a very large book (not needed at 50,000 documents)     | P3                 | open   |
 | B-043 | Reports: print through a report template in the designer (a plain report sheet prints today)                                                                      | P2                 | open   |
-| B-044 | Reports: stock summary with value, godowns and batches (it reads opening stock plus movements today; prompt 19 may change how stock is kept)                      | prompt 19          | open   |
+| B-044 | Reports: stock summary by godown and batch, and valued by cost (FIFO or weighted average) instead of the current purchase price                                   | prompts 51 and 52  | open   |
 | B-045 | Reports: expense summary by a real expense category (expenses are grouped by their line description today)                                                        | P2                 | open   |
 | B-046 | Reports: GSTR-1 preview by table (B2B, B2CL, B2CS, CDNR, EXP) and HSN split into B2B and B2C                                                                      | prompt 33          | open   |
 | B-047 | Reports: GST summary separates ineligible credit, reverse-charge inward supplies and ITC reversals (all purchase tax counts as credit today)                      | P2                 | open   |
@@ -54,3 +54,9 @@
 | B-050 | Reports: stream a very large export to a file on the desktop app instead of building it in memory                                                                 | prompt 23          | open   |
 | B-051 | Dashboard: a trend chart of the last six months of sales and spend (the cards show this month against last month)                                                 | P2                 | open   |
 | B-052 | Reports: opening and closing balance on the cash book and the bank book (movements only today)                                                                    | P2                 | open   |
+| B-053 | Inventory: cost-based valuation (FIFO, weighted average) instead of valuing stock at the current purchase price                                                   | prompt 51          | open   |
+| B-054 | Inventory: a returnable delivery challan can be marked returned, restoring the stock it took out                                                                  | P2                 | open   |
+| B-055 | Inventory: transfers between godowns and per-godown stock (one default godown today)                                                                              | prompt 51          | open   |
+| B-056 | Inventory: reorder suggestions and a purchase order from the low-stock list                                                                                       | P2                 | open   |
+| B-057 | Inventory: cancelling a purchase whose goods were already sold leaves stock negative without asking; offer to cancel the sale first or book an adjustment         | P2                 | open   |
+| B-058 | Inventory: Hindi, Tamil, Marathi, Bengali and Gujarati strings for the stock screens (English only for now)                                                       | prompt 22          | open   |

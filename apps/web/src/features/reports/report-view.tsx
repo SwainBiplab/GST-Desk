@@ -369,13 +369,17 @@ export function ReportView({
             </SelectTrigger>
             <SelectContent>
               {state.id !== 'gst_summary' && (
-                <SelectItem value="all">{t('reports.allTypes')}</SelectItem>
+                <SelectItem value="all">
+                  {state.id === 'stock_summary' ? t('reports.allItems') : t('reports.allTypes')}
+                </SelectItem>
               )}
               {def.typeOptions.map((o) => (
                 <SelectItem key={o} value={o}>
                   {state.id === 'gst_summary'
                     ? t(`reports.side.${o}`)
-                    : t(`docs.types.${o}`, { defaultValue: o })}
+                    : state.id === 'stock_summary'
+                      ? t(`reports.stockFilter.${o}`)
+                      : t(`docs.types.${o}`, { defaultValue: o })}
                 </SelectItem>
               ))}
             </SelectContent>

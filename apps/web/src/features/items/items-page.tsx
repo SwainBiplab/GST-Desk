@@ -11,7 +11,9 @@ import { ItemList } from './item-list';
 import { useAppDb } from '@/app/db';
 import { useAppNavigate, useLocationInfo } from '@/app/hooks';
 import type { Shell } from '@/app/store';
+import { useFeatureFlags } from '@/features/business/hooks';
 import { ImportWizard } from '@/features/import/import-wizard';
+import { AdjustSheet } from '@/features/inventory/adjust-sheet';
 
 /**
  * The Items page. The URL decides what shows: `?new=1` the create form, `?edit=<id>` the edit form,
@@ -23,9 +25,12 @@ export function ItemsPage({ shell }: { shell: Shell }) {
   const navigate = useAppNavigate();
   const { search } = useLocationInfo();
   const { database, ctx } = useAppDb();
+  const flags = useFeatureFlags();
   const editId = typeof search['edit'] === 'string' ? search['edit'] : null;
   const creating = search['new'] === '1' || search['new'] === 1;
   const importing = search['import'] === '1' || search['import'] === 1;
+  const adjusting = (search['adjust'] === '1' || search['adjust'] === 1) && flags.inventory;
+  const adjustItem = typeof search['item'] === 'string' ? search['item'] : null;
   const editing = useItem(editId);
   const [last, setLast] = useState<BulkBatch | null>(null);
 
@@ -82,6 +87,7 @@ export function ItemsPage({ shell }: { shell: Shell }) {
         </Sheet>
       )}
       {importing && <ImportWizard spec={itemImport} onClose={toList} />}
+      {adjusting && <AdjustSheet initialItemId={adjustItem} onClose={toList} />}
     </>
   );
 }

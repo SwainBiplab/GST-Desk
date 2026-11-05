@@ -30,6 +30,7 @@ import { UnitsDialog } from './units-dialog';
 import { useAppDb } from '@/app/db';
 import { useAppNavigate } from '@/app/hooks';
 import type { Shell } from '@/app/store';
+import { useFeatureFlags } from '@/features/business/hooks';
 import { downloadText } from '@/features/parties/csv';
 
 type SortKey = 'name' | 'sku' | 'hsn' | 'sale' | 'gst';
@@ -105,6 +106,7 @@ export function ItemList({
 }) {
   const { t } = useTranslation();
   const navigate = useAppNavigate();
+  const flags = useFeatureFlags();
   const { database } = useAppDb();
   const list = useItemList();
   const unitList = useUnits().data;
@@ -174,6 +176,16 @@ export function ItemList({
             >
               {t('items.hsnMaster.manage')}
             </Button>
+            {flags.inventory && (
+              <Button
+                variant="outline"
+                className={control}
+                data-testid="adjust-open"
+                onClick={() => navigate(`/${shell}/items`, { adjust: '1' })}
+              >
+                {t('inventory.adjust.open')}
+              </Button>
+            )}
             <Button
               variant="outline"
               className={control}

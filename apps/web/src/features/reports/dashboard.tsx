@@ -427,7 +427,7 @@ export function DashboardCards({ shell }: { shell: Shell }) {
             <>
               <Drill
                 testId="dash-low-count"
-                onOpen={() => report('stock_summary', { preset: 'today' })}
+                onOpen={() => report('stock_summary', { preset: 'today', type: 'low' })}
               >
                 <p className="pt-1 text-2xl font-semibold">
                   {t('dash.lowCount', { count: d.lowStock.count })}
@@ -465,7 +465,7 @@ export function DashboardCards({ shell }: { shell: Shell }) {
               <li>
                 <Drill
                   testId="dash-low-link"
-                  onOpen={() => report('stock_summary', { preset: 'today' })}
+                  onOpen={() => report('stock_summary', { preset: 'today', type: 'low' })}
                 >
                   {t('dash.lowCount', { count: d.lowStock.count })}
                 </Drill>

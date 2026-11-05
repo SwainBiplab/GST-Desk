@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { PartyPicker } from './party-picker';
 import { applyParty, isPurchase } from './state';
 
+import { useFeatureFlags } from '@/features/business/hooks';
 import { Field } from '@/features/onboarding/field';
 import type { TemplateOption } from '@/features/print/use-templates';
 
@@ -70,6 +71,7 @@ export function EditorHeader({
   onChange: (f: (d: DraftDocument) => DraftDocument) => void;
 }) {
   const { t } = useTranslation();
+  const flags = useFeatureFlags();
   const purchase = isPurchase(draft.type);
   const supply = supplyOf(draft);
   const partyState = draft.partyId ? (purchase ? draft.supplierState : draft.placeOfSupply) : null;
@@ -242,6 +244,34 @@ export function EditorHeader({
         />
         {t('docs.header.reverseCharge')}
       </label>
+
+      {draft.type === 'delivery_challan' && flags.inventory && (
+        <>
+          <label
+            className="flex items-center gap-2 self-end pb-2 text-sm"
+            htmlFor="doc-reduce-stock"
+          >
+            <Checkbox
+              id="doc-reduce-stock"
+              data-testid="doc-reduce-stock"
+              checked={draft.reduceStock}
+              disabled={readOnly}
+              onCheckedChange={(v) => set({ reduceStock: v === true })}
+            />
+            {t('docs.header.reduceStock')}
+          </label>
+          <label className="flex items-center gap-2 self-end pb-2 text-sm" htmlFor="doc-returnable">
+            <Checkbox
+              id="doc-returnable"
+              data-testid="doc-returnable"
+              checked={draft.returnable}
+              disabled={readOnly}
+              onCheckedChange={(v) => set({ returnable: v === true })}
+            />
+            {t('docs.header.returnable')}
+          </label>
+        </>
+      )}
 
       {!purchase && (
         <label className="flex items-center gap-2 self-end pb-2 text-sm" htmlFor="doc-export">

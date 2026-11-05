@@ -3,6 +3,7 @@ import { sql } from 'drizzle-orm';
 import { queryRows, type Database } from '../database';
 
 import { runInTx, type Ctx } from './base';
+import { InventoryRepo } from './inventory';
 
 export interface Counts {
   parties: number;
@@ -10,6 +11,8 @@ export interface Counts {
   documents: number;
   payments: number;
   reviewPending: number;
+  /** Items that track stock and are below their reorder level. */
+  lowStock: number;
 }
 
 const n = (v: unknown) => Number(v ?? 0);
@@ -32,6 +35,7 @@ export async function getCounts(d: Database, ctx: Ctx): Promise<Counts> {
       documents: await one('documents'),
       payments: await one('payments'),
       reviewPending: await one('review_items', "AND status = 'pending'"),
+      lowStock: (await new InventoryRepo(d).lowStock({ ...ctx, tx })).length,
     };
   });
 }

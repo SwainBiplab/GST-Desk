@@ -1,6 +1,8 @@
 import {
   ConflictError,
   DocumentFlowRepo,
+  InsufficientStockError,
+  InventoryRepo,
   PeriodLockedError,
   SettingsRepo,
   type LockOverride,
@@ -19,6 +21,7 @@ import {
   type DocumentType,
   type DraftDocument,
   type DraftIssue,
+  type Shortfall,
 } from '@gst/domain';
 import { toast } from '@gst/ui';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -63,6 +66,15 @@ export interface LockedStop {
   until: string;
 }
 
+/** What issuing came to. `stock` means the document would take stock below zero. */
+export interface IssueOutcome {
+  issues: DraftIssue[];
+  number: string | null;
+  locked?: LockedStop;
+  /** `warn`: ask whether to go on (call again with `stockOk`). `block`: the business does not allow it. */
+  stock?: { action: 'warn' | 'block'; shortfalls: Shortfall[] };
+}
+
 export interface RevisionOutcome {
   ok: boolean;
   /** `financial` produced a new revision. */
@@ -95,9 +107,7 @@ export interface DocumentEditor {
    * Check, save and issue. `issues` lists what stopped it; empty with a `number` means it is issued.
    * `locked` means the date is in a closed period: ask an owner for a reason and call again with it.
    */
-  issue: (
-    override?: LockOverride,
-  ) => Promise<{ issues: DraftIssue[]; number: string | null; locked?: LockedStop }>;
+  issue: (override?: LockOverride, opts?: { stockOk?: boolean }) => Promise<IssueOutcome>;
   discard: () => Promise<void>;
   /** Editing an issued document (notes always; amounts only in an open period). */
   revising: boolean;
@@ -327,10 +337,8 @@ export function useDocumentEditor(opts: {
   }, [sig, loading, readOnly, revising, dirty, save]);
 
   const issue = useCallback(
-    async (
-      override?: LockOverride,
-    ): Promise<{ issues: DraftIssue[]; number: string | null; locked?: LockedStop }> => {
-      const stop = (issues: DraftIssue[]) => ({ issues, number: null });
+    async (override?: LockOverride, opts2?: { stockOk?: boolean }): Promise<IssueOutcome> => {
+      const stop = (issues: DraftIssue[]): IssueOutcome => ({ issues, number: null });
       if (!database || !ctx) return stop([]);
       const found = validateForIssue(draftRef.current, {
         scheme,
@@ -341,6 +349,31 @@ export function useDocumentEditor(opts: {
       if (!(await save())) return stop([{ field: 'save', code: 'save_failed' }]);
       const m = metaRef.current;
       if (!m.id) return stop([{ field: 'lines', code: 'no_lines' }]);
+      if (flags.inventory) {
+        try {
+          const cur = draftRef.current;
+          const { decision } = await new InventoryRepo(database).checkIssue(
+            ctx,
+            cur.type,
+            cur.lines.map((l) => ({ itemId: l.itemId, qtyMicros: Number(l.qtyMicros) })),
+            { reduceStock: cur.reduceStock },
+          );
+          if (decision.action === 'block')
+            return {
+              issues: [],
+              number: null,
+              stock: { action: 'block', shortfalls: decision.shortfalls },
+            };
+          if (decision.action === 'warn' && !opts2?.stockOk)
+            return {
+              issues: [],
+              number: null,
+              stock: { action: 'warn', shortfalls: decision.shortfalls },
+            };
+        } catch {
+          // the issue itself will say what is wrong
+        }
+      }
       try {
         const r = await new DocumentFlowRepo(database).issueDraft(ctx, m.id, m.version, {
           inventoryEnabled: flags.inventory,
@@ -362,6 +395,8 @@ export function useDocumentEditor(opts: {
       } catch (e) {
         if (e instanceof PeriodLockedError)
           return { issues: [], number: null, locked: { until: e.until } };
+        if (e instanceof InsufficientStockError)
+          return { issues: [], number: null, stock: { action: 'block', shortfalls: e.shortfalls } };
         toast.error(e instanceof Error ? e.message : String(e));
         return stop([{ field: 'issue', code: 'issue_failed' }]);
       }

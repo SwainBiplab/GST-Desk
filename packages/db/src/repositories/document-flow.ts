@@ -14,7 +14,7 @@ import {
   isProvisional,
   postDocument,
   provisionalNumber,
-  stockEffect,
+  stockEffectOf,
   takeNext,
   type AccountKey,
   type DocumentType,
@@ -34,6 +34,7 @@ import {
   runInTx,
   type Ctx,
 } from './base';
+import { InsufficientStockError, checkIssueIn } from './inventory';
 import { consistencyValidator } from './line-math';
 import { NumberingRepo, type ShellName } from './numbering';
 import { PeriodLockRepo, type LockOverride } from './period-lock';
@@ -602,8 +603,35 @@ export class DocumentFlowRepo extends BaseRepo {
   }
 
   private async moveStockIn(tx: any, ctx: Ctx, doc: Row, lines: Row[]): Promise<void> {
-    const effect = stockEffect(doc['type'] as DocumentType);
+    const meta = (doc['metadata_json'] ?? {}) as { reduceStock?: boolean | null };
+    const effect = stockEffectOf(doc['type'] as DocumentType, meta);
     if (!effect) return;
+    // an invoice made from a challan that already took the goods out does not take them out twice
+    if (doc['source_document_id']) {
+      const src = await this.getIn(tx, ctx, String(doc['source_document_id']));
+      const srcMeta = (src?.['metadata_json'] ?? {}) as { reduceStock?: boolean | null };
+      if (
+        src &&
+        src['type'] === 'delivery_challan' &&
+        src['status'] === 'issued' &&
+        srcMeta.reduceStock
+      )
+        return;
+    }
+    if (effect === 'out') {
+      const { decision } = await checkIssueIn(
+        this.d,
+        tx,
+        ctx,
+        doc['type'] as DocumentType,
+        lines.map((l) => ({
+          itemId: l['item_id'] as string | null,
+          qtyMicros: Number(l['qty_micros']),
+        })),
+        meta,
+      );
+      if (decision.action === 'block') throw new InsufficientStockError(decision.shortfalls);
+    }
     const itemIds = [...new Set(lines.map((l) => l['item_id']).filter((x): x is string => !!x))];
     if (itemIds.length === 0) return;
     const items = this.d.schema.items;

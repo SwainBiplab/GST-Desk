@@ -21,6 +21,9 @@ import {
 import { ItemForm } from './item-form';
 
 import { useAppDb } from '@/app/db';
+import { useLocationInfo } from '@/app/hooks';
+import { useFeatureFlags } from '@/features/business/hooks';
+import { StockPanel } from '@/features/inventory/stock-panel';
 
 /**
  * Create or edit one item: save it, show what the repository rejected (a SKU already in use, a unit
@@ -40,6 +43,8 @@ export function ItemEditor({
 }) {
   const { t } = useTranslation();
   const { database, ctx } = useAppDb();
+  const { shell } = useLocationInfo();
+  const flags = useFeatureFlags();
   const [busy, setBusy] = useState(false);
   const [serverErrors, setServerErrors] = useState<Errors | undefined>();
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -97,6 +102,7 @@ export function ItemEditor({
         onCancel={onCancel}
         submitLabel={existing ? t('items.form.saveChanges') : t('items.form.save')}
       />
+      {existing && flags.inventory && <StockPanel item={existing} shell={shell ?? 'books'} />}
       {existing && (
         <div className="mt-4 border-t border-border pt-3">
           <Button

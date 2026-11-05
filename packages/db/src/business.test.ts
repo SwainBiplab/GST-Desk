@@ -13,6 +13,7 @@ import {
 } from './repositories/aggregates';
 import { BaseRepo, RuleError, type Ctx } from './repositories/base';
 import { DocumentFlowRepo } from './repositories/document-flow';
+import { InventoryRepo } from './repositories/inventory';
 import { computeLine } from './repositories/line-math';
 import { NumberingRepo } from './repositories/numbering';
 import { BusinessAccountRepo, PaymentFlowRepo } from './repositories/payment-flow';
@@ -112,6 +113,7 @@ describe.each(DIALECTS)('every repository call needs a business (%s)', (dialect)
     classes.push(['DocumentFlowRepo', DocumentFlowRepo as never]);
     classes.push(['NumberingRepo', NumberingRepo as never]);
     classes.push(['PaymentFlowRepo', PaymentFlowRepo as never]);
+    classes.push(['InventoryRepo', InventoryRepo as never]);
     classes.push(['BusinessAccountRepo', BusinessAccountRepo as never]);
     classes.push(['PeriodLockRepo', PeriodLockRepo as never]);
     classes.push(['TemplateRepo', TemplateRepo as never]);

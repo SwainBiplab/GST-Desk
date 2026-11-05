@@ -32,7 +32,14 @@ export function useLocationInfo(): {
   return { shell, page, pathname: loc.pathname, search: loc.search as Record<string, unknown> };
 }
 
-const COUNT_TABLES = ['parties', 'items', 'documents', 'payments', 'review_items'];
+const COUNT_TABLES = [
+  'parties',
+  'items',
+  'documents',
+  'payments',
+  'review_items',
+  'stock_movements',
+];
 
 export function useCounts(): Counts | undefined {
   return useLiveQuery<Counts>({

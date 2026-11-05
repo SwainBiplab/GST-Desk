@@ -119,6 +119,14 @@ export function registerDefaultActions(): void {
     keywords: ['supplier', 'paid'],
     run: go('payments', { intent: 'pay' }),
   });
+  registerAction({
+    id: 'stock.adjust',
+    title: t('act.adjustStock'),
+    section: section('data'),
+    keywords: ['inventory', 'count', 'stocktake', 'quantity'],
+    when: (c) => c.flags.inventory,
+    run: go('items', { adjust: '1' }),
+  });
   // every report is one keystroke away: "Open report: Sales register"
   for (const id of REPORT_IDS) {
     const def = REPORTS[id];

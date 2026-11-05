@@ -51,6 +51,7 @@ import { useAppDb } from '@/app/db';
 import { useLocationInfo } from '@/app/hooks';
 import { useAppStore } from '@/app/store';
 import { useUnsavedGuard } from '@/app/unsaved';
+import { InventoryTab } from '@/features/inventory/settings-tab';
 import { AuditViewer } from '@/features/numbering/audit-viewer';
 import { NumberingTab } from '@/features/numbering/numbering-tab';
 import { Field } from '@/features/onboarding/field';
@@ -511,7 +512,7 @@ export function SettingsPage() {
         </TabsContent>
         {flags.inventory && (
           <TabsContent value="inventory">
-            <p data-testid="section-inventory">{t('settings.inventory')}</p>
+            <InventoryTab />
           </TabsContent>
         )}
         {flags.thermal && (

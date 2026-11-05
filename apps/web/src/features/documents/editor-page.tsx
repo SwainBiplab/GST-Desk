@@ -59,6 +59,7 @@ import { TraceView, type TraceTarget } from './trace-view';
 import { useDocumentEditor } from './use-editor';
 
 import { getBlob } from '@/app/blobs';
+import { useConfirm } from '@/app/components/confirm';
 import { useRightPanel } from '@/app/components/panel';
 import { useAppDb, useLiveQuery } from '@/app/db';
 import type { Shell } from '@/app/store';
@@ -130,6 +131,7 @@ export function EditorPage({
   const { draft, built, meta, readOnly } = editor;
   const isDraft = meta.status === 'draft';
   const { ask: askOverride, dialog: overrideDialog } = useLockOverride();
+  const confirm = useConfirm();
   const [cancelOpen, setCancelOpen] = useState(false);
   const [creditFor, setCreditFor] = useState<{ id: string; number: string; party: string } | null>(
     null,
@@ -244,11 +246,36 @@ export function EditorPage({
     setBusy(true);
     try {
       let result = await editor.issue();
+      let stockOk = false;
+      if (result.stock) {
+        const list = result.stock.shortfalls
+          .map((s) =>
+            t('docs.stock.line', {
+              name: s.name,
+              have: qtyText(BigInt(s.onHandMicros)),
+              need: qtyText(BigInt(s.needMicros)),
+            }),
+          )
+          .join('\n');
+        if (result.stock.action === 'block') {
+          toast.error(`${t('docs.stock.blocked')} ${list.replace(/\n/g, '; ')}`);
+          return;
+        }
+        // allowed, but the stock will go below zero: say so and let them decide
+        const go = await confirm({
+          title: t('docs.stock.warnTitle'),
+          description: list,
+          confirmLabel: t('docs.stock.issueAnyway'),
+        });
+        if (!go) return;
+        stockOk = true;
+        result = await editor.issue(undefined, { stockOk });
+      }
       if (result.locked) {
         // a closed period: only an owner with a reason can go on
         const reason = await askOverride(result.locked.until);
         if (!reason) return;
-        result = await editor.issue({ reason });
+        result = await editor.issue({ reason }, { stockOk });
       }
       const { issues, number } = result;
       if (issues.length > 0 || !number) {

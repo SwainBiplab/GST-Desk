@@ -4,6 +4,8 @@
  * Bulk-inserts directly (no per-row audit_log), inside one transaction.
  */
 import {
+  signedQty,
+  stockEffectOf,
   POSTS_TO_LEDGER,
   postDocument,
   postPayment,
@@ -173,6 +175,8 @@ export async function seedDemo(d: Database, opts: SeedOptions = {}): Promise<See
     gstin: gstinFor('27AABCD1234E1Z'),
     state_code: '27',
     pan: 'AABCD1234E',
+    // the demo shop keeps stock, so inventory is on: its items track quantities and reorder levels
+    settings_json: { overrides: { inventory: true } },
   });
   const ctx: Ctx = { ...base, businessId: biz['id'] };
   const s = d.schema;
@@ -229,6 +233,8 @@ export async function seedDemo(d: Database, opts: SeedOptions = {}): Promise<See
       purchase_rate_paise: int(30, 3000) * 100,
       gst_rate_bp: pick(GST_BP),
       track_stock: i % 10 !== 9,
+      // a reorder level of 40 to 200 units; from the position, so no random number is drawn
+      min_stock_micros: i % 10 !== 9 ? ((i % 5) + 1) * 40 * 1_000_000 : 0,
     }));
     await chunked(tx, s.items, items);
     counts['items'] = items.length;
@@ -371,8 +377,9 @@ export async function seedDemo(d: Database, opts: SeedOptions = {}): Promise<See
       });
       lineRows.push(...lines);
 
-      const moves = status === 'issued' && (type === 'tax_invoice' || type === 'purchase_bill');
-      if (moves) {
+      // every issued document that moves stock does, the way the repository would have written it
+      const effect = status === 'issued' ? stockEffectOf(type as DocumentType) : null;
+      if (effect) {
         for (const l of lines) {
           const it = items.find((x) => x['id'] === l['item_id'])!;
           if (!it['track_stock']) continue;
@@ -380,13 +387,16 @@ export async function seedDemo(d: Database, opts: SeedOptions = {}): Promise<See
             ...stamp(dayOffset),
             item_id: it['id'],
             godown_id: godown['id'],
-            kind: type === 'tax_invoice' ? 'out' : 'in',
-            qty_micros: (type === 'tax_invoice' ? -1 : 1) * (l['qty_micros'] as number),
+            kind: effect,
+            qty_micros: signedQty(effect, l['qty_micros'] as number),
             rate_paise: l['rate_paise'],
             document_id: docId,
             date,
           });
         }
+      }
+      const moves = status === 'issued' && (type === 'tax_invoice' || type === 'purchase_bill');
+      if (moves) {
         if (rnd() < 0.6) {
           const amount =
             rnd() < 0.7 ? totals.total_paise : Math.floor(totals.total_paise / 2 / 100) * 100;

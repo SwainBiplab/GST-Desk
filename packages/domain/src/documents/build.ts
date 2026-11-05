@@ -79,6 +79,10 @@ export interface DraftDocument {
   itcEligible: boolean;
   /** The number series to issue from; null means the default for the type and shell. */
   seriesKey: string | null;
+  /** Delivery challan: take the goods out of stock when it is issued. */
+  reduceStock: boolean;
+  /** Delivery challan: the goods are expected back. */
+  returnable: boolean;
 }
 
 export const emptyDraftLine = (key: string): DraftLine => ({
@@ -131,6 +135,8 @@ export const emptyDraft = (
   supplierInvoiceDate: null,
   itcEligible: true,
   seriesKey: null,
+  reduceStock: false,
+  returnable: false,
 });
 
 /** A line the editor can price: it has something to sell and a quantity. */

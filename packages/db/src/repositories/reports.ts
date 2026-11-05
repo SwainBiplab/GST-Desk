@@ -19,6 +19,7 @@ import {
   AGEING_BUCKETS,
   ageInto,
   daysPastDue,
+  divRound,
   emptyAgeing,
   filingCalendar,
   resolvePeriod,
@@ -291,7 +292,9 @@ export const REPORTS: Record<ReportId, ReportDef> = {
     paged: false,
     drill: null,
     flag: 'inventory',
-    filters: ['period'],
+    filters: ['period', 'type'],
+    /** `low`: only the items below their reorder level. */
+    typeOptions: ['low'],
     columns: [
       text('item'),
       text('sku', { hidden: true }),
@@ -299,6 +302,8 @@ export const REPORTS: Record<ReportId, ReportDef> = {
       { key: 'in', kind: 'qty' },
       { key: 'out', kind: 'qty' },
       { key: 'closing', kind: 'qty' },
+      { key: 'rate', kind: 'money', hidden: true },
+      money('value'),
       { key: 'min', kind: 'qty', hidden: true },
     ],
   },
@@ -1188,6 +1193,10 @@ export interface StockRow {
   outMicros: number;
   closingMicros: number;
   minMicros: number;
+  /** The purchase price the stock is valued at. */
+  ratePaise: number;
+  /** Closing quantity at the purchase price. */
+  valuePaise: number;
 }
 
 /**
@@ -1204,7 +1213,7 @@ export async function stockRowsIn(
   const rows = await queryRows(
     d,
     tx,
-    sql`SELECT i.id, i.name, coalesce(i.sku, '') AS sku, coalesce(i.opening_stock_micros, 0) AS opening,
+    sql`SELECT i.id, i.name, coalesce(i.sku, '') AS sku, coalesce(i.purchase_rate_paise, 0) AS rate,
                coalesce(i.min_stock_micros, 0) AS min_stock,
                coalesce(m.before_qty, 0) AS before_qty, coalesce(m.qty_in, 0) AS qty_in, coalesce(m.qty_out, 0) AS qty_out
         FROM items i
@@ -1221,7 +1230,9 @@ export async function stockRowsIn(
         ORDER BY i.name`,
   );
   return rows.map((r) => {
-    const opening = n(r['opening']) + n(r['before_qty']);
+    // opening stock is itself a movement, so the movements are the whole story
+    const opening = n(r['before_qty']);
+    const closing = opening + n(r['qty_in']) - n(r['qty_out']);
     return {
       itemId: s(r['id']),
       item: s(r['name']),
@@ -1229,8 +1240,10 @@ export async function stockRowsIn(
       openingMicros: opening,
       inMicros: n(r['qty_in']),
       outMicros: n(r['qty_out']),
-      closingMicros: opening + n(r['qty_in']) - n(r['qty_out']),
+      closingMicros: closing,
       minMicros: n(r['min_stock']),
+      ratePaise: n(r['rate']),
+      valuePaise: Number(divRound(BigInt(closing) * BigInt(n(r['rate'])), 1_000_000n)),
     };
   });
 }
@@ -1241,7 +1254,9 @@ async function stockSummary(
   ctx: Ctx,
   p: ReportParams,
 ): Promise<ReportResult> {
-  const rows = await stockRowsIn(d, tx, ctx, p.from, p.to);
+  const all = await stockRowsIn(d, tx, ctx, p.from, p.to);
+  const rows =
+    p.type === 'low' ? all.filter((r) => r.minMicros > 0 && r.closingMicros < r.minMicros) : all;
   return whole(
     'stock_summary',
     rows.map((r) => ({
@@ -1252,6 +1267,8 @@ async function stockSummary(
       in: r.inMicros,
       out: r.outMicros,
       closing: r.closingMicros,
+      rate: r.ratePaise,
+      value: r.valuePaise,
       min: r.minMicros,
     })),
   );
