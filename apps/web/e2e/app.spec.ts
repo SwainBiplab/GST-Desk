@@ -1,5 +1,4 @@
-import { expect, test } from '@playwright/test';
-
+import { expect, test } from './fixtures';
 import { openCommandBar, openSeeded } from './helpers';
 
 test.use({ viewport: { width: 1366, height: 768 } });

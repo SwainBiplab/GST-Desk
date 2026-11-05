@@ -40,7 +40,7 @@ export function NavEntry({
       params={{ page: item.page }}
       {...(item.search ? { search: item.search as never } : {})}
       aria-current={active ? 'page' : undefined}
-      aria-label={compact ? `${label}${badge ? ` (${badge})` : ''}` : undefined}
+      aria-label={compact ? `${label}${badge ? ` ${badge}` : ''}` : undefined}
       title={compact ? label : undefined}
       data-testid={`nav-${item.id}`}
       className={cn(

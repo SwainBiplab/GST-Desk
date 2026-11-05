@@ -38,6 +38,7 @@ import { useAppDb, useLiveQuery } from '@/app/db';
 import { PartyPicker } from '@/features/documents/party-picker';
 import { Field } from '@/features/onboarding/field';
 import { useParty } from '@/features/parties/hooks';
+import { track } from '@/features/telemetry/telemetry';
 
 const MODES: PayMode[] = ['cash', 'upi', 'card', 'bank', 'cheque', 'other', 'adjustment'];
 const todayIso = () => today(() => new Date());
@@ -246,6 +247,7 @@ export function PaymentForm({
         ? await repo.edit(ctx, editing.id, editing.version, input)
         : await repo.record(ctx, input);
       const id = r.payment['id'] as string;
+      if (!editing) track('payment_recorded');
       if (editing) toast.success(t('pay.saveEdit'));
       else
         toast.success(

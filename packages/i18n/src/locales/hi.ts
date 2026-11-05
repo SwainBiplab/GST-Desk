@@ -9,6 +9,8 @@ import { d } from './hi-parts/d';
 import { e } from './hi-parts/e';
 import { f, fErrors } from './hi-parts/f';
 import { g } from './hi-parts/g';
+import { h } from './hi-parts/h';
+import { iHelp } from './hi-parts/i';
 
 import type { LocaleBundle } from '.';
 
@@ -166,7 +168,7 @@ const rest = {
 };
 
 export const bundle: LocaleBundle = {
-  ui: merge(first, a, b, c, d, e, f, g),
+  ui: merge(first, a, b, c, d, e, f, g, h),
   errors: merge(rest.errors, fErrors),
-  help: rest.help,
+  help: merge(rest.help, iHelp),
 };

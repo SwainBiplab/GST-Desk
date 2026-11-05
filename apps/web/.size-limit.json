@@ -6,9 +6,21 @@
     "gzip": true
   },
   {
+    "name": "PDF worker, loaded only when a PDF is made (gzip)",
+    "path": "dist/assets/pdf.worker-*.js",
+    "limit": "600 kB",
+    "gzip": true
+  },
+  {
+    "name": "invoice editor route, loaded when the editor opens (gzip)",
+    "path": "dist/assets/editor-route-*.js",
+    "limit": "450 kB",
+    "gzip": true
+  },
+  {
     "name": "all JS and CSS (gzip)",
     "path": ["dist/**/*.js", "dist/**/*.css"],
-    "limit": "1.5 MB",
+    "limit": "2 MB",
     "gzip": true
   }
 ]

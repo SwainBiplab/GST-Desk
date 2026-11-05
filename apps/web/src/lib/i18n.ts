@@ -10,6 +10,8 @@ import {
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
+import { track } from '@/features/telemetry/telemetry';
+
 /** What the app speaks now: a language, or the layout-test pseudo-locale. */
 export type UiLanguage = Language | typeof PSEUDO;
 
@@ -51,6 +53,7 @@ export const i18nReady: Promise<void> = (async () => {
 export async function changeLanguage(lng: UiLanguage): Promise<void> {
   await setLanguage(i18n, lng);
   apply(lng);
+  track('language_changed');
   if (lng !== PSEUDO)
     try {
       localStorage.setItem(LANGUAGE_KEY, lng);

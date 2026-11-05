@@ -53,6 +53,7 @@ import { useAppNavigate } from '@/app/hooks';
 import { isTypingTarget } from '@/app/shortcuts';
 import type { Shell } from '@/app/store';
 import { useFeatureFlags } from '@/features/business/hooks';
+import { track } from '@/features/telemetry/telemetry';
 import { dyn } from '@/lib/dyn-key';
 import { useTerm } from '@/lib/terms';
 
@@ -154,6 +155,7 @@ export function InboxPage({ shell }: { shell: Shell }) {
       toast.success(
         t(kindInfo(r.kind)?.informational ? 'inbox.toast.acknowledged' : 'inbox.toast.accepted'),
       );
+      track('inbox_accepted');
     });
 
   const doReject = (r: InboxRow, reason: string) =>
@@ -167,6 +169,7 @@ export function InboxPage({ shell }: { shell: Shell }) {
         reason,
       });
       toast(t('inbox.toast.rejected'));
+      track('inbox_rejected');
       setReject(null);
     });
 
@@ -355,7 +358,7 @@ export function InboxPage({ shell }: { shell: Shell }) {
             ref={scroller}
             className="min-h-0 flex-1 overflow-auto rounded-md border border-border"
             data-testid="inbox-list"
-            role="listbox"
+            role={shell === 'shop' ? 'list' : 'listbox'}
             aria-label={t('inbox.title')}
           >
             <div style={{ height: virt.getTotalSize(), position: 'relative' }}>
@@ -365,8 +368,10 @@ export function InboxPage({ shell }: { shell: Shell }) {
                 return (
                   <div
                     key={r.id}
-                    role="option"
-                    aria-selected={selected}
+                    role={shell === 'shop' ? 'listitem' : 'option'}
+                    {...(shell === 'shop'
+                      ? { 'aria-current': selected }
+                      : { 'aria-selected': selected })}
                     data-testid="inbox-row"
                     data-kind={r.kind}
                     data-selected={selected}

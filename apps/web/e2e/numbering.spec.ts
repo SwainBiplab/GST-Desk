@@ -1,6 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
-
 import { addLine, openEditor, pickParty, uiTotal } from './documents.helpers';
+import { expect, test, type Page } from './fixtures';
 import { openSeeded } from './helpers';
 
 test.use({ viewport: { width: 1366, height: 900 } });

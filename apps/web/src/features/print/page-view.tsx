@@ -8,6 +8,7 @@ import {
 } from '@gst/print';
 import { cssFamily } from '@gst/print/fonts.web';
 import { Fragment, memo, useMemo, type CSSProperties, type ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
 
 /** Points to CSS pixels at 100% zoom (96 dpi). */
 const PX = 96 / 72;
@@ -177,8 +178,11 @@ const PageSvg = memo(
     zoom,
     m,
     ascent,
+    label,
   }: {
     page: LayoutPage;
+    /** What a screen reader says about this page. */
+    label: string;
     /** Only here so the comparator below can tell an unchanged page from a changed one. */
     sig: string;
     zoom: number;
@@ -195,6 +199,7 @@ const PageSvg = memo(
         style={{ '--pw': `${page.width}pt`, '--ph': `${page.height}pt` } as CSSProperties}
         data-testid="preview-page"
         role="img"
+        aria-label={label}
       >
         <rect x={0} y={0} width={page.width} height={page.height} fill="#fff" />
         {gs.map((g, i) => {
@@ -216,7 +221,12 @@ const PageSvg = memo(
       </svg>
     );
   },
-  (a, b) => a.sig === b.sig && a.zoom === b.zoom && a.m === b.m && a.ascent === b.ascent,
+  (a, b) =>
+    a.sig === b.sig &&
+    a.zoom === b.zoom &&
+    a.m === b.m &&
+    a.ascent === b.ascent &&
+    a.label === b.label,
 );
 
 /**
@@ -234,12 +244,21 @@ export function PageView({
   measurer: TextMeasurer;
   paper: string;
 }) {
+  const { t } = useTranslation();
   const ascent = measurer.metrics().ascent;
   const sigs = useMemo(() => pages.map(signature), [pages]);
   return (
     <div id="print-area" data-testid="preview-sheet" data-paper={paper} data-pages={pages.length}>
       {pages.map((p, i) => (
-        <PageSvg key={i} page={p} sig={sigs[i]!} zoom={zoom} m={measurer} ascent={ascent} />
+        <PageSvg
+          key={i}
+          page={p}
+          sig={sigs[i]!}
+          zoom={zoom}
+          m={measurer}
+          ascent={ascent}
+          label={t('print.previewPage', { n: i + 1, total: pages.length })}
+        />
       ))}
     </div>
   );

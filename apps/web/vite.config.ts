@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vitest/config';
+import istanbul from 'vite-plugin-istanbul';
 import { VitePWA } from 'vite-plugin-pwa';
 
 const root = (p: string) => path.resolve(import.meta.dirname, `../../packages/${p}`);
@@ -17,6 +18,18 @@ const pkgJson = JSON.parse(
 export default defineConfig({
   define: { __APP_VERSION__: JSON.stringify(pkgJson.version) },
   plugins: [
+    // `COVERAGE=1 vite build` instruments the feature code so the end-to-end run can report coverage
+    ...(process.env['COVERAGE'] === '1'
+      ? [
+          istanbul({
+            include: 'src/features/**/*',
+            exclude: ['**/*.test.*'],
+            extension: ['.ts', '.tsx'],
+            requireEnv: false,
+            forceBuildInstrument: true,
+          }),
+        ]
+      : []),
     tanstackRouter({ target: 'react', autoCodeSplitting: true }),
     react(),
     tailwindcss(),
@@ -64,5 +77,14 @@ export default defineConfig({
   worker: { format: 'es' },
   optimizeDeps: { exclude: ['@sqlite.org/sqlite-wasm'] },
   server: { port: 1420, strictPort: true },
-  test: { environment: 'node', exclude: ['e2e/**', 'node_modules/**'] },
+  test: {
+    environment: 'node',
+    exclude: ['e2e/**', 'node_modules/**'],
+    coverage: {
+      provider: 'v8',
+      // every feature file, loaded by a test or not, so the figure is not flattered by what happens to be imported
+      include: ['src/features/**/*.{ts,tsx}'],
+      exclude: ['src/**/*.test.{ts,tsx}', 'src/features/**/README.md'],
+    },
+  },
 });

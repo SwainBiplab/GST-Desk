@@ -43,7 +43,7 @@ export function RichTextField({
 
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor={id} className="text-sm font-medium">
+      <label id={`${id}-label`} htmlFor={id} className="text-sm font-medium">
         {label}
       </label>
       {!disabled && (
@@ -74,6 +74,7 @@ export function RichTextField({
         ref={box}
         role="textbox"
         aria-multiline="true"
+        aria-labelledby={`${id}-label`}
         contentEditable={!disabled}
         suppressContentEditableWarning
         data-testid={testId}

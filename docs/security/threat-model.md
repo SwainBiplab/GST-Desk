@@ -1,0 +1,43 @@
+# Threat model
+
+Last refreshed at the close of Phase 1. Update it when a phase adds an asset, an entry point or a trust boundary (the next ones are the LAN server, sync, the API, portals and the AI gateway).
+
+## What is being protected
+
+| Asset                                               | Where it lives                                                                         | Why it matters                                   |
+| --------------------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| Business books: documents, parties, items, payments | A SQLite file on the user's device (OPFS in a browser, the data folder on the desktop) | Money, GSTINs, customer identities; a tax record |
+| Backups and exports                                 | `.gstbk` ZIPs, JSON and CSV exports, a folder the person chooses                       | A copy of everything; handed to others sometimes |
+| Update channel                                      | `latest.json` and installers from the release host                                     | A bad update runs code on every install          |
+| Cloud-drive credentials (desktop, opt-in)           | Secret settings on the device                                                          | Access to the person's own drive                 |
+| The release signing key                             | Held by the release owner (`docs/runbooks/signing.md`)                                 | Whoever has it can ship code to every install    |
+| Usage counters (opt-in)                             | `localStorage`, optionally sent weekly                                                 | Privacy: must never carry content                |
+
+## Trust boundaries and entry points (Phase 1)
+
+| Entry point                                                      | Who controls the input                                          | Defence                                                                                                                                                                                                  |
+| ---------------------------------------------------------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The UI: forms, grid cells, command bar                           | The person using the app                                        | Validation in the domain package; every query is parameterised through Drizzle; text is rendered by React (escaped)                                                                                      |
+| Rich text in notes and terms                                     | The person, or text pasted from anywhere                        | Allowlist sanitiser (`richtext.ts`) on write and read; paste is taken as plain text; the only `innerHTML` assignment is the sanitiser's output                                                           |
+| Files: CSV import, JSON import, `.gstbk`, images, supplier bills | Anyone who sends the person a file                              | File type by magic bytes, size limits (25 MB import, 10 MB attachment), manifests and checksums verified, `sanitizeIncoming` drops secret settings and scrubs the audit trail on every way in            |
+| A `.gstbk` opened from the file manager (desktop)                | Anyone who sends the person a file                              | Only `.gstbk` can be read by that command; it opens the restore dialog, which shows what the file holds and asks first                                                                                   |
+| `gstdesk://` links (desktop)                                     | Any web page or email                                           | An allowlist of pages (inbox, dashboard, reports, a new bill, backup settings); nothing carries data or acts                                                                                             |
+| The Rust IPC commands (desktop)                                  | The page's JavaScript                                           | Minimal capability file; commands validate their input (restore folders by name pattern, backups by extension, move target must be empty and outside the old folder); a release build ignores test hooks |
+| The update channel                                               | Whoever controls the release host or the network                | Minisign signature verified against the public key compiled into the app; a tampered download is refused (tested with a tampered fixture)                                                                |
+| Another site loading the app in a frame, or injecting script     | The web                                                         | A Content-Security-Policy (meta tag, and as a header with `frame-ancestors none` by `public/_headers`); no third-party scripts; `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`        |
+| The usage-counter endpoint (if a build sets one)                 | The operator                                                    | Opt-in, off by default; a fixed allowlist of feature names and counts; no cookies, no referrer; the exact payload is shown in Settings                                                                   |
+| Local storage and the data folder                                | Other software on the same machine, other users of the computer | Not defended against a person with the user's own account: the data is not encrypted at rest (see residual risk)                                                                                         |
+
+## Threats considered and what answers them
+
+- **A crafted backup or import plants a setting that sends data elsewhere** (found by the automated review in prompt 20): secret settings are dropped on every inbound path and again just before the write; hostile-file tests exist.
+- **A malicious `.gstbk` overwrites the books**: restore builds the new database beside the live one, checks it, and swaps only after; the old one is kept for a week with an automatic way back; a restore asks first and makes a backup of what is there.
+- **A link or file opened from outside does something without asking**: neither can change data on its own.
+- **Update substitution**: signature verification; the public key is in the binary; the previous version is kept.
+- **Telemetry becomes surveillance**: the list of countable things is a code allowlist, unknown names are dropped, turning it off deletes what was waiting, and a test asserts the payload holds no content.
+- **Logs leak customer data**: diagnostics scrub emails, GSTINs, PANs, ids, long numbers and user names; they never include the database.
+- **Supply chain**: lockfile with frozen installs in CI; Dependabot; workflow permissions are read-only except the release jobs; `pnpm audit` and `cargo audit` are in the Phase 1 review.
+
+## Out of scope for Phase 1 (to be added with the phases that introduce them)
+
+LAN server, sync and its authorisation, the cloud API and Postgres row-level security in production use, customer portals, the AI gateway and prompt-injection handling for model-backed features.

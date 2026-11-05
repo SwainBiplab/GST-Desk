@@ -13,8 +13,13 @@ import { useTranslation } from 'react-i18next';
 
 import { useActionContext } from '../action-context';
 import { restoreFocus } from '../focus';
+import { useLocationInfo } from '../hooks';
 import { GO_TO, isTypingTarget, shortcutsFor } from '../shortcuts';
 import { useAppStore } from '../store';
+
+import { screenFor } from '@/features/help/model';
+import { openHelp } from '@/features/help/store';
+import { track } from '@/features/telemetry/telemetry';
 
 /** The in-app keyboard map (`?`). Content comes from the same list as docs/keyboard.md. */
 export function KeymapDialog() {
@@ -49,11 +54,14 @@ const dialogOpen = () => !!document.querySelector('[role="dialog"], [role="alert
 /** Global shortcuts. Ignored while typing in a field or while a dialog is open (except Ctrl+K). */
 export function Hotkeys() {
   const ctx = useActionContext();
+  const { page } = useLocationInfo();
   const setCommandOpen = useAppStore((s) => s.setCommandOpen);
   const setKeymapOpen = useAppStore((s) => s.setKeymapOpen);
   const ref = useRef(ctx);
+  const pageRef = useRef(page);
   useEffect(() => {
     ref.current = ctx;
+    pageRef.current = page;
   });
   const pendingG = useRef(0);
 
@@ -63,6 +71,13 @@ export function Hotkeys() {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setCommandOpen(!useAppStore.getState().commandOpen);
+        return;
+      }
+      // F1 opens help for the screen you are on, even from inside a field
+      if (e.key === 'F1' && !dialogOpen()) {
+        e.preventDefault();
+        openHelp(screenFor(pageRef.current));
+        track('help_opened');
         return;
       }
       if (e.ctrlKey || e.metaKey || e.altKey || isTypingTarget(e.target) || dialogOpen()) return;

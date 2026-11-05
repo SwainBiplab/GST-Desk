@@ -24,6 +24,7 @@ export const SHORTCUTS: Shortcut[] = [
   { keys: 'Ctrl+K', description: 'Open the command bar', scope: 'global' },
   { keys: '/', description: 'Open the command bar (when not typing in a field)', scope: 'global' },
   { keys: '?', description: 'Show this keyboard map', scope: 'global' },
+  { keys: 'F1', description: 'Open help for the screen you are on', scope: 'global' },
   { keys: 'Esc', description: 'Close the command bar or a dialog', scope: 'global' },
   { keys: 'J / K', description: 'Inbox: move to the next or previous item', scope: 'global' },
   { keys: 'A', description: 'Inbox: accept the selected item', scope: 'global' },

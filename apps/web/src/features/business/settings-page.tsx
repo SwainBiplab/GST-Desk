@@ -61,6 +61,7 @@ import { NumberingTab } from '@/features/numbering/numbering-tab';
 import { Field } from '@/features/onboarding/field';
 import { AccountsTab } from '@/features/payments/accounts-tab';
 import { PrintTab } from '@/features/print/designer';
+import { PrivacyTab } from '@/features/telemetry/privacy-tab';
 
 const MONTHS = [
   'January',
@@ -457,6 +458,7 @@ const TABS = [
   'thermal',
   'backup',
   'trash',
+  'privacy',
   'desktop',
 ] as const;
 
@@ -537,6 +539,9 @@ export function SettingsPage() {
         </TabsContent>
         <TabsContent value="trash">
           <TrashTab />
+        </TabsContent>
+        <TabsContent value="privacy">
+          <PrivacyTab />
         </TabsContent>
         {isDesktop() && (
           <TabsContent value="desktop">

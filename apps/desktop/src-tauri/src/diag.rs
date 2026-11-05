@@ -116,7 +116,7 @@ mod tests {
         let n = build_zip(&dest, &logs, "1.2.3", "").unwrap();
         assert_eq!(n, 1);
         let mut z = zip::ZipArchive::new(fs::File::open(&dest).unwrap()).unwrap();
-        let names: Vec<String> = (0..z.len()).map(|i| z.by_index(i).unwrap().name().to_string()).collect();
+        let names: Vec<String> = (0..z.len()).map(|i| z.by_index(i).unwrap().name().unwrap().to_string()).collect();
         assert!(names.contains(&"info.txt".to_string()) && names.contains(&"logs/a.log".to_string()));
         assert!(!names.iter().any(|n| n.contains("db")));
         let mut log = String::new();

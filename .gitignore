@@ -20,3 +20,8 @@ tools/hsn/.keys/
 
 # desktop test fixtures (throw-away keys)
 apps/desktop/e2e/.generated
+apps/web/.nyc_output
+apps/web/coverage
+apps/web/coverage-e2e
+
+apps/web/a11y-reports

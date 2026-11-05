@@ -1,7 +1,6 @@
 import { readFile } from 'node:fs/promises';
 
-import { expect, test, type Page } from '@playwright/test';
-
+import { expect, test, type Page } from './fixtures';
 import { gstin, openSeeded } from './helpers';
 
 test.use({ viewport: { width: 1366, height: 768 } });

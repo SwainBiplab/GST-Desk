@@ -44,6 +44,7 @@ import { useAppDb, useLiveQuery } from '@/app/db';
 import { useAppNavigate } from '@/app/hooks';
 import type { Shell } from '@/app/store';
 import { editorPath } from '@/features/documents/editor-page';
+import { track } from '@/features/telemetry/telemetry';
 import { dyn } from '@/lib/dyn-key';
 import { useTerm } from '@/lib/terms';
 
@@ -254,6 +255,7 @@ export function ReportView({
       if (kind === 'csv') downloadBytes(`${fileBase}.csv`, toCsvText(x), CSV_MIME);
       else downloadBytes(`${fileBase}.xlsx`, toXlsx(toSheet(x)) as BlobPart, XLSX_MIME);
       toast.success(t('reports.exported', { count: rows.length }));
+      track('report_exported');
     } catch (e) {
       toast.error(e instanceof Error ? e.message : String(e));
     } finally {

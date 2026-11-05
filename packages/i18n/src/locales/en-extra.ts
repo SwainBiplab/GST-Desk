@@ -70,4 +70,105 @@ export const errors = {
 
 export const help = {
   keymap: { title: 'Keyboard map', description: 'Shortcuts that work in this mode.' },
+  title: 'Help',
+  search: 'Search help',
+  noResults: 'Nothing matches. Try other words.',
+  forThisScreen: 'Help for this screen',
+  gettingStarted: 'Getting started',
+  close: 'Close help',
+  reviewNote: 'This is a draft translation and has not been reviewed by a native speaker yet.',
+  start: {
+    title: 'Getting started',
+    intro:
+      'GST Desk keeps your bills, parties, stock and money in one place, on your own computer. These six steps take you to your first invoice.',
+    s1: {
+      title: 'Choose your language and mode',
+      body: 'Shop is for the counter: big buttons and a quick bill screen. Books is for the accounts desk: dense screens and keyboard shortcuts. You can switch the language and the mode at any time from the top bar.',
+    },
+    s2: {
+      title: 'Enter your business details',
+      body: 'Add your GSTIN (the app checks it), your state, name and address. Printed documents use them.',
+    },
+    s3: {
+      title: 'Add a party and an item',
+      body: 'Parties are your customers and suppliers; items are what you sell. A name, GSTIN and phone are enough for a party. For an item, add a name, an HSN code and the GST rate. Press Suggest to find an HSN code from the name.',
+    },
+    s4: {
+      title: 'Make your first invoice',
+      body: 'Choose Sell, or New invoice. Pick the party, add the lines, check the totals and press Issue. The invoice gets its number when you issue it.',
+    },
+    s5: {
+      title: 'Record the payment',
+      body: 'When the customer pays, choose Receive payment, pick the party and enter the amount. The oldest bills are settled first, and you can make a receipt.',
+    },
+    s6: {
+      title: 'Make a backup',
+      body: 'Open Settings, then Backup, and choose Back up now. Pick a folder on your disk too. Your data lives on this computer only, so backups matter.',
+    },
+  },
+  screens: {
+    dashboard: {
+      title: 'Dashboard',
+      body: 'A summary of today and this month: sales, what customers owe, cash, stock running low, your GST position and what needs your attention.',
+      tip1: 'Click a card to open the report behind it.',
+      tip2: 'Shop shows the questions of the counter; Books shows the questions of the accounts desk.',
+      tip3: 'The numbers come from issued documents and recorded payments only. Drafts are not counted.',
+    },
+    sell: {
+      title: 'Sell',
+      body: 'The quick bill screen for the counter: pick or add a party, add items and take the payment.',
+      tip1: 'Type an item name or scan a barcode to add a line.',
+      tip2: 'Totals are worked out as you type. Click a total to see how it was reached.',
+      tip3: 'Issue gives the bill its number. Before that it is a draft, saved as you go.',
+    },
+    documents: {
+      title: 'Documents',
+      body: 'Every invoice, bill of supply, quotation, credit note, purchase bill and more, with its status and payment.',
+      tip1: 'Filter by type, status or party, and export the list to CSV.',
+      tip2: 'An issued document is changed as a new revision, or cancelled with a reason. It is never changed silently.',
+      tip3: 'To correct an invoice you have already sent, issue a credit note.',
+    },
+    parties: {
+      title: 'Parties',
+      body: 'Customers and suppliers, with balances, ledger, documents and payments in one place.',
+      tip1: 'Typing a GSTIN fills in the state and PAN and checks the last character.',
+      tip2: 'The app warns when a new party looks like one you already have, and can merge duplicates.',
+      tip3: 'Each party can have their own language for their documents and reminders.',
+    },
+    items: {
+      title: 'Items',
+      body: 'What you sell or buy, with HSN or SAC code, GST rate, price and stock.',
+      tip1: 'Suggest finds an HSN code from the item name.',
+      tip2: 'Bulk edit changes prices or rates of many items at once, with a preview and an undo.',
+      tip3: 'When the HSN master changes a rate, the item is listed under GST rate changes for you to review.',
+    },
+    payments: {
+      title: 'Payments',
+      body: 'Money received and paid, and how it settles documents.',
+      tip1: 'Receive payment settles the oldest documents first. You can choose which ones.',
+      tip2: 'Money left over is kept as credit or as an advance for that party.',
+      tip3: 'The day book shows the cash that came in and went out on a day.',
+    },
+    reports: {
+      title: 'Reports',
+      body: 'Registers and summaries from your issued documents and payments, including the GST summaries that help you prepare returns.',
+      tip1: 'Choose a period, then filter by party, type or item.',
+      tip2: 'Save a view to come back to the same filters and columns.',
+      tip3: 'Export to CSV or Excel, or print.',
+    },
+    inbox: {
+      title: 'Inbox',
+      body: 'Things the app noticed for you to check: possible duplicates, missing HSN codes, overdue customers, low stock, old drafts and failed backups. Nothing changes until you accept it.',
+      tip1: 'J and K move, A accepts, E changes it first, R rejects, S snoozes and O opens the record.',
+      tip2: 'Accept many shows a preview before anything changes.',
+      tip3: 'A reminder is drafted in the customer’s language. You send it yourself.',
+    },
+    settings: {
+      title: 'Settings',
+      body: 'Your business details, features, documents, numbering, printing, bank accounts, backup, privacy and more.',
+      tip1: 'Numbering sets prefixes and can lock a period.',
+      tip2: 'Print has the template designer and the wording of every printed label.',
+      tip3: 'Backup is where you back up, restore, export and import.',
+    },
+  },
 };

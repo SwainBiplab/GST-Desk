@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
   Switch,
+  formatPaise,
 } from '@gst/ui';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -348,7 +349,8 @@ function TotalRow({
           type="button"
           variant="ghost"
           className="h-6 px-1 tabular"
-          aria-label={t('docs.trace.explain', { label })}
+          // the name starts with what the button shows, then says what it does
+          aria-label={`${formatPaise(paise)}, ${t('docs.trace.explain', { label })}`}
           data-testid={testId ?? 'doc-total-row'}
           onClick={onTrace}
         >

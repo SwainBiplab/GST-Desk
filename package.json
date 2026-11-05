@@ -34,7 +34,8 @@
     "release:verify": "node scripts/verify-release.mjs",
     "hsn:keygen": "pnpm --filter @gst/hsn-tools keygen",
     "hsn:build": "pnpm --filter @gst/hsn-tools make",
-    "hsn:verify": "pnpm --filter @gst/hsn-tools verify"
+    "hsn:verify": "pnpm --filter @gst/hsn-tools verify",
+    "drills": "pnpm --filter @gst/drills test"
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.3",

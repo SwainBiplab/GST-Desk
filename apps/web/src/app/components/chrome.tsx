@@ -20,6 +20,9 @@ import { useAppStore, type Shell } from '../store';
 
 import { useFeatureFlags } from '@/features/business/hooks';
 import { useBackupStatus } from '@/features/data/backup-service';
+import { screenFor } from '@/features/help/model';
+import { openHelp } from '@/features/help/store';
+import { track } from '@/features/telemetry/telemetry';
 import { changeLanguage } from '@/lib/i18n';
 import { KEYS } from '@/lib/terms';
 
@@ -36,7 +39,7 @@ export function BusinessSwitcher({ large = false }: { large?: boolean }) {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          aria-label={t('chrome.business')}
+          aria-label={`${name}, ${t('chrome.business')}`}
           data-testid="business-switcher"
           className={cn('max-w-64 justify-between', large && 'min-h-11 text-base font-semibold')}
         >
@@ -99,7 +102,8 @@ export function NotificationBell({ shell }: { shell: Shell }) {
         <Button
           variant="ghost"
           className="relative min-w-(--control-h)"
-          aria-label={label}
+          // the name starts with the number the bell shows
+          aria-label={n > 0 ? `${n}, ${label}` : label}
           data-testid="bell"
         >
           <Bell size={16} aria-hidden />
@@ -142,7 +146,8 @@ export function NotificationBell({ shell }: { shell: Shell }) {
 }
 
 export function HelpMenu() {
-  const { t } = useTranslation();
+  const { t } = useTranslation(['ui', 'help']);
+  const { page } = useLocationInfo();
   const setKeymapOpen = useAppStore((s) => s.setKeymapOpen);
   const setCommandOpen = useAppStore((s) => s.setCommandOpen);
   return (
@@ -153,6 +158,24 @@ export function HelpMenu() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        <DropdownMenuItem
+          data-testid="help-this-screen"
+          onSelect={() => {
+            openHelp(screenFor(page));
+            track('help_opened');
+          }}
+        >
+          {t('help:forThisScreen')} ({KEYS.help})
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          data-testid="help-getting-started"
+          onSelect={() => {
+            openHelp('start');
+            track('help_opened');
+          }}
+        >
+          {t('help:gettingStarted')}
+        </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => setKeymapOpen(true)}>
           {t('chrome.keyboardMap')} (?)
         </DropdownMenuItem>
@@ -203,7 +226,7 @@ export function DensityButton({ shell }: { shell: Shell }) {
   return (
     <Button
       variant="ghost"
-      aria-label={t('chrome.density')}
+      aria-label={`${t(density === 'compact' ? 'chrome.compact' : 'chrome.comfortable')}, ${t('chrome.density')}`}
       data-testid="density-toggle"
       onClick={() => {
         toggleDensity(shell);

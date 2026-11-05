@@ -9,6 +9,7 @@ Everything reachable with the mouse is reachable from the keyboard. Press `?` an
 | Ctrl+K | Open the command bar                                               |
 | /      | Open the command bar (when not typing in a field)                  |
 | ?      | Show this keyboard map                                             |
+| F1     | Open help for the screen you are on                                |
 | Esc    | Close the command bar or a dialog; focus returns to where you were |
 
 ## In the Inbox

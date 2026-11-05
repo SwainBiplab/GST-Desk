@@ -48,6 +48,7 @@ import { removeLocationFiles, stagingLocation, switchTo } from '@/app/db-locatio
 import { isTauri, openTauriBackend, openWorkerBackend } from '@/app/sqlite/backends';
 import { createDrizzle } from '@/app/sqlite/proxy';
 import { downloadBytes, fileSafe } from '@/features/reports/download';
+import { track } from '@/features/telemetry/telemetry';
 
 /* ------------------------------------------------------------------ this device's backup facts */
 
@@ -228,6 +229,7 @@ export function runBackup(
           rows: manifest.totals.rows,
           folderError: saved.folderError,
         });
+      if (kind === 'manual') track('backup_made');
       return { name, bytes, manifest };
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
@@ -365,6 +367,7 @@ export async function restoreInBrowser(
     });
     await staging.close();
     switchTo(loc);
+    track('backup_restored');
     return { rows: result.rows };
   } catch (e) {
     await staging.close().catch(() => undefined);

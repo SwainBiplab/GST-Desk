@@ -1,5 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
-
+import { expect, test, type Page } from './fixtures';
 import { gstin, openSeeded, png, runWizard, tabTo } from './helpers';
 
 test.use({ viewport: { width: 1366, height: 768 } });

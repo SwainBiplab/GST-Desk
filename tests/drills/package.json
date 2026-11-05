@@ -1,0 +1,25 @@
+{
+  "name": "@gst/drills",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "build": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@gst/db": "workspace:*",
+    "@gst/domain": "workspace:*",
+    "drizzle-orm": "^0.45.4"
+  },
+  "devDependencies": {
+    "@gst/config": "workspace:*",
+    "@types/node": "^26.6.6",
+    "eslint": "^9.39.0",
+    "tsx": "^4.23.15",
+    "typescript": "~6.0.0",
+    "vitest": "^5.1.0"
+  }
+}

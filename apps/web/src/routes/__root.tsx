@@ -13,7 +13,9 @@ import { registerDefaultActions } from '@/app/default-actions';
 import { lastShell } from '@/app/store';
 import { BackgroundJobs } from '@/features/data/background';
 import { DesktopJobs } from '@/features/desktop/desktop-jobs';
+import { HelpDialog } from '@/features/help/help-dialog';
 import { InboxJobs } from '@/features/inbox/jobs';
+import { TelemetryJobs } from '@/features/telemetry/jobs';
 import i18n, { i18nReady } from '@/lib/i18n';
 
 registerDefaultActions();
@@ -60,11 +62,13 @@ function Root() {
           <BackgroundJobs />
           <InboxJobs />
           <DesktopJobs />
+          <TelemetryJobs />
           <ErrorBoundary>
             <Outlet />
           </ErrorBoundary>
           <CommandBar />
           <KeymapDialog />
+          <HelpDialog />
           <Hotkeys />
           <UpdateBar />
           <Toaster />

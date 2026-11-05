@@ -60,6 +60,7 @@ import { takePendingRestore, usePendingRestore } from './pending-restore';
 import { useConfirm } from '@/app/components/confirm';
 import { useAppDb } from '@/app/db';
 import { isTauri } from '@/app/sqlite/backends';
+import { track } from '@/features/telemetry/telemetry';
 
 const when = (ms: number) =>
   new Date(ms).toLocaleString('en-IN', {
@@ -328,6 +329,7 @@ function ImportDialog({ text, onClose }: { text: string; onClose: () => void }) 
     try {
       const r = await importJson(database, ctx, text);
       toast.success(t('data.import.done', { rows: r.rows }));
+      track('import_done');
       onClose();
     } catch (e) {
       setError(errText(e));

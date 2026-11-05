@@ -24,6 +24,7 @@ import { useAppDb } from '@/app/db';
 import { useLocationInfo } from '@/app/hooks';
 import { useFeatureFlags } from '@/features/business/hooks';
 import { StockPanel } from '@/features/inventory/stock-panel';
+import { track } from '@/features/telemetry/telemetry';
 
 /**
  * Create or edit one item: save it, show what the repository rejected (a SKU already in use, a unit
@@ -66,6 +67,7 @@ export function ItemEditor({
         saved = await repo.create(ctx, values);
       }
       toast.success(t('items.saved'));
+      track('item_added');
       onDone(saved);
     } catch (e) {
       if (e instanceof ItemValidationError) setServerErrors(serverErrorsToForm(e.fields));

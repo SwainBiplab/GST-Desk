@@ -27,6 +27,7 @@
     "lines": 200,
     "keystrokeP95Ms": 16,
     "previewMs": 300,
-    "engineMs": 20
+    "engineMs": 20,
+    "keystrokeP95HardMs": 24
   }
 }

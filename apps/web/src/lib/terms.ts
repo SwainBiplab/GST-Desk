@@ -13,7 +13,7 @@ export function useTerm(): (concept: Concept) => string {
 export const BRAND = { google: 'Google Drive', onedrive: 'OneDrive' } as const;
 
 /** Key names as printed on a keycap. */
-export const KEYS = { commandBar: 'Ctrl+K', commandBarCap: 'Ctrl K' } as const;
+export const KEYS = { commandBar: 'Ctrl+K', commandBarCap: 'Ctrl K', help: 'F1' } as const;
 
 /** Examples shown in fields: a format, not words. */
 export const EXAMPLE = { url: 'https://', documentNumber: 'INV/26-27/0001' } as const;

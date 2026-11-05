@@ -1,8 +1,8 @@
 import { readFileSync } from 'node:fs';
 
-import { expect, test, type Page } from '@playwright/test';
 import { strFromU8, unzipSync } from 'fflate';
 
+import { expect, test, type Page } from './fixtures';
 import { openSeeded } from './helpers';
 
 test.use({ viewport: { width: 1366, height: 900 } });

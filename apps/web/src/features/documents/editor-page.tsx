@@ -85,6 +85,7 @@ import {
   useTemplates,
   withPartyLanguage,
 } from '@/features/print/use-templates';
+import { track } from '@/features/telemetry/telemetry';
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
 
@@ -294,6 +295,7 @@ export function EditorPage({
       }
       setShowIssues(false);
       toast.success(t('docs.issued', { number }));
+      track('invoice_issued');
       // a party with an advance or a credit note can have it applied to what was just issued
       const issuedId = editor.currentId();
       if (issuedId && draft.partyId && PAYABLE_TYPES.includes(draft.type))
@@ -338,6 +340,7 @@ export function EditorPage({
       const r = await makeCurrentPdf();
       downloadBytes(r.fileName, r.bytes);
       toast.success(t('print.saved', { name: r.fileName }));
+      track('pdf_saved');
     } catch (e) {
       toast.error(e instanceof Error ? e.message : String(e));
     } finally {
@@ -853,7 +856,7 @@ export function EditorPage({
         </div>
 
         {simple ? (
-          <div aria-hidden className="offscreen">
+          <div inert className="offscreen">
             <DocumentPreview
               model={model}
               spec={spec}

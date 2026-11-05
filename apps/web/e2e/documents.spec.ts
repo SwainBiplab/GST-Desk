@@ -1,5 +1,3 @@
-import { expect, test, type Page } from '@playwright/test';
-
 import {
   addLine,
   clickItemCell,
@@ -9,6 +7,7 @@ import {
   pickParty,
   uiTotal,
 } from './documents.helpers';
+import { expect, test, type Page } from './fixtures';
 import { openSeeded, png } from './helpers';
 
 test.use({ viewport: { width: 1366, height: 900 } });

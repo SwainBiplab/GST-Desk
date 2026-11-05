@@ -18,6 +18,7 @@ import { PartyForm } from './party-form';
 import { useAppDb } from '@/app/db';
 import { useAppNavigate } from '@/app/hooks';
 import { useAppStore } from '@/app/store';
+import { track } from '@/features/telemetry/telemetry';
 import { dyn } from '@/lib/dyn-key';
 
 /** Candidates that look like the party being saved. Uses the Tier 0 rules provider (offline). */
@@ -146,6 +147,7 @@ export function PartyEditor({
         ? await repo.update(ctx, existing['id'], values, existing['version'])
         : await repo.create(ctx, values);
       toast.success(t('parties.saved'));
+      track('party_added');
       onDone(saved);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : String(e));

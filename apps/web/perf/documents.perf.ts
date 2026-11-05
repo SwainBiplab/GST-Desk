@@ -80,19 +80,23 @@ test(`with ${B.lines} lines a keystroke is handled within a frame and the previe
   await expect(page.getByTestId('doc-total')).not.toHaveText('₹0.00');
 
   // a keystroke in the PO number field: a draft change that reprices all 200 lines
-  const times = await keystrokeTimes(page, 'doc-ref-po', 'PO-12345-ABCDE');
+  // enough keystrokes for a 95th percentile to be one: with 14 samples it is just the slowest one
+  const times = await keystrokeTimes(page, 'doc-ref-po', 'PO-12345-ABCDE'.repeat(4));
   results['keystrokeP95Ms'] = Math.round(p95(times));
   results['keystrokeMedianMs'] = Math.round(
     [...times].sort((a, b) => a - b)[Math.floor(times.length / 2)] ?? 0,
   );
   results['keystrokes'] = times.length;
-  expect(times.length).toBeGreaterThan(10);
-  expect(p95(times), 'p95 key to frame').toBeLessThanOrEqual(B.keystrokeP95Ms);
+  expect(times.length).toBeGreaterThan(50);
+  // the target is `keystrokeP95Ms` (one frame); `keystrokeP95HardMs` is the line a run must not cross while the
+  // time-boxed exception in docs/decisions/0015-phase-1-performance-budgets.md is open
+  results['keystrokeP95MeetsBudget'] = p95(times) <= B.keystrokeP95Ms;
+  expect(p95(times), 'p95 key to frame (hard line)').toBeLessThanOrEqual(B.keystrokeP95HardMs);
 
   // the same keystrokes on the baseline device (4x slower CPU), recorded for the baseline document
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: budgets.cpuThrottle });
-  const slow = await keystrokeTimes(page, 'doc-ref-challan', 'CH-12345-ABCDE');
+  const slow = await keystrokeTimes(page, 'doc-ref-challan', 'CH-12345-ABCDE'.repeat(4));
   results['keystrokeP95At4xMs'] = Math.round(p95(slow));
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
 

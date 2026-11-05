@@ -843,6 +843,7 @@ export const en = {
     },
   },
   print: {
+    previewPage: 'Page {{n}} of {{total}} of the document preview',
     template: 'Template',
     notReady: 'The business details are still loading. Try again in a moment.',
     download: 'Download PDF',
@@ -1219,6 +1220,7 @@ export const en = {
       accounts: 'Bank and UPI',
       print: 'Print',
       desktop: 'Desktop',
+      privacy: 'Privacy',
     },
     save: 'Save changes',
     saved: 'Saved',
@@ -2167,6 +2169,29 @@ export const en = {
       quit: 'Quit',
     },
     backupDone: 'Backup made.',
+  },
+  privacy: {
+    usage: {
+      title: 'Usage counters',
+      body: 'Help improve GST Desk by letting it count which features are used. It counts only the name of a feature and how many times it was used. Never anything you type: no names, GSTIN, amounts, document numbers or files. It is off unless you turn it on.',
+      switch: 'Share anonymous usage counts',
+      off: 'Off. Nothing is counted, stored or sent.',
+      onSending: 'On. The counts are sent about once a week, with no cookies and nothing else.',
+      onNoAddress:
+        'On, but this copy of the app has no address to send to, so the counts only stay on this device.',
+      counted: 'The only things that can be counted',
+      wouldSend: 'This is exactly what would be sent',
+      resetId: 'Start again with a new random id',
+    },
+    data: {
+      title: 'Your data',
+      body: 'Your business data stays on your own computer. It is not sent anywhere unless you set up a copy yourself.',
+      export: 'Export everything at any time: Settings, Backup, then Export as JSON or CSV files.',
+      deleteWeb: 'You can delete everything this app keeps in this browser.',
+      deleteDesktop:
+        'To remove your data, close the app and delete the data folder shown under Settings, Desktop.',
+      deleteButton: 'Delete all my data on this device',
+    },
   },
   update: { available: 'A new version is ready.', reload: 'Reload to update', later: 'Later' },
 };
