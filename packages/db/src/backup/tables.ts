@@ -81,6 +81,20 @@ export function scrubAudit(row: Record<string, unknown>): Record<string, unknown
   return { ...row, before_json: hide(row['before_json']), after_json: hide(row['after_json']) };
 }
 
+/**
+ * Rows from outside (a file someone sent, a backup of unknown origin) cleaned the way outgoing rows are:
+ * no secret settings and no secret values in the audit trail. Without this a crafted file could plant a
+ * cloud credential of its own and have every later backup uploaded to someone else's drive.
+ */
+export function sanitizeIncoming(
+  table: string,
+  rows: Record<string, unknown>[],
+): Record<string, unknown>[] {
+  if (table === 'settings') return rows.filter((r) => !isSecretSettingKey(String(r['key'] ?? '')));
+  if (table === 'audit_log') return rows.map(scrubAudit);
+  return rows;
+}
+
 /** A stored row as a plain object of portable values (numbers, strings, booleans, parsed JSON, null). */
 export function toPortable(
   table: TableInfo,

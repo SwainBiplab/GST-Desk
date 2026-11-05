@@ -20,6 +20,7 @@ import {
   TABLES,
   assertSqlite,
   isSecretSettingKey,
+  sanitizeIncoming,
   scrubAudit,
   tableInfo,
   tableOrder,
@@ -106,7 +107,7 @@ export function businessDataFromBackup(
           !(t.name === 'settings' && isSecretSettingKey(String(r['key'])))
         )
           rows.push(r);
-    tables[t.name] = rows;
+    tables[t.name] = sanitizeIncoming(t.name, rows);
   }
   return { business, tables };
 }
@@ -194,6 +195,7 @@ export function parseExportJson(text: string): BusinessData {
     }
     tables[name] = [...(tables[name] ?? []), ...flat];
   }
+  for (const name of Object.keys(tables)) tables[name] = sanitizeIncoming(name, tables[name]!);
   return { business: doc['business'] as Record<string, unknown>, tables };
 }
 
@@ -321,6 +323,13 @@ export async function importBusinessData(
   opts: ImportOptions,
 ): Promise<ImportResult> {
   assertSqlite(d);
+  // whatever the data came from, it is cleaned again here: this is the last step before it is written
+  data = {
+    business: data.business,
+    tables: Object.fromEntries(
+      Object.entries(data.tables).map(([n, rows]) => [n, sanitizeIncoming(n, rows)]),
+    ),
+  };
   const warnings: string[] = [];
   const oldBusinessId = String(data.business['id']);
   const businessId = newId();

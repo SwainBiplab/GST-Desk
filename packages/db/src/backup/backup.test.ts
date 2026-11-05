@@ -655,3 +655,177 @@ describe('docs/export-schema.md', () => {
     expect(doc).toContain('paise');
   });
 });
+
+describe('a file from outside cannot plant a secret', () => {
+  let a: Database;
+  let ctx: Ctx;
+  let bytes: Uint8Array;
+  let json: string;
+
+  beforeAll(async () => {
+    a = await fresh();
+    ({ ctx } = await seedDemo(a, { documents: 60, parties: 10, items: 20 }));
+    await new SettingsRepo(a).set(ctx, 'reports.views', [{ id: 'v', name: 'ok', search: {} }]);
+    ({ bytes } = await createBackup(a));
+    json = await exportBusinessJson(a, ctx.businessId);
+  }, 120_000);
+
+  const planted = {
+    enabled: true,
+    provider: 'google',
+    clientId: 'attacker',
+    refreshToken: 'attacker-token',
+  };
+  const settingRow = (over: Record<string, unknown>) => ({
+    id: crypto.randomUUID(),
+    org_id: ctx.orgId,
+    business_id: ctx.businessId,
+    version: 1,
+    created_at: 1,
+    updated_at: 1,
+    scope: 'business',
+    value_json: planted,
+    ...over,
+  });
+
+  /** A backup whose manifest agrees with its contents, as an attacker who made it would arrange. */
+  async function craft(extra: {
+    settings?: Record<string, unknown>[];
+    audit?: Record<string, unknown>[];
+  }) {
+    const out = zipSync(
+      await (async () => {
+        const files = unzipSync(bytes);
+        const manifest = JSON.parse(strFromU8(files['manifest.json']!)) as {
+          tables: Record<string, { rows: number; bytes: number; sha256: string }>;
+        };
+        const add = async (table: string, rows: Record<string, unknown>[]) => {
+          const name = `data/${table}.jsonl`;
+          const text =
+            strFromU8(files[name]!) + rows.map((r) => JSON.stringify(r)).join('\n') + '\n';
+          files[name] = strToU8(text);
+          manifest.tables[table] = {
+            ...manifest.tables[table]!,
+            rows: manifest.tables[table]!.rows + rows.length,
+            bytes: files[name]!.length,
+            sha256: await sha256Hex(files[name]!),
+          };
+        };
+        if (extra.settings) await add('settings', extra.settings);
+        if (extra.audit) await add('audit_log', extra.audit);
+        files['manifest.json'] = strToU8(JSON.stringify(manifest));
+        return files;
+      })(),
+    );
+    return out;
+  }
+
+  // built when used: the context only exists once the book has been seeded
+  const secrets = () => [
+    settingRow({ key: 'cloud.credentials' }),
+    settingRow({ key: 'cloud.token.google', value_json: 'attacker-token' }),
+    settingRow({ key: 'oauth.refresh', value_json: 'attacker-token' }),
+    settingRow({ key: 'pin', value_json: '0000' }),
+  ];
+  const leakyAudit = () => ({
+    id: crypto.randomUUID(),
+    org_id: ctx.orgId,
+    business_id: ctx.businessId,
+    created_at: 1,
+    table_name: 'settings',
+    row_id: crypto.randomUUID(),
+    action: 'update',
+    before_json: null,
+    after_json: { key: 'cloud.credentials', value_json: 'LEAKED-TOKEN' },
+    actor: 'x',
+    device_id: 'd',
+    at: 1,
+  });
+
+  it('a hostile export file: the secret settings are dropped, the ordinary ones kept', async () => {
+    const doc = JSON.parse(json) as { tables: Record<string, Record<string, unknown>[]> };
+    doc.tables['settings']!.push(
+      ...secrets(),
+      settingRow({ key: 'invoice.footer', value_json: 'Thank you' }),
+    );
+    const b = await fresh();
+    const org = await createOrganisation(b, 'Target');
+    const data = parseExportJson(JSON.stringify(doc));
+    expect(data.tables['settings']!.map((r) => r['key'])).not.toEqual(
+      expect.arrayContaining(['cloud.credentials']),
+    );
+    const r = await importBusinessData(b, data, { orgId: String(org['id']), actor: 'me' });
+    const nctx: Ctx = {
+      orgId: String(org['id']),
+      businessId: r.businessId,
+      actor: 'me',
+      deviceId: 'd',
+    };
+    const settings = new SettingsRepo(b);
+    for (const key of ['cloud.credentials', 'cloud.token.google', 'oauth.refresh', 'pin'])
+      expect(await settings.getValue(nctx, key), key).toBeUndefined();
+    expect(await settings.getValue(nctx, 'invoice.footer')).toBe('Thank you');
+    expect(await settings.getValue(nctx, 'reports.views')).toBeDefined();
+  }, 120_000);
+
+  it('the import itself cleans its input, whatever called it', async () => {
+    const doc = JSON.parse(json) as {
+      business: Record<string, unknown>;
+      tables: Record<string, Record<string, unknown>[]>;
+    };
+    // built by hand, never passed through parseExportJson
+    const b = await fresh();
+    const org = await createOrganisation(b, 'Target');
+    const r = await importBusinessData(
+      b,
+      {
+        business: doc.business,
+        tables: { ...doc.tables, settings: [...doc.tables['settings']!, ...secrets()] },
+      },
+      { orgId: String(org['id']), actor: 'me' },
+    );
+    const left = await queryRows(
+      b,
+      b.db,
+      sql`SELECT key FROM settings WHERE business_id = ${r.businessId}`,
+    );
+    expect(left.map((x) => x['key'])).not.toContain('cloud.credentials');
+  }, 120_000);
+
+  it('a hostile backup file, with a manifest that agrees with it: restoring drops them and says how many', async () => {
+    const hostile = await craft({ settings: secrets(), audit: [leakyAudit()] });
+    const b = await fresh();
+    const r = await restoreAll(b, hostile);
+    expect(r.secretsDropped).toBe(secrets().length);
+    const left = await queryRows(b, b.db, sql`SELECT key FROM settings`);
+    for (const row of left) expect(String(row['key'])).not.toMatch(/^(cloud\.|oauth|pin)/);
+    const trail = await queryRows(
+      b,
+      b.db,
+      sql`SELECT after_json FROM audit_log WHERE table_name = 'settings'`,
+    );
+    expect(JSON.stringify(trail)).not.toContain('LEAKED-TOKEN');
+    expect(await new SettingsRepo(b).getValue(ctx, 'cloud.credentials')).toBeUndefined();
+    // everything else came across: this backup's own rows are all there
+    expect(r.rows + r.secretsDropped).toBe(
+      readManifest(hostile).totals.rows + secrets().length + 1,
+    );
+  }, 120_000);
+
+  it('restoring one business from a hostile backup drops them too', async () => {
+    const hostile = await craft({ settings: secrets(), audit: [leakyAudit()] });
+    const m = readManifest(hostile);
+    const data = businessDataFromBackup(hostile, { manifest: m }, ctx.businessId, {
+      includeAudit: true,
+    });
+    expect(data.tables['settings']!.some((x) => String(x['key']) === 'cloud.credentials')).toBe(
+      false,
+    );
+    expect(JSON.stringify(data.tables['audit_log'])).not.toContain('LEAKED-TOKEN');
+  });
+
+  it('a backup this app made has none to drop', async () => {
+    const b = await fresh();
+    expect((await restoreAll(b, bytes)).secretsDropped).toBe(0);
+  });
+});

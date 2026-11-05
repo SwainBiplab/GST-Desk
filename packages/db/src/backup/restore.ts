@@ -6,7 +6,7 @@ import { schemaVersion } from '../migrate';
 import type { BackupManifest } from './format';
 import { insertRows, orderForInsert } from './insert';
 import { BackupError, entryOf, rowChunksAsync, verifyBackup, type Verification } from './read';
-import { TABLES, assertSqlite, tableInfo, tableOrder } from './tables';
+import { TABLES, assertSqlite, sanitizeIncoming, tableInfo, tableOrder } from './tables';
 
 /** Where restored attached files go (the browser's file store, the desktop's folder). */
 export interface AttachmentSink {
@@ -28,6 +28,8 @@ export interface RestoreResult {
   tables: Record<string, number>;
   rows: number;
   attachments: number;
+  /** Rows left out because they held a secret (a backup made by this app never has any). */
+  secretsDropped: number;
 }
 
 export interface Preflight {
@@ -127,7 +129,7 @@ export async function restoreAll(
   }
 
   const known = new Set(TABLES.map((t) => t.name));
-  const result: RestoreResult = { tables: {}, rows: 0, attachments };
+  const result: RestoreResult = { tables: {}, rows: 0, attachments, secretsDropped: 0 };
   await target.db.transaction(async (tx: any) => {
     await execRaw(target, tx, 'PRAGMA defer_foreign_keys = ON');
     for (const name of tableOrder()) {
@@ -135,10 +137,14 @@ export async function restoreAll(
       if (!entry || !known.has(name)) continue;
       const info = tableInfo(name);
       let inserted = 0;
+      // rows that were left out because they carry a secret, which still count towards the backup's list
+      let dropped = 0;
       // a table that points at itself is inserted whole so its rows can be put in order
       const selfRef = Object.values(info.refs).includes(name);
       const pending: Record<string, unknown>[] = [];
-      for await (const chunk of rowChunksAsync(bytes, manifest, name, 500, yieldToUi)) {
+      for await (const raw of rowChunksAsync(bytes, manifest, name, 500, yieldToUi)) {
+        const chunk = sanitizeIncoming(name, raw);
+        dropped += raw.length - chunk.length;
         if (selfRef) pending.push(...chunk);
         else {
           inserted += await insertRows(target, tx, info, chunk);
@@ -151,7 +157,8 @@ export async function restoreAll(
         inserted += await insertRows(target, tx, info, orderForInsert(info, pending), yieldToUi);
         await opts.onBatch?.(name, inserted);
       }
-      if (inserted !== entry.rows)
+      result.secretsDropped += dropped;
+      if (inserted + dropped !== entry.rows)
         throw new BackupError(
           'row_count_mismatch',
           `${name}: restored ${inserted} of ${entry.rows} rows`,
