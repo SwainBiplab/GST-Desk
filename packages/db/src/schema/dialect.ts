@@ -183,6 +183,11 @@ function commonCols(kind: TableKind): Record<string, Col> {
   }
 }
 
+/** Every column of a table: the common ones its kind gets, then its own. */
+export function tableColumns(spec: TableSpec): Record<string, Col> {
+  return { ...commonCols(spec.kind), ...spec.cols };
+}
+
 export function indexName(table: string, spec: IndexSpec) {
   return `${table}_${spec.cols.join('_')}_${spec.unique ? 'uq' : 'idx'}`;
 }

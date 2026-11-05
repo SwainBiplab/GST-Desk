@@ -28,3 +28,4 @@ export * from './documents/richtext';
 export * from './documents/rows';
 export * from './reports';
 export * from './inventory';
+export * from './backup';

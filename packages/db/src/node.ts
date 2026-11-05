@@ -32,3 +32,6 @@ export async function openPglite(dataDir?: string): Promise<Database & { raw: an
     close: async () => client.close(),
   };
 }
+
+export * from './backup/node-files';
+export * from './node-sqlite';

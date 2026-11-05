@@ -11,6 +11,7 @@ import { UpdateBar } from '@/app/components/update-bar';
 import { AppDbProvider, DEMO_REQUESTED, useAppDb } from '@/app/db';
 import { registerDefaultActions } from '@/app/default-actions';
 import { lastShell } from '@/app/store';
+import { BackgroundJobs } from '@/features/data/background';
 
 registerDefaultActions();
 
@@ -50,6 +51,7 @@ function Root() {
       <ConfirmProvider>
         <TooltipProvider>
           <FirstRunGuard />
+          <BackgroundJobs />
           <ErrorBoundary>
             <Outlet />
           </ErrorBoundary>

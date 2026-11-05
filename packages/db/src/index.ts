@@ -19,3 +19,5 @@ export * from './repositories/payment-flow';
 export * from './repositories/templates';
 export * from './repositories/reports';
 export * from './repositories/inventory';
+export * from './backup';
+export * from './repositories/trash';

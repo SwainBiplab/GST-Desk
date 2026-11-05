@@ -532,7 +532,7 @@ export const SPEC: TableSpec[] = [
     cols: {
       table_name: c.text().nn,
       row_id: c.uuid().nn,
-      action: c.text().nn.oneOf(['insert', 'update', 'soft_delete']),
+      action: c.text().nn.oneOf(['insert', 'update', 'soft_delete', 'purge']),
       before_json: c.json(),
       after_json: c.json(),
       actor: c.text().nn,

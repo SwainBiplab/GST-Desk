@@ -51,6 +51,8 @@ import { useAppDb } from '@/app/db';
 import { useLocationInfo } from '@/app/hooks';
 import { useAppStore } from '@/app/store';
 import { useUnsavedGuard } from '@/app/unsaved';
+import { DataTab } from '@/features/data/data-tab';
+import { TrashTab } from '@/features/data/trash-tab';
 import { InventoryTab } from '@/features/inventory/settings-tab';
 import { AuditViewer } from '@/features/numbering/audit-viewer';
 import { NumberingTab } from '@/features/numbering/numbering-tab';
@@ -452,6 +454,7 @@ const TABS = [
   'inventory',
   'thermal',
   'backup',
+  'trash',
 ] as const;
 
 /** Settings: business profile, images, features, document terms, businesses. Sections follow the feature flags. */
@@ -521,7 +524,10 @@ export function SettingsPage() {
           </TabsContent>
         )}
         <TabsContent value="backup">
-          <p>{t('settings.backup')}</p>
+          <DataTab />
+        </TabsContent>
+        <TabsContent value="trash">
+          <TrashTab />
         </TabsContent>
       </Tabs>
     </div>

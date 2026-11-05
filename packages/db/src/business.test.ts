@@ -20,6 +20,7 @@ import { BusinessAccountRepo, PaymentFlowRepo } from './repositories/payment-flo
 import { PeriodLockRepo } from './repositories/period-lock';
 import * as stats from './repositories/stats';
 import { TemplateRepo } from './repositories/templates';
+import { TrashRepo } from './repositories/trash';
 import { DIALECTS, openTestDb } from './testing/harness';
 
 const opened: Database[] = [];
@@ -114,6 +115,7 @@ describe.each(DIALECTS)('every repository call needs a business (%s)', (dialect)
     classes.push(['NumberingRepo', NumberingRepo as never]);
     classes.push(['PaymentFlowRepo', PaymentFlowRepo as never]);
     classes.push(['InventoryRepo', InventoryRepo as never]);
+    classes.push(['TrashRepo', TrashRepo as never]);
     classes.push(['BusinessAccountRepo', BusinessAccountRepo as never]);
     classes.push(['PeriodLockRepo', PeriodLockRepo as never]);
     classes.push(['TemplateRepo', TemplateRepo as never]);

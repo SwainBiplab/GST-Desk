@@ -1,5 +1,6 @@
 import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 
+import { isSecretSettingKey } from '../backup/tables';
 import { queryRows, type Database } from '../database';
 import { discardWrites, flushWrites, noteWrite } from '../events';
 import type { NewRow, Row, TableName } from '../schema';
@@ -92,6 +93,14 @@ export function newId(): string {
   return crypto.randomUUID();
 }
 
+const REMOVED = '[removed]';
+
+/** A settings row for a secret key with its value taken out. Other rows pass through unchanged. */
+function redactSecret(table: string, row: Row | null): Row | null {
+  if (table !== 'settings' || !row || !isSecretSettingKey(String(row['key'] ?? ''))) return row;
+  return { ...row, value_json: REMOVED };
+}
+
 /** Append an `audit_log` row inside the caller's transaction. */
 export async function writeAudit(
   d: Database,
@@ -99,12 +108,15 @@ export async function writeAudit(
   ctx: Ctx,
   table: string,
   rowId: string,
-  action: 'insert' | 'update' | 'soft_delete',
+  action: 'insert' | 'update' | 'soft_delete' | 'purge',
   before: Row | null,
   after: Row | null,
 ): Promise<void> {
   noteWrite(tx, table);
   const now = Date.now();
+  // the trail says that a secret changed, never what it was changed to
+  before = redactSecret(table, before);
+  after = redactSecret(table, after);
   await tx.insert(d.schema.audit_log).values({
     id: newId(),
     org_id: ctx.orgId,

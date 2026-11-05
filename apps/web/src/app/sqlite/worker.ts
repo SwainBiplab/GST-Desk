@@ -9,7 +9,7 @@ import sqlite3InitModule from '@sqlite.org/sqlite-wasm';
 type Method = 'run' | 'all' | 'values' | 'get';
 
 type Req =
-  | { id: number; type: 'open'; file: string }
+  | { id: number; type: 'open'; file: string; directory?: string }
   | { id: number; type: 'exec'; sql: string; params: unknown[]; method: Method }
   | { id: number; type: 'close' };
 
@@ -21,11 +21,11 @@ interface OpenResult {
 
 let db: any = null;
 
-async function open(file: string): Promise<OpenResult> {
+async function open(file: string, directory = '/gst-desk'): Promise<OpenResult> {
   const sqlite3 = await sqlite3InitModule();
   let reason: string | undefined;
   try {
-    const pool = await sqlite3.installOpfsSAHPoolVfs({ directory: '/gst-desk', name: 'gst-opfs' });
+    const pool = await sqlite3.installOpfsSAHPoolVfs({ directory, name: 'gst-opfs' });
     db = new pool.OpfsSAHPoolDb(`/${file}`);
     db.exec('PRAGMA foreign_keys = ON');
     return { persistent: true, version: sqlite3.version.libVersion };
@@ -57,7 +57,7 @@ self.onmessage = async (e: MessageEvent<Req>) => {
   const req = e.data;
   try {
     let result: unknown;
-    if (req.type === 'open') result = await open(req.file);
+    if (req.type === 'open') result = await open(req.file, req.directory);
     else if (req.type === 'exec') result = exec(req.sql, req.params, req.method);
     else {
       db?.close();

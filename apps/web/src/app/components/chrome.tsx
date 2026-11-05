@@ -18,6 +18,7 @@ import { useAppNavigate, useCounts, useLocationInfo } from '../hooks';
 import { useAppStore, type Shell } from '../store';
 
 import { useFeatureFlags } from '@/features/business/hooks';
+import { useBackupStatus } from '@/features/data/backup-service';
 
 /** Business name with a menu to switch between businesses (FR-003). */
 export function BusinessSwitcher({ large = false }: { large?: boolean }) {
@@ -79,12 +80,15 @@ export function NotificationBell({ shell }: { shell: Shell }) {
   const counts = useCounts();
   const flags = useFeatureFlags();
   const navigate = useAppNavigate();
+  const backup = useBackupStatus();
+  const backupFailed = !backup.ok && !!backup.error;
   const review = counts?.reviewPending ?? 0;
   const low = flags.inventory ? (counts?.lowStock ?? 0) : 0;
-  const n = review + low;
+  const n = review + low + (backupFailed ? 1 : 0);
   const label = [
     `${t('chrome.notifications')}: ${t('chrome.notificationsCount', { count: review })}`,
     ...(flags.inventory ? [t('chrome.lowStockCount', { count: low })] : []),
+    ...(backupFailed ? [t('chrome.backupFailed')] : []),
   ].join(', ');
   return (
     <DropdownMenu>
@@ -107,6 +111,14 @@ export function NotificationBell({ shell }: { shell: Shell }) {
         <DropdownMenuItem data-testid="bell-review" onSelect={() => navigate(`/${shell}/inbox`)}>
           {t('chrome.notificationsCount', { count: review })}
         </DropdownMenuItem>
+        {backupFailed && (
+          <DropdownMenuItem
+            data-testid="bell-backup"
+            onSelect={() => navigate(`/${shell}/settings`, { tab: 'backup' })}
+          >
+            {t('chrome.backupFailed')}
+          </DropdownMenuItem>
+        )}
         {flags.inventory && (
           <DropdownMenuItem
             data-testid="bell-low-stock"

@@ -19,8 +19,9 @@
     "db:generate": "drizzle-kit generate --config drizzle.sqlite.config.ts && drizzle-kit generate --config drizzle.pg.config.ts && tsx scripts/build-migrations.ts",
     "db:migrations": "tsx scripts/build-migrations.ts",
     "db:seed": "tsx scripts/seed.ts",
+    "docs:export-schema": "tsx scripts/export-schema-doc.ts",
     "test:coverage": "vitest run --coverage",
-    "perf": "tsx perf/search.perf.ts && tsx perf/reports.perf.ts"
+    "perf": "tsx perf/search.perf.ts && tsx perf/reports.perf.ts && tsx perf/backup.perf.ts"
   },
   "devDependencies": {
     "@gst/config": "workspace:*",
@@ -38,6 +39,7 @@
     "@electric-sql/pglite": "^0.5.15",
     "@gst/domain": "workspace:*",
     "@libsql/client": "^0.18.0",
-    "drizzle-orm": "^0.45.4"
+    "drizzle-orm": "^0.45.4",
+    "fflate": "^0.8.3"
   }
 }

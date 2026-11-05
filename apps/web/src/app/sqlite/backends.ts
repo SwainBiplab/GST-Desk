@@ -10,6 +10,7 @@ export interface OpenInfo {
 /** Browser: sqlite-wasm in a dedicated worker. */
 export async function openWorkerBackend(
   file: string,
+  directory?: string,
 ): Promise<{ backend: Backend; info: OpenInfo }> {
   const worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
   let nextId = 1;
@@ -36,7 +37,7 @@ export async function openWorkerBackend(
       worker.postMessage({ id, ...msg });
     });
 
-  const info = await call<OpenInfo>({ type: 'open', file });
+  const info = await call<OpenInfo>({ type: 'open', file, ...(directory ? { directory } : {}) });
   return {
     info,
     backend: {

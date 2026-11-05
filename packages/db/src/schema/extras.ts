@@ -93,3 +93,32 @@ export function extrasSql(dialect: Dialect): string {
   const stmts = dialect === 'sqlite' ? sqliteExtras() : pgExtras();
   return stmts.map((s) => `${s};`).join(`\n${BREAK}\n`) + '\n';
 }
+
+/** Tables a row can be removed from for good once it is in the trash. Issued documents never are. */
+export const PURGEABLE = ['parties', 'items', 'documents', 'document_lines'] as const;
+
+/**
+ * Lets the trash empty itself. Every table refuses `DELETE`; this relaxes that for a row that was
+ * already moved to the trash (and for the lines of a trashed draft), on the tables in `PURGEABLE`. An
+ * issued document cannot be moved to the trash (another trigger refuses), so it stays undeletable.
+ */
+export function purgeSql(dialect: Dialect): string {
+  const stmts: string[] = [];
+  if (dialect === 'sqlite') {
+    for (const t of PURGEABLE) {
+      const when =
+        t === 'document_lines'
+          ? `old.deleted_at IS NULL AND NOT EXISTS (SELECT 1 FROM documents d WHERE d.id = old.document_id AND d.deleted_at IS NOT NULL)`
+          : `old.deleted_at IS NULL`;
+      stmts.push(
+        `DROP TRIGGER ${t}_no_delete`,
+        `CREATE TRIGGER ${t}_no_delete BEFORE DELETE ON ${t} WHEN ${when} BEGIN SELECT RAISE(ABORT, 'hard delete forbidden on ${t}'); END`,
+      );
+    }
+  } else {
+    stmts.push(
+      `CREATE OR REPLACE FUNCTION forbid_hard_delete() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF TG_TABLE_NAME IN ('parties', 'items', 'documents') AND (to_jsonb(OLD)->>'deleted_at') IS NOT NULL THEN RETURN OLD; END IF; IF TG_TABLE_NAME = 'document_lines' AND EXISTS (SELECT 1 FROM documents d WHERE d.id = OLD.document_id AND d.deleted_at IS NOT NULL) THEN RETURN OLD; END IF; RAISE EXCEPTION 'hard delete forbidden on %', TG_TABLE_NAME; END $$`,
+    );
+  }
+  return stmts.map((s) => `${s};`).join(`\n${BREAK}\n`) + '\n';
+}

@@ -5,5 +5,9 @@
   "p": 95,
   "reportFirstPageMs": 1000,
   "reportExportMs": 10000,
-  "dashboardMs": 1000
+  "dashboardMs": 1000,
+  "backupMs": 60000,
+  "restoreMs": 120000,
+  "backupBlockMs": 250,
+  "restoreBlockMs": 400
 }

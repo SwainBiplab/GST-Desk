@@ -19,6 +19,7 @@ import { useAppNavigate } from '@/app/hooks';
 import type { Shell } from '@/app/store';
 import { ChecklistCard } from '@/features/business/checklist-card';
 import { useFeatureFlags } from '@/features/business/hooks';
+import { DownloadReminder } from '@/features/data/background';
 
 type Search = Record<string, string>;
 
@@ -614,6 +615,7 @@ export function DashboardCards({ shell }: { shell: Shell }) {
 
   return (
     <div data-testid="dashboard-frame">
+      <DownloadReminder />
       <ChecklistCard />
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{keys.map(render)}</div>
       {d && <ChartsSection d={d} shell={shell} />}
