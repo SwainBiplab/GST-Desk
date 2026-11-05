@@ -38,6 +38,8 @@ export interface LineInput {
 export interface LineContext {
   supply: SupplyType;
   supplierState: string;
+  /** Two-digit place-of-supply code; decides the heads of a deemed export (otherwise IGST). */
+  placeOfSupply?: string;
   /** Export/SEZ supplied under LUT (no IGST charged). */
   lut?: boolean;
   /** Tax is computed but payable by the recipient; it is not added to the invoice total. */
@@ -81,7 +83,7 @@ function effective(input: LineInput, ctx: LineContext): Effective {
   const taxability = input.taxability ?? 'taxable';
   const heads: TaxHeads = ctx.composition
     ? 'none'
-    : taxHeadsFor(ctx.supply, ctx.supplierState, flagsOf(ctx));
+    : taxHeadsFor(ctx.supply, ctx.supplierState, flagsOf(ctx), ctx.placeOfSupply);
   let why = '';
   if (ctx.composition) why = 'composition supplier: no tax collected (s.10)';
   else if (taxability !== 'taxable') why = `${taxability.replace('_', '-')} supply: no GST`;

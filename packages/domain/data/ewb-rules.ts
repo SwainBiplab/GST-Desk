@@ -22,6 +22,12 @@ export interface EwbRules {
   /** Part B (the vehicle) is not needed within a state for up to this distance to the transporter. */
   partBExemptKm: number;
   maxDistanceKm: number;
+  /**
+   * From this date the portal refuses an e-way bill for a document older than `maxDocAgeDays`, and
+   * caps the total extension of a bill at `maxExtensionDays` from its generation (GSTN advisory of
+   * 17 December 2024, in force 1 January 2025).
+   */
+  docAge: { maxDocAgeDays: number; maxExtensionDays: number; from: string };
   /** Document types of the e-way bill, by our document type. */
   docTypes: Record<string, string>;
   transModes: Record<'road' | 'rail' | 'air' | 'ship', string>;
@@ -38,7 +44,12 @@ export const EWB_RULES_V1: EwbRules = {
     '27': { paise: 1_00_000 * 100, checked: false }, // Maharashtra
     '33': { paise: 1_00_000 * 100, checked: false }, // Tamil Nadu
     '19': { paise: 1_00_000 * 100, checked: false }, // West Bengal
+    '10': { paise: 1_00_000 * 100, checked: false }, // Bihar
+    '03': { paise: 1_00_000 * 100, checked: false }, // Punjab
+    '20': { paise: 1_00_000 * 100, checked: false }, // Jharkhand
+    '08': { paise: 1_00_000 * 100, checked: false }, // Rajasthan (intra-state; some goods excluded)
   },
+  docAge: { maxDocAgeDays: 180, maxExtensionDays: 360, from: '2025-01-01' },
   kmPerDay: { regular: 200, odc: 20 },
   cancelHours: 24,
   extendWindowHours: { before: 8, after: 8 },

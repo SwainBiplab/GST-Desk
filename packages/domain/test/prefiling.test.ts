@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  creditNoteDeadline,
   issueKey,
   monthPeriod,
   prefilingChecks,
@@ -199,6 +200,41 @@ describe('pre-filing checks', () => {
     expect(codes([doc({ type: 'credit_note', linkedTotalPaise: 0, totalPaise: 60_000 })])).toEqual(
       [],
     );
+  });
+
+  it('warns about a credit note dated after 30 November following the year of the invoice (s.34(2))', () => {
+    // FY 2024-25 supply: the last day to reduce tax is 30 November 2025
+    expect(creditNoteDeadline('2024-04-01')).toBe('2025-11-30');
+    expect(creditNoteDeadline('2025-03-31')).toBe('2025-11-30');
+    expect(creditNoteDeadline('2025-04-01')).toBe('2026-11-30');
+    const late = doc({
+      type: 'credit_note',
+      date: '2025-12-05',
+      linkedNumber: 'INV/0001',
+      linkedDate: '2025-02-10',
+      linkedTotalPaise: 500_000,
+      totalPaise: 50_000,
+    });
+    const inTime = doc({
+      type: 'credit_note',
+      date: '2025-11-30',
+      linkedNumber: 'INV/0002',
+      linkedDate: '2025-02-10',
+      linkedTotalPaise: 500_000,
+      totalPaise: 50_000,
+    });
+    const dec = monthPeriod(OWN, 2025, 12);
+    const nov = monthPeriod(OWN, 2025, 11);
+    expect(prefilingChecks(dec, [late]).map((i) => i.code)).toContain('credit_note_after_deadline');
+    expect(prefilingChecks(nov, [inTime]).map((i) => i.code)).not.toContain(
+      'credit_note_after_deadline',
+    );
+    // a note with no known original date is not judged
+    expect(
+      prefilingChecks(dec, [doc({ type: 'credit_note', date: '2025-12-05', linkedDate: '' })]).map(
+        (i) => i.code,
+      ),
+    ).not.toContain('credit_note_after_deadline');
   });
 
   it('catches a document dated after today and a number dated earlier than the one before it', () => {

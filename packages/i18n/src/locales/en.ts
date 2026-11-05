@@ -1852,7 +1852,7 @@ export const en = {
         tds_us: 'We deduct TDS under 194Q',
       },
       threshold: 'Already {{total}} this financial year. The threshold is {{limit}}.',
-      tcsSunset: 'TCS under 206C(1H) is not collected on or after 1 October 2024.',
+      tcsSunset: 'TCS under 206C(1H) is not collected on or after 1 April 2025 (Finance Act 2025).',
     },
     totals: {
       taxable: 'Taxable value',

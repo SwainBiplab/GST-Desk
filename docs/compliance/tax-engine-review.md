@@ -24,7 +24,7 @@ Open points that need a reviewer decision are listed at the end.
 | 16  | Round-off                     | Optional rounding to the nearest rupee, halves away from zero                                                                                                 | "round-off down", "round-off up", "round-off at exactly half", `gen-round_off.json`                                                   |          |
 | 17  | Rounding of tax               | Each head rounds half up to the paisa                                                                                                                         | "half paise rounds up", "rounding of each head"                                                                                       |          |
 | 18  | Income-tax s.206C(1H)         | TCS at the given rate on consideration (incl. GST) above Rs 50 lakh cumulative per party per FY, including the part of the invoice that crosses the threshold | "TCS threshold crossed mid-invoice", "TCS not collected below threshold", `gen-tcs.json`; test "TCS caps at the invoice value"        |          |
-| 19  | 206C(1H) sunset               | No TCS for receipts on or after 1 Oct 2024                                                                                                                    | "TCS omitted from 1 Oct 2024"                                                                                                         |          |
+| 19  | 206C(1H) sunset               | No TCS for receipts on or after 1 Apr 2025 (Finance Act 2025 omitted the sub-section). Corrected on 2026-11-05 from a wrong 1 Oct 2024 date.                  | "TCS omitted from 1 Apr 2025", "TCS still collected on 31 Mar 2025"                                                                   |          |
 | 20  | Income-tax s.194Q             | Buyer TDS on taxable value above Rs 50 lakh cumulative; excluded from invoice total                                                                           | "TDS 194Q above threshold", `gen-tds.json`; test "TDS stays zero below threshold"                                                     |          |
 | 21  | 194Q vs 206C(1H)              | When the buyer deducts TDS, the seller collects no TCS                                                                                                        | "TDS and TCS are mutually exclusive"                                                                                                  |          |
 | 22  | CGST s.34                     | Credit note reverses part of an invoice proportionally                                                                                                        | "invoice (5 units)" + "credit note reversing 2 of 5 units"; `gen-credit_note.json`                                                    |          |
@@ -43,3 +43,18 @@ Open points that need a reviewer decision are listed at the end.
 4. **Fractional head rates.** 0.25% splits into 0.125% heads; amounts are correct but the rate cannot be stored in an integer basis-point column.
 5. **Deemed exports** are taxed with IGST and treated as B2B. Confirm.
 6. **Composition purchases** and **RCM on sales** are not modelled beyond the flags above.
+
+## Decisions taken in the reviewer's role (2026-11-05)
+
+Taken by Claude (an AI assistant) at the business owner's request, acting in the reviewer's role; not a chartered accountant's sign-off. Full reasoning in `ca-review-2026-11-05.md`.
+
+| #   | Open point            | Decision                                                                                                                            |
+| --- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | B2CL threshold        | **Confirmed.** INR 1 lakh from 1 August 2024 (Notification 12/2024-CT), INR 2.5 lakh before; test on invoice value including tax.   |
+| 2   | 206C(1H) sunset       | **Corrected.** 1 April 2025 (Finance Act 2025), not 1 October 2024. The receipt date governs advances.                              |
+| 3   | Tax-inclusive drift   | **Accepted.** Up to two paise; s.170 rounding is on return liability, not invoice lines.                                            |
+| 4   | Fractional head rates | **Change before GA** (B-119): 0.25% needs 0.125% per head; store finer than basis points or derive heads from the total rate.       |
+| 5   | Deemed exports        | **Corrected.** Taxable by the ordinary intra/inter test (s.147; Notification 48/2017-CT), refund afterwards; no longer always IGST. |
+| 6   | Composition and RCM   | **Accepted for now.** Add a block on inter-state outward supply by a composition supplier (s.10(2)(c)), B-120.                      |
+
+Reviewed by: ______________________ Membership no.: ______________ Date: ______________

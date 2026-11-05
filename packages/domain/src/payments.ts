@@ -152,7 +152,8 @@ export interface TcsReceiptInput {
 
 /**
  * TCS u/s 206C(1H) on a receipt: on the part of the consideration above Rs 50 lakh cumulative in the
- * year, including the part of this receipt that crosses it. Zero for receipts on or after 1 Oct 2024.
+ * year, including the part of this receipt that crosses it. Zero for receipts on or after 1 Apr 2025
+ * (Finance Act 2025 omitted s.206C(1H)).
  */
 export function tcsOnReceipt(i: TcsReceiptInput): { tcsPaise: bigint; note: string } {
   const sunset = i.sunsetDate ?? TCS_206C1H_SUNSET;

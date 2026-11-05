@@ -144,6 +144,11 @@ describe('supply type', () => {
     expect(taxHeadsFor('inter', '27')).toBe('igst');
     expect(taxHeadsFor('export', '27')).toBe('igst');
     expect(taxHeadsFor('export', '27', { lut: true })).toBe('none');
+    // a deemed export is taxable by the ordinary intra/inter test (s.147); IGST when the place is unknown
+    expect(taxHeadsFor('deemed_export', '27')).toBe('igst');
+    expect(taxHeadsFor('deemed_export', '27', {}, '29')).toBe('igst');
+    expect(taxHeadsFor('deemed_export', '27', {}, '27')).toBe('cgst_sgst');
+    expect(taxHeadsFor('deemed_export', '04', {}, '04')).toBe('cgst_utgst');
     expect(taxHeadsFor('sez_without_tax', '27')).toBe('none');
     expect(taxHeadsFor('deemed_export', '27')).toBe('igst');
   });

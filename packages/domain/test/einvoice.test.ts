@@ -446,6 +446,20 @@ describe('the e-way bill', () => {
     expect(checkEwb(local)).toEqual([]);
   });
 
+  it('refuses a document older than 180 days from 1 January 2025 (when told the date)', () => {
+    const old = ewb({ date: '2025-01-10' });
+    expect(checkEwb(old)).toEqual([]);
+    expect(checkEwb(old, EWB_RULES_V1, '2025-07-09')).toEqual([]);
+    expect(checkEwb(old, EWB_RULES_V1, '2025-07-10').map((p) => p.code)).toEqual(['doc_age']);
+    // before the rule started, age did not matter
+    expect(checkEwb(ewb({ date: '2024-01-01' }), EWB_RULES_V1, '2024-12-31')).toEqual([]);
+    expect(EWB_RULES_V1.docAge).toEqual({
+      maxDocAgeDays: 180,
+      maxExtensionDays: 360,
+      from: '2025-01-01',
+    });
+  });
+
   it('catches what the portal would refuse', () => {
     const codes = (e: EwbInput) => checkEwb(e).map((p) => p.code);
     expect(

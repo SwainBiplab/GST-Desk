@@ -77,3 +77,8 @@ These decisions were taken on **2026-11-05 by Claude (an AI assistant), at the b
 | 7   | Validation on a real 2B   | **Not decidable by judgement.** This is the acceptance criterion and it needs an anonymised real file and a person who knows the business (B-104, B-105).                                                                                                                                                                               |                                                                                                             |
 
 Reviewed by: ______________________ Membership no.: ______________ Date: ______________
+
+## Context notes from the review of 2026-11-05
+
+- Since October 2024 GSTR-2B is drafted from the recipient's actions in the portal's Invoice Management System (accept, reject, pending). The reconciliation classes map onto those actions; exporting or pushing IMS actions is backlog B-124.
+- Rule 37 (reversal of credit on bills unpaid after 180 days, re-availment on payment) is not modelled; B-125.

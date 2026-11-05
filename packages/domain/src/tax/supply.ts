@@ -79,18 +79,29 @@ export function supplyType(
 
 export type TaxHeads = 'cgst_sgst' | 'cgst_utgst' | 'igst' | 'none';
 
-/** Which GST heads a supply carries. `none` = zero-rated without payment of tax (LUT). */
+/**
+ * Which GST heads a supply carries. `none` = zero-rated without payment of tax (LUT).
+ *
+ * A deemed export (s.147, Notification 48/2017-CT: supply to an EOU, against an advance authorisation
+ * or EPCG) is a taxable supply, not a zero-rated one: tax is charged by the ordinary intra- or
+ * inter-state test and refunded afterwards. Pass `placeOfSupply` so that test can be made; without it
+ * the supply is treated as inter-state.
+ */
 export function taxHeadsFor(
   type: SupplyType,
   supplierState: string,
   flags: PartyFlags = {},
+  placeOfSupply?: string,
 ): TaxHeads {
   switch (type) {
     case 'intra':
       return UTGST_TERRITORIES.has(supplierState) ? 'cgst_utgst' : 'cgst_sgst';
+    case 'deemed_export':
+      if (placeOfSupply !== undefined && placeOfSupply === supplierState)
+        return UTGST_TERRITORIES.has(supplierState) ? 'cgst_utgst' : 'cgst_sgst';
+      return 'igst';
     case 'inter':
     case 'sez_with_tax':
-    case 'deemed_export':
       return 'igst';
     case 'sez_without_tax':
       return 'none';

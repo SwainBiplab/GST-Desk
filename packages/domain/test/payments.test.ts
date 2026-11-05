@@ -203,14 +203,16 @@ describe('TCS on receipt', () => {
     ).toBe(10_000n);
   });
 
-  it('is zero from 1 October 2024 and when the buyer deducts TDS', () => {
+  it('is zero from 1 April 2025 (Finance Act 2025) and when the buyer deducts TDS', () => {
     const big = {
       considerationPaise: 10_000_000n,
       cumulativeBeforePaise: 600_000_000n,
       rateBp: 10,
     };
-    expect(tcsOnReceipt({ ...big, date: '2024-10-01' }).tcsPaise).toBe(0n);
-    expect(tcsOnReceipt({ ...big, date: '2024-09-30' }).tcsPaise).toBe(10_000n);
+    expect(tcsOnReceipt({ ...big, date: '2025-04-01' }).tcsPaise).toBe(0n);
+    expect(tcsOnReceipt({ ...big, date: '2025-03-31' }).tcsPaise).toBe(10_000n);
+    // the old (wrong) sunset of 1 Oct 2024 must still collect
+    expect(tcsOnReceipt({ ...big, date: '2024-10-01' }).tcsPaise).toBe(10_000n);
     expect(tcsOnReceipt({ ...big, date: '2024-06-01', buyerDeductsTds: true }).tcsPaise).toBe(0n);
   });
 });

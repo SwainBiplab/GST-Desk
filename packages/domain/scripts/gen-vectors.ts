@@ -127,7 +127,7 @@ function oracle(lines: VectorLine[], o: Opts) {
   const taxable = S((r) => r.taxable);
 
   let tcs = 0n;
-  if (o.tcs && !o.tds?.applicable && !(o.date !== undefined && o.date >= '2024-10-01')) {
+  if (o.tcs && !o.tds?.applicable && !(o.date !== undefined && o.date >= '2025-04-01')) {
     let over = o.tcs.cumulativeBeforePaise + linesTotal - LAKH50;
     if (over < 0n) over = 0n;
     if (over > linesTotal) over = linesTotal;

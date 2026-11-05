@@ -211,9 +211,23 @@ export function ewbExtendable(
 }
 
 /** What the portal would refuse in an e-way bill, before it is sent. */
-export function checkEwb(e: EwbInput, rules: EwbRules = EWB_RULES_V1): EinvProblem[] {
+export function checkEwb(
+  e: EwbInput,
+  rules: EwbRules = EWB_RULES_V1,
+  today?: string,
+): EinvProblem[] {
   const out: EinvProblem[] = [];
   const add = (path: string, code: string, message: string) => out.push({ path, code, message });
+  // since 1 January 2025 the portal refuses documents older than 180 days
+  if (today !== undefined && today >= rules.docAge.from && /^\d{4}-\d{2}-\d{2}$/.test(e.date)) {
+    const age = Math.floor((Date.parse(today) - Date.parse(e.date)) / 86_400_000);
+    if (age > rules.docAge.maxDocAgeDays)
+      add(
+        'docDate',
+        'doc_age',
+        `The document is ${age} days old; the portal does not make an e-way bill for a document older than ${rules.docAge.maxDocAgeDays} days.`,
+      );
+  }
   for (const [side, a] of [
     ['from', e.from],
     ['to', e.to],

@@ -292,6 +292,7 @@ export function buildDocument(d: DraftDocument): BuiltDocument {
     {
       supply,
       supplierState: d.supplierState,
+      placeOfSupply: d.placeOfSupply,
       date: d.date,
       roundOff: d.roundOff ? 'nearest_rupee' : 'none',
       ...(d.lut ? { lut: true } : {}),

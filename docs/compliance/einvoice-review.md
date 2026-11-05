@@ -33,6 +33,8 @@ Scope: `packages/domain/data/einvoice/rules-v1_1.ts`, `data/ewb-rules.ts`, `data
 
 ## What was not decided and needs a person
 
+> Review of 2026-11-05: Bihar, Punjab, Jharkhand and Rajasthan added to the state list, all **unchecked**; the 180-day document-age and 360-day extension limits in force from 1 January 2025 added as `docAge` and checked by `checkEwb` when given today's date. See `ca-review-2026-11-05.md`.
+
 | Question                                                                                                                                                              | Status |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
 | The intra-state e-way bill limits of Delhi, Maharashtra, Tamil Nadu and West Bengal (and any other state) against each state's current notification                   | open   |

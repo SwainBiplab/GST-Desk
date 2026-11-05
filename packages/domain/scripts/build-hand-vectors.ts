@@ -432,14 +432,26 @@ add(
   },
 );
 add(
-  'TCS omitted from 1 Oct 2024',
+  'TCS omitted from 1 Apr 2025',
   'tcs',
-  'Finance (No.2) Act 2024',
+  'Finance Act 2025 (s.206C(1H) omitted w.e.f. 1 April 2025)',
   [line(1, 20000000, 0)],
-  { ...INTRA, date: '2025-01-10', tcs: { rateBp: 10, cumulativeBeforePaise: 490000000n } },
+  { ...INTRA, date: '2025-04-10', tcs: { rateBp: 10, cumulativeBeforePaise: 490000000n } },
   {
     tcsPaise: 0,
     totalPaise: 20000000,
+  },
+);
+// 31 March 2025 is the last day 206C(1H) applies: 49,00,000 + 2,00,000 = 51,00,000, 1,00,000 above x 0.1% = Rs 100.00
+add(
+  'TCS still collected on 31 Mar 2025',
+  'tcs',
+  'Income-tax Act s.206C(1H) (last day before the Finance Act 2025 omission)',
+  [line(1, 20000000, 0)],
+  { ...INTRA, date: '2025-03-31', tcs: { rateBp: 10, cumulativeBeforePaise: 490000000n } },
+  {
+    tcsPaise: 10000,
+    totalPaise: 20010000,
   },
 );
 // purchases 45,00,000 + 10,00,000 = 55,00,000: 5,00,000 above threshold x 0.1% = Rs 500.00

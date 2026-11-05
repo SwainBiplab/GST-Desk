@@ -909,6 +909,30 @@ export class DocumentFlowRepo extends BaseRepo {
     return ctx.tx ? run() : serialised(this.d, run);
   }
 
+  /** The first filed return (GSTR-1 first) whose period covers `date`, or null. */
+  private async filedReturnCovering(
+    tx: any,
+    c: Ctx,
+    date: string,
+  ): Promise<{ returnType: string; fp: string } | null> {
+    const f = this.d.schema.gst_filings;
+    const rows: Row[] = await tx
+      .select({ return_type: f.return_type, period_fp: f.period_fp })
+      .from(f)
+      .where(
+        and(
+          eq(f.business_id, c.businessId),
+          eq(f.status, 'filed'),
+          lte(f.period_from, date),
+          gte(f.period_to, date),
+          isNull(f.deleted_at),
+        ),
+      );
+    if (rows.length === 0) return null;
+    const first = rows.find((r) => r['return_type'] === 'gstr1') ?? rows[0]!;
+    return { returnType: String(first['return_type']), fp: String(first['period_fp']) };
+  }
+
   private async cancelOneIn(
     tx: any,
     c: Ctx,
@@ -941,6 +965,13 @@ export class DocumentFlowRepo extends BaseRepo {
       hasIrn: !!current['irn'] && !irnCancelled,
     });
     if (blocker) throw new RuleError(blocker);
+    // once a return that covers the document's date has been filed, the number has been reported to
+    // the GST portal: the document cannot be cancelled, only corrected by a credit note (s.34)
+    const filed = await this.filedReturnCovering(tx, c, String(current['date']));
+    if (filed)
+      throw new RuleError(
+        `${filed.returnType.toUpperCase()} for period ${filed.fp} has been filed with this document in it. A filed document cannot be cancelled; issue a credit note against it instead.`,
+      );
     await this.lock.assertOpen(
       c,
       String(current['date']),

@@ -460,9 +460,9 @@ describe.each(DIALECTS)('payments, allocations and credit (%s)', (dialect) => {
       expect(await reconcile(p)).toEqual({ engine: 0n, outstanding: 0n, ledger: 0n });
     });
 
-    it('no TCS from 1 October 2024', async () => {
+    it('no TCS from 1 April 2025 (Finance Act 2025)', async () => {
       const p = await party('customer', 'Later buyer');
-      const t = await pays.tcsFor(ctx, p, '2024-10-01', 900_000_000n);
+      const t = await pays.tcsFor(ctx, p, '2025-04-01', 900_000_000n);
       expect(t.tcsPaise).toBe(0n);
     });
 

@@ -70,3 +70,10 @@ These decisions were taken on **2026-11-05 by Claude (an AI assistant), at the b
 | 7   | Table 4 default                    | **Changed.** Credit on a bill marked not eligible (blocked under section 17(5)) is now reported in 4A and reversed in 4B(1), not left out and shown in 4D. Table 4D is relabelled to the format in force: 4D(1) credit reclaimed after an earlier 4B(2) reversal, 4D(2) credit not available under section 16(4) or place-of-supply rules. Other credit stays eligible by default, limited by the 2B reconciliation. | Circular 170/02/2022-GST; Notification 14/2022-CT (revised table 4); section 16(2)(aa).                              |
 
 Reviewed by: ______________________ Membership no.: ______________ Date: ______________
+
+## Context notes from the review of 2026-11-05
+
+- From the July 2025 tax period GSTR-3B's auto-populated outward liability is locked; corrections go through GSTR-1A before GSTR-3B is filed. Table 3.2 is non-editable. The Filing Desk help should say so (B-123).
+- Returns cannot be filed more than three years after their due date (in force 1 July 2025).
+- A credit note dated after 30 November following the financial year of the supply cannot reduce tax (s.34(2)); the pre-filing checks now warn (`credit_note_after_deadline`).
+- A document in a filed period can no longer be cancelled in the books; the software insists on a credit note.

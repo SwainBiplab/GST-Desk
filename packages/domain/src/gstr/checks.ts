@@ -26,6 +26,18 @@ export const NO_CHECK_CONTEXT: CheckContext = {
 
 const OUTWARD = new Set(['tax_invoice', 'bill_of_supply', 'credit_note', 'debit_note']);
 
+/**
+ * The last day a credit note can reduce output tax for a supply made on `supplyDate`: 30 November
+ * after the end of the financial year of the supply (s.34(2) CGST Act, as amended from 1 October 2022;
+ * the annual return date is earlier only if it is filed before then, which the books cannot know).
+ */
+export function creditNoteDeadline(supplyDate: string): string {
+  const y = Number(supplyDate.slice(0, 4));
+  const m = Number(supplyDate.slice(5, 7));
+  const fyEndYear = m >= 4 ? y + 1 : y;
+  return `${fyEndYear}-11-30`;
+}
+
 /** The rates the master gives for a code, trying the code itself and then shorter ones (8, 6, 4 digits). */
 function ratesFor(
   hsn: string,
@@ -82,6 +94,20 @@ export function prefilingChecks(
       `${sorted.map((d) => d.number).join(' and ')}: the same buyer, date and amount appear more than once`,
       sorted[1]!.id,
     );
+  }
+
+  // a credit note dated after the s.34(2) deadline of the invoice it corrects cannot reduce the tax
+  for (const d of issued) {
+    if (d.type !== 'credit_note' || !/^\d{4}-\d{2}-\d{2}$/.test(d.linkedDate)) continue;
+    const deadline = creditNoteDeadline(d.linkedDate);
+    if (d.date > deadline)
+      add(
+        'warning',
+        'credit_note_after_deadline',
+        '9B',
+        `${d.number}: a credit note against ${d.linkedNumber || 'an invoice'} dated ${d.linkedDate} is after ${deadline}, the last date to reduce tax for that year (s.34(2)); the tax on it cannot be adjusted in the return`,
+        d.id,
+      );
   }
 
   for (const d of issued) {

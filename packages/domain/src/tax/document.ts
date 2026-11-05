@@ -2,7 +2,7 @@
  * Document-level totals: invoice discount allocation, TCS, TDS and round-off.
  *
  * Rules: CGST Act s.15(3) (invoice-level discount reduces value pro rata), Income-tax Act s.206C(1H)
- * (TCS on sale consideration above Rs 50 lakh; omitted for receipts on or after 1 Oct 2024) and s.194Q
+ * (TCS on sale consideration above Rs 50 lakh; omitted by the Finance Act 2025 for receipts on or after 1 Apr 2025) and s.194Q
  * (TDS by the buyer on purchases above Rs 50 lakh; the seller then does not collect TCS), and the GST
  * invoice round-off convention (nearest rupee).
  */
@@ -21,8 +21,12 @@ import {
 
 /** Rs 50 lakh in paise. */
 export const FIFTY_LAKH = 500_000_000n;
-/** 206C(1H) stopped applying to consideration received on or after this date. */
-export const TCS_206C1H_SUNSET = '2024-10-01';
+/**
+ * 206C(1H) stopped applying to consideration received on or after this date: the Finance Act 2025
+ * omitted the sub-section with effect from 1 April 2025 (the Finance (No. 2) Act 2024 had only widened
+ * 194Q/206C(1H) overlap relief; it did not remove TCS on sale of goods).
+ */
+export const TCS_206C1H_SUNSET = '2025-04-01';
 
 export type InvoiceDiscount = { mode: 'percent'; bp: number } | { mode: 'amount'; paise: bigint };
 
@@ -135,6 +139,7 @@ export function computeDocument(
   const ctx: LineContext = {
     supply: options.supply,
     supplierState: options.supplierState,
+    ...(options.placeOfSupply !== undefined ? { placeOfSupply: options.placeOfSupply } : {}),
     ...(options.lut !== undefined ? { lut: options.lut } : {}),
     ...(options.reverseCharge !== undefined ? { reverseCharge: options.reverseCharge } : {}),
     ...(options.composition !== undefined ? { composition: options.composition } : {}),

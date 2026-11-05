@@ -2,6 +2,7 @@ import {
   draftToRows,
   emptyDraft,
   emptyDraftLine,
+  monthPeriod,
   type DraftDocument,
   type DraftLine,
 } from '@gst/domain';
@@ -13,6 +14,7 @@ import { DIALECTS, openTestDb } from '../testing/harness';
 import { AuditRepo, BusinessRepo, PartyRepo, createOrganisation } from './aggregates';
 import { BaseRepo, ConflictError, RuleError, type Ctx } from './base';
 import { DocumentFlowRepo } from './document-flow';
+import { GstrRepo } from './gstr';
 import { ItemRepo } from './items';
 import { NumberingRepo } from './numbering';
 import { PeriodLockRepo, PeriodLockedError } from './period-lock';
@@ -326,6 +328,19 @@ describe.each(DIALECTS)('numbering, cancellation and audit (%s)', (dialect) => {
       await expect(
         flow.cancelDocument(ctx, r.document['id'], done.document['version'], 'again'),
       ).rejects.toThrow(/already cancelled/);
+    });
+
+    it('refuses to cancel a document whose period has been filed, and points at a credit note', async () => {
+      const r = await issue(draft({ partyId, date: '2026-03-12' }));
+      const gstr = new GstrRepo(d);
+      const p = monthPeriod('27AAPFU0939F1ZV', 2026, 3);
+      await gstr.markFiled(ctx, 'gstr1', p, { arn: 'AA270326123456Z', filedOn: '2026-04-09' });
+      await expect(
+        flow.cancelDocument(ctx, r.document['id'], r.document['version'], 'wrong party'),
+      ).rejects.toThrow(/filed .*credit note/);
+      // a document in an unfiled month still cancels
+      const r2 = await issue(draft({ partyId, date: '2026-04-02' }));
+      await flow.cancelDocument(ctx, r2.document['id'], r2.document['version'], 'ok');
     });
 
     it('refuses a document with an IRN until e-invoice cancellation exists', async () => {
