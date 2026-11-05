@@ -43,6 +43,13 @@
       "when": 1793875239843,
       "tag": "0005_futuristic_eddie_brock",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793879717767,
+      "tag": "0006_fearless_mentallo",
+      "breakpoints": true
     }
   ]
 }

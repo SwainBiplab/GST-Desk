@@ -439,8 +439,84 @@ export const SPEC: TableSpec[] = [
       sgst_paise: money(),
       cess_paise: money(),
       reason: c.text().nn,
+      /** Who made the change: empty for a person, `reconcile` for the GSTR-2B outcome (replaced when it is applied again). */
+      source: c.text(),
     },
     indexes: [{ cols: ['business_id', 'period_fp'] }],
+  },
+  {
+    name: 'gstr2b_imports',
+    kind: 'tenant',
+    cols: {
+      /** MMYYYY, the 2B period. Importing a period again replaces the earlier import. */
+      period_fp: c.text().nn,
+      gstin: c.text().nn,
+      source: c.text().nn.oneOf(['json', 'xlsx']),
+      parser_version: c.text(),
+      file_hash: c.text(),
+      entry_count: c.int().nn.default(0),
+      problems_json: c.json(),
+    },
+    indexes: [{ cols: ['business_id', 'period_fp'] }],
+  },
+  {
+    name: 'gstr2b_entries',
+    kind: 'tenant',
+    cols: {
+      import_id: c.uuid().nn.ref('gstr2b_imports'),
+      period_fp: c.text().nn,
+      supplier_gstin: c.text().nn,
+      supplier_name: c.text(),
+      doc_type: c.text().nn.oneOf(['invoice', 'credit_note', 'debit_note']),
+      number: c.text().nn,
+      /** The number made comparable (`numberKey` in the domain package); decisions are kept against it. */
+      number_key: c.text().nn,
+      date: c.date().nn,
+      taxable_paise: money(),
+      igst_paise: money(),
+      cgst_paise: money(),
+      sgst_paise: money(),
+      cess_paise: money(),
+      itc_available: c.text(),
+      reason: c.text(),
+      supplier_period: c.text(),
+    },
+    indexes: [
+      { cols: ['business_id', 'period_fp'] },
+      { cols: ['business_id', 'supplier_gstin', 'number_key'] },
+    ],
+  },
+  {
+    name: 'gstr2b_decisions',
+    kind: 'tenant',
+    cols: {
+      period_fp: c.text().nn,
+      side: c.text().nn.oneOf(['entry', 'bill']),
+      /** For a 2B line: `GSTIN|number key|type` (it survives a re-import). For a bill: the document id. */
+      ref_key: c.text().nn,
+      decision: c.text().nn.oneOf(['accept', 'link', 'supplier_to_file', 'ignore']),
+      /** For a link: the bill the 2B line was tied to by hand. */
+      linked_document_id: c.uuid().ref('documents'),
+      note: c.text(),
+    },
+    indexes: [{ cols: ['business_id', 'period_fp'] }],
+  },
+  {
+    name: 'gst_issue_acks',
+    kind: 'tenant',
+    cols: {
+      period_fp: c.text().nn,
+      /** `issueKey` in the domain package: the same problem always has the same key. */
+      issue_key: c.text().nn,
+      reason: c.text().nn,
+    },
+    indexes: [
+      {
+        cols: ['business_id', 'period_fp', 'issue_key'],
+        unique: true,
+        where: 'deleted_at IS NULL',
+      },
+    ],
   },
   {
     name: 'ledger_accounts',

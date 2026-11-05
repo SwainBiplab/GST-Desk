@@ -538,6 +538,38 @@ describe('GSTR-3B', () => {
     expect(g.s5.gst).toEqual({ inter: 25_000, intra: 0 });
   });
 
+  it('shows blocked credit (a bill marked not eligible) in 4A and reverses it in 4B(1), so it nets to nothing', () => {
+    // Circular 170/02/2022-GST: credit restricted under section 17(5) is reported in 4A and reversed in 4B(1)
+    const blocked = doc({
+      type: 'purchase_bill',
+      itcEligible: false,
+      lines: [line({ taxablePaise: 200_000, cgstPaise: 18_000, sgstPaise: 18_000, rateBp: 1800 })],
+    });
+    const eligible = doc({
+      type: 'purchase_bill',
+      lines: [line({ taxablePaise: 100_000, cgstPaise: 9_000, sgstPaise: 9_000, rateBp: 1800 })],
+    });
+    const { gstr3b: g } = buildGstr3b(P, [eligible, blocked]);
+    expect(g.s4.availableOther).toEqual({ iamt: 0, camt: 27_000, samt: 27_000, csamt: 0 });
+    expect(g.s4.reversedRules).toEqual({ iamt: 0, camt: 18_000, samt: 18_000, csamt: 0 });
+    expect(g.s4.ineligibleOther).toEqual({ iamt: 0, camt: 0, samt: 0, csamt: 0 });
+    expect(g.s4.net).toEqual({ iamt: 0, camt: 9_000, samt: 9_000, csamt: 0 });
+    // reverse charge: the tax is still payable; the credit is shown in 4A(3) and reversed in 4B(1)
+    const rcm = doc({
+      type: 'purchase_bill',
+      reverseCharge: true,
+      itcEligible: false,
+      registered: false,
+      partyGstin: '',
+      lines: [line({ taxablePaise: 100_000, cgstPaise: 6_000, sgstPaise: 6_000, rateBp: 1200 })],
+    });
+    const r = buildGstr3b(P, [rcm]).gstr3b;
+    expect(r.s31.d).toMatchObject({ txval: 100_000, camt: 6_000, samt: 6_000 });
+    expect(r.s4.availableReverseCharge).toMatchObject({ camt: 6_000, samt: 6_000 });
+    expect(r.s4.reversedRules).toMatchObject({ camt: 6_000, samt: 6_000 });
+    expect(r.s4.net).toEqual({ iamt: 0, camt: 0, samt: 0, csamt: 0 });
+  });
+
   it('applies ITC adjustments and rejects an unknown field', () => {
     const { gstr3b: g, issues } = buildGstr3b(P, purchases, [
       {
@@ -696,11 +728,12 @@ describe('JSON and CSV', () => {
 
   it('matches the golden files', async () => {
     const g = buildGstr1(P, docs);
-    await expect(JSON.stringify(gstr1Json(g), null, 2)).toMatchFileSnapshot(
+    // the repository formatter ends every JSON file with a newline, so the golden files do too
+    await expect(`${JSON.stringify(gstr1Json(g), null, 2)}\n`).toMatchFileSnapshot(
       './gstr/fixtures/gstr1-v1.golden.json',
     );
     const { gstr3b } = buildGstr3b(P, docs);
-    await expect(JSON.stringify(gstr3bJson(gstr3b), null, 2)).toMatchFileSnapshot(
+    await expect(`${JSON.stringify(gstr3bJson(gstr3b), null, 2)}\n`).toMatchFileSnapshot(
       './gstr/fixtures/gstr3b-v1.golden.json',
     );
   });

@@ -9,6 +9,8 @@ import {
   monthPeriod,
   returnsUqc,
   reviewPeriod,
+  today as todayIst,
+  type CheckContext,
   type GstrDoc,
   type GstrDocType,
   type GstrLine,
@@ -23,6 +25,7 @@ import { sql } from 'drizzle-orm';
 import { queryRows, type Database } from '../database';
 import type { Row } from '../schema';
 
+import { SettingsRepo } from './aggregates';
 import { BaseRepo, RuleError, runInTx, type Ctx } from './base';
 
 const n = (v: unknown): number => Number(v ?? 0);
@@ -103,6 +106,12 @@ class FilingRows extends BaseRepo {
   }
 }
 
+class AckRows extends BaseRepo {
+  constructor(d: Database) {
+    super(d, 'gst_issue_acks');
+  }
+}
+
 class AdjustmentRows extends BaseRepo {
   constructor(d: Database) {
     super(d, 'gst_adjustments');
@@ -112,10 +121,12 @@ class AdjustmentRows extends BaseRepo {
 export class GstrRepo {
   private readonly filings: FilingRows;
   private readonly adjust: AdjustmentRows;
+  private readonly acks: AckRows;
 
   constructor(private readonly d: Database) {
     this.filings = new FilingRows(d);
     this.adjust = new AdjustmentRows(d);
+    this.acks = new AckRows(d);
   }
 
   async businessInfo(ctx: Ctx): Promise<BusinessGstInfo> {
@@ -225,6 +236,7 @@ export class GstrRepo {
             : 'intra') as GstrDoc['supplyType'],
           lut: meta['lut'] === true,
           reverseCharge: flag(h['reverse_charge']),
+          itcEligible: meta['itcEligible'] !== false,
           totalPaise: n(h['total_paise']),
           linkedNumber: s(h['link_number']),
           linkedDate: s(h['link_date']),
@@ -235,22 +247,170 @@ export class GstrRepo {
     });
   }
 
+  /**
+   * What the pre-filing checks need that is not in the documents: the rates the HSN list allows, the
+   * business's own limit for asking for a buyer's GSTIN, and cancelled documents that still have payments.
+   */
+  async checkContext(ctx: Ctx, period: GstrPeriod, todayIso: string): Promise<CheckContext> {
+    return runInTx(this.d, ctx, async (tx) => {
+      const c: Ctx = { ...ctx, tx };
+      const rateRows = await queryRows(
+        this.d,
+        tx,
+        sql`SELECT code, rate_bp FROM hsn_master
+            WHERE effective_from <= ${period.to} AND (effective_to IS NULL OR effective_to >= ${period.to})`,
+      );
+      const hsnRates = new Map<string, number[]>();
+      for (const r of rateRows) {
+        const code = s(r['code']);
+        const list = hsnRates.get(code) ?? [];
+        const rate = n(r['rate_bp']);
+        if (!list.includes(rate)) list.push(rate);
+        hsnRates.set(code, list);
+      }
+      const above = await new SettingsRepo(this.d).getValue<string | number>(
+        c,
+        'documents.gstin_required_above_paise',
+      );
+      const paid = await queryRows(
+        this.d,
+        tx,
+        sql`SELECT DISTINCT d.id AS id
+            FROM documents d
+            JOIN payment_allocations pa ON pa.document_id = d.id AND pa.deleted_at IS NULL AND pa.kind = 'payment'
+            JOIN payments p ON p.id = pa.payment_id AND p.deleted_at IS NULL AND p.status <> 'cancelled'
+            WHERE d.business_id = ${ctx.businessId} AND d.status = 'cancelled' AND d.deleted_at IS NULL
+              AND d.date >= ${period.from} AND d.date <= ${period.to}`,
+      );
+      return {
+        today: todayIso,
+        gstinRequiredAbovePaise: above ? Number(above) : 0,
+        hsnRates,
+        cancelledWithPayments: new Set(paid.map((r) => s(r['id']))),
+      };
+    });
+  }
+
+  /** INR 5 crore, in paise: the turnover above which six HSN digits are required. */
+  static readonly SIX_DIGIT_TURNOVER_PAISE = 5_00_00_000 * 100;
+
+  /**
+   * The business's turnover in the financial year before the one the period falls in: issued sales
+   * documents (taxable value including exempt and export lines, less credit notes). This is one GSTIN's
+   * books; a business with other registrations under the same PAN must add theirs (backlog B-110).
+   */
+  async priorYearTurnover(ctx: Ctx, period: GstrPeriod): Promise<number> {
+    return runInTx(this.d, ctx, async (tx) => {
+      const year = Number(period.from.slice(0, 4));
+      const month = Number(period.from.slice(5, 7));
+      const fyStart = month >= 4 ? year : year - 1;
+      const from = `${fyStart - 1}-04-01`;
+      const to = `${fyStart}-03-31`;
+      const rows = await queryRows(
+        this.d,
+        tx,
+        sql`SELECT coalesce(sum(CASE WHEN type = 'credit_note' THEN -total_taxable_paise ELSE total_taxable_paise END), 0) AS t
+            FROM documents
+            WHERE business_id = ${ctx.businessId} AND deleted_at IS NULL AND status = 'issued'
+              AND type IN ('tax_invoice', 'bill_of_supply', 'debit_note', 'credit_note')
+              AND date >= ${from} AND date <= ${to}`,
+      );
+      return n(rows[0]?.['t']);
+    });
+  }
+
+  /** Notification 78/2020-CT: four HSN digits up to INR 5 crore of last year's turnover, six above. */
+  async hsnDigitsFor(ctx: Ctx, period: GstrPeriod): Promise<number> {
+    const turnover = await this.priorYearTurnover(ctx, period);
+    return turnover > GstrRepo.SIX_DIGIT_TURNOVER_PAISE ? 6 : 4;
+  }
+
   /** Both returns for a period with every issue found. `minHsnDigits` follows the turnover rule. */
   async review(
     ctx: Ctx,
     period: GstrPeriod,
-    opts: { minHsnDigits?: number } = {},
+    opts: { minHsnDigits?: number; today?: string } = {},
   ): Promise<PeriodReview> {
     return runInTx(this.d, ctx, async (tx) => {
       const c: Ctx = { ...ctx, tx };
       const info = await this.businessInfo(c);
       const docs = await this.loadDocs(c, period.from, period.to);
       const adjustments = await this.listAdjustments(c, period.fp);
-      return reviewPeriod(period, docs, adjustments, {
-        gstin: period.gstin || info.gstin,
-        scheme: info.scheme,
-        minHsnDigits: opts.minHsnDigits ?? 4,
-      });
+      const checks = await this.checkContext(c, period, opts.today ?? todayIst(() => new Date()));
+      const acknowledged = new Map(
+        (await this.listAcks(c, period.fp)).map((a) => [a.key, a.reason] as const),
+      );
+      return reviewPeriod(
+        period,
+        docs,
+        adjustments,
+        {
+          gstin: period.gstin || info.gstin,
+          scheme: info.scheme,
+          minHsnDigits: opts.minHsnDigits ?? (await this.hsnDigitsFor(c, period)),
+        },
+        { checks, acknowledged },
+      );
+    });
+  }
+
+  /**
+   * Throws unless the period may be exported: every problem the checks find must be fixed or
+   * acknowledged with a reason. The period is worked out again here, so a screen that is out of date
+   * cannot get past it.
+   */
+  async assertExportable(ctx: Ctx, period: GstrPeriod): Promise<PeriodReview> {
+    return runInTx(this.d, ctx, async (tx) => {
+      const review = await this.review({ ...ctx, tx }, period);
+      if (review.blockers > 0)
+        throw new RuleError(
+          `${review.blockers} problem${review.blockers === 1 ? '' : 's'} in ${period.fp} must be fixed or acknowledged with a reason before this can be exported.`,
+        );
+      return review;
+    });
+  }
+
+  /* ------------------------------------------------------------ acknowledging problems */
+
+  async listAcks(
+    ctx: Ctx,
+    fp: string,
+  ): Promise<{ key: string; reason: string; id: string; version: number }[]> {
+    return runInTx(this.d, ctx, async (tx) =>
+      (await this.acks.list({ ...ctx, tx }))
+        .filter((r) => r['period_fp'] === fp)
+        .map((r) => ({
+          key: s(r['issue_key']),
+          reason: s(r['reason']),
+          id: s(r['id']),
+          version: n(r['version']),
+        })),
+    );
+  }
+
+  /** Let a problem stand, with a reason. Audited. Acknowledging again changes the reason. */
+  async acknowledge(ctx: Ctx, fp: string, key: string, reason: string): Promise<void> {
+    await runInTx(this.d, ctx, async (tx) => {
+      const c: Ctx = { ...ctx, tx };
+      const why = reason.trim();
+      if (!why) throw new RuleError('Say why this problem can stand.');
+      if (!key) throw new RuleError('There is no problem to acknowledge.');
+      const cur = (await this.acks.list(c)).find(
+        (r) => r['period_fp'] === fp && r['issue_key'] === key,
+      );
+      if (cur) await this.acks.update(c, s(cur['id']), { reason: why }, n(cur['version']));
+      else await this.acks.create(c, { period_fp: fp, issue_key: key, reason: why });
+    });
+  }
+
+  /** Take an acknowledgement back, so the problem blocks again. */
+  async unacknowledge(ctx: Ctx, fp: string, key: string): Promise<void> {
+    await runInTx(this.d, ctx, async (tx) => {
+      const c: Ctx = { ...ctx, tx };
+      const cur = (await this.acks.list(c)).find(
+        (r) => r['period_fp'] === fp && r['issue_key'] === key,
+      );
+      if (cur) await this.acks.softDelete(c, s(cur['id']), n(cur['version']));
     });
   }
 
@@ -412,6 +572,42 @@ export class GstrRepo {
         cess_paise: adj.csamt,
         reason: adj.reason.trim(),
       });
+    });
+  }
+
+  /**
+   * Replace every adjustment of one source for a period with a new set (the GSTR-2B outcome is applied
+   * again after a change, so the old rows are removed, never added to). Adjustments a person made by
+   * hand have no source and are left alone.
+   */
+  async replaceAdjustments(
+    ctx: Ctx,
+    fp: string,
+    source: string,
+    list: PeriodAdjustment[],
+  ): Promise<number> {
+    return runInTx(this.d, ctx, async (tx) => {
+      const c: Ctx = { ...ctx, tx };
+      for (const old of (await this.adjust.list(c)).filter(
+        (r) => r['period_fp'] === fp && r['source'] === source,
+      ))
+        await this.adjust.softDelete(c, s(old['id']), n(old['version']));
+      for (const a of list) {
+        const field = a.field.replace(/^itc\./, '');
+        if (!(ITC_FIELDS as readonly string[]).includes(field))
+          throw new RuleError('That ITC field does not exist.');
+        await this.adjust.create(c, {
+          period_fp: fp,
+          field: `itc.${field}`,
+          igst_paise: a.iamt,
+          cgst_paise: a.camt,
+          sgst_paise: a.samt,
+          cess_paise: a.csamt,
+          reason: a.reason.trim() || 'GSTR-2B',
+          source,
+        });
+      }
+      return list.length;
     });
   }
 

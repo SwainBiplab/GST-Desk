@@ -5,7 +5,7 @@
 import { readFileSync } from 'node:fs';
 
 import { expect, test, type Page } from './fixtures';
-import { openSeeded } from './helpers';
+import { acknowledgeAll, openSeeded } from './helpers';
 
 test.use({ viewport: { width: 1366, height: 900 } });
 test.setTimeout(180_000);
@@ -36,6 +36,11 @@ test('review a seeded month, export GSTR-1, mark it filed and reopen it', async 
   const b2b = march.getByRole('row', { name: /Invoices to registered buyers/ });
   await expect(b2b).toBeVisible();
   expect(Number(await b2b.getByRole('cell').nth(1).innerText())).toBeGreaterThan(0);
+
+  // the demo book's rates are random, so the checks have things to say: acknowledge them to export
+  await acknowledgeAll(march);
+  await march.getByRole('tab', { name: 'GSTR-1' }).click();
+  await expect(march.getByRole('button', { name: 'Export JSON' })).toBeEnabled();
 
   // export the JSON file
   const [download] = await Promise.all([

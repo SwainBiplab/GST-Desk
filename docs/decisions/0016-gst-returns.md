@@ -22,7 +22,7 @@ A repository-wide test forbids converting paise with `Number`, `Math.round` or `
 
 ### 5. Credit can be adjusted, never silently
 
-ITC comes from purchase bills and is treated as eligible. Reversals and ineligible amounts are **adjustments** a person enters (`gst_adjustments`), each with a reason, audited like every other row. There is no per-bill eligibility flag yet (B-100).
+ITC comes from purchase bills and is treated as eligible. Reversals and ineligible amounts are **adjustments** a person enters (`gst_adjustments`), each with a reason, audited like every other row. (Correction, prompt 31: the purchase editor does have a per-bill "ITC eligible" box, and GSTR-3B now honours it; see ADR 0017, decision 7. What is still missing is the reason category and imports, B-100.)
 
 ### 6. Filing state is recorded by a person, not inferred
 

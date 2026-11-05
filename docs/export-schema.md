@@ -587,6 +587,103 @@ Kind: belongs to a business. In a business export.
 | `sgst_paise` | integer (paise, micro-units or a count) | yes | default 0 |
 | `cess_paise` | integer (paise, micro-units or a count) | yes | default 0 |
 | `reason` | text | yes |  |
+| `source` | text |  |  |
+
+### `gstr2b_imports`
+
+Kind: belongs to a business. In a business export.
+
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `period_fp` | text | yes |  |
+| `gstin` | text | yes |  |
+| `source` | text | yes | one of `json`, `xlsx` |
+| `parser_version` | text |  |  |
+| `file_hash` | text |  |  |
+| `entry_count` | integer | yes | default 0 |
+| `problems_json` | JSON |  |  |
+
+### `gstr2b_entries`
+
+Kind: belongs to a business. In a business export.
+
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `import_id` | id (text) | yes | refers to `gstr2b_imports` |
+| `period_fp` | text | yes |  |
+| `supplier_gstin` | text | yes |  |
+| `supplier_name` | text |  |  |
+| `doc_type` | text | yes | one of `invoice`, `credit_note`, `debit_note` |
+| `number` | text | yes |  |
+| `number_key` | text | yes |  |
+| `date` | date (`YYYY-MM-DD`) | yes |  |
+| `taxable_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `igst_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `cgst_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `sgst_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `cess_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `itc_available` | text |  |  |
+| `reason` | text |  |  |
+| `supplier_period` | text |  |  |
+
+### `gstr2b_decisions`
+
+Kind: belongs to a business. In a business export.
+
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `period_fp` | text | yes |  |
+| `side` | text | yes | one of `entry`, `bill` |
+| `ref_key` | text | yes |  |
+| `decision` | text | yes | one of `accept`, `link`, `supplier_to_file`, `ignore` |
+| `linked_document_id` | id (text) |  | refers to `documents` |
+| `note` | text |  |  |
+
+### `gst_issue_acks`
+
+Kind: belongs to a business. In a business export.
+
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `period_fp` | text | yes |  |
+| `issue_key` | text | yes |  |
+| `reason` | text | yes |  |
 
 ### `ledger_accounts`
 

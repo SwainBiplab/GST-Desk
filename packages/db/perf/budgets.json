@@ -11,5 +11,8 @@
   "backupBlockMs": 250,
   "restoreBlockMs": 400,
   "gstrReviewMs": 2000,
-  "gstrQuarterMs": 5000
+  "gstrQuarterMs": 5000,
+  "reconMatchMs": 5000,
+  "reconImportMs": 10000,
+  "reconOpenMs": 5000
 }

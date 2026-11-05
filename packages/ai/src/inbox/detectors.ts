@@ -389,6 +389,8 @@ export interface PrefilingIssueLite {
   severity: 'error' | 'warning';
   message: string;
   docId?: string;
+  /** The problem's own stable id from the return check; used for the card's key when present. */
+  key?: string;
 }
 
 const hash = (text: string): string => {
@@ -408,7 +410,7 @@ export function detectPrefilingIssues(
 ): Finding<PrefilingIssueItem>[] {
   return issues.map((i) => ({
     kind: 'prefiling_issue',
-    key: `prefiling_issue:${period}:${i.code}:${i.docId ?? i.table}:${hash(i.message)}`,
+    key: `prefiling_issue:${period}:${i.key ?? `${i.code}:${i.docId ?? i.table}:${hash(i.message)}`}`,
     payload: { period, table: i.table, documentId: i.docId ?? null },
     suggestion: {
       period,

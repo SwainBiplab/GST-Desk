@@ -6,8 +6,10 @@
  *   (c) nil-rated and exempt lines; (e) non-GST lines. Credit notes subtract, debit notes add.
  * - Table 3.1(d) and 4A(3): purchase bills marked reverse charge, net of purchase returns. The recipient's
  *   own `rcm_self_invoice` is a mirror of the same bill and is not counted again.
- * - Table 4A(5): tax on the other purchase bills, net of purchase returns, treated as eligible unless a
- *   person records a reversal or an ineligible amount as an adjustment (no per-bill ITC flag exists yet).
+ * - Table 4A(5): tax on the other purchase bills, net of purchase returns. A bill the person marked as
+ *   not eligible (the checkbox in the purchase editor: credit blocked under section 17(5)) is reported in
+ *   4A and reversed in 4B(1), as Circular 170/02/2022-GST asks, so it nets to nothing. Any other
+ *   reversal or amount is entered as an adjustment.
  * - Table 6.1: an estimate. Reverse-charge tax can only be paid in cash; the rest is set off with credit
  *   in the statutory order (IGST credit against IGST, CGST, SGST; CGST credit against CGST, IGST; SGST
  *   credit against SGST, IGST; cess only against cess).
@@ -142,6 +144,7 @@ export function buildGstr3b(
   const unreg = new Map<string, { pos: string; txval: number; iamt: number }>();
   const comp = new Map<string, { pos: string; txval: number; iamt: number }>();
   let otherItc = zero4();
+  let blockedBills = zero4();
   let rcmItc = zero4();
   const s5 = { gst: { inter: 0, intra: 0 }, nonGst: { inter: 0, intra: 0 } };
 
@@ -183,12 +186,15 @@ export function buildGstr3b(
           else bucket.intra += sign * l.taxablePaise;
           continue;
         }
+        // Circular 170/02/2022-GST: credit blocked under section 17(5) is shown in 4A and reversed in
+        // 4B(1), so a bill the person marked as not eligible appears in both and nets to nothing
         if (d.reverseCharge) {
           dd = add(dd, l, sign);
           rcmItc = add4(rcmItc, l, sign);
         } else {
           otherItc = add4(otherItc, l, sign);
         }
+        if (d.itcEligible === false) blockedBills = add4(blockedBills, l, sign);
       }
     }
   }
@@ -199,7 +205,7 @@ export function buildGstr3b(
     availableReverseCharge: rcmItc,
     availableIsd: zero4(),
     availableOther: otherItc,
-    reversedRules: zero4(),
+    reversedRules: blockedBills,
     reversedOther: zero4(),
     ineligibleRules: zero4(),
     ineligibleOther: zero4(),

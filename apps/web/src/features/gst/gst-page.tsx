@@ -50,6 +50,7 @@ import {
   useReview,
 } from './hooks';
 import { cardState, gstr1Rows, periodLabel, recentPeriods, type CardState } from './model';
+import { ReconcileTab } from './reconcile-tab';
 
 import { useAppNavigate } from '@/app/hooks';
 import type { Shell } from '@/app/store';
@@ -240,9 +241,10 @@ function Detail({
       <TabsList>
         <TabsTrigger value="gstr1">{t('gst.tabs.gstr1')}</TabsTrigger>
         <TabsTrigger value="gstr3b">{t('gst.tabs.gstr3b')}</TabsTrigger>
+        <TabsTrigger value="recon">{t('gst.tabs.recon')}</TabsTrigger>
         <TabsTrigger value="checks">
           {t('gst.tabs.checks')}
-          {review.issues.length > 0 ? ` (${review.issues.length})` : ''}
+          {review.blockers > 0 ? ` (${review.blockers})` : ''}
         </TabsTrigger>
       </TabsList>
       <TabsContent value="gstr1">
@@ -251,8 +253,11 @@ function Detail({
       <TabsContent value="gstr3b">
         <Gstr3bTab review={review} card={cards.find((c) => c.ret === 'gstr3b')!.state} />
       </TabsContent>
+      <TabsContent value="recon">
+        <ReconcileTab period={review.period} />
+      </TabsContent>
       <TabsContent value="checks">
-        <Checks issues={review.issues} />
+        <Checks issues={review.issues} fp={review.period.fp} blockers={review.blockers} />
       </TabsContent>
     </Tabs>
   );
@@ -274,9 +279,11 @@ function ExportBar({ ret, review, card }: { ret: Return; review: PeriodReview; c
   const filed = card.filing?.status === 'filed';
   return (
     <div className="mb-3 flex flex-wrap items-center gap-2">
-      <Button onClick={() => void run('json')}>{t('gst.export.json')}</Button>
+      <Button disabled={review.blockers > 0} onClick={() => void run('json')}>
+        {t('gst.export.json')}
+      </Button>
       {ret === 'gstr1' ? (
-        <Button variant="secondary" onClick={() => void run('csv')}>
+        <Button variant="secondary" disabled={review.blockers > 0} onClick={() => void run('csv')}>
           {t('gst.export.csv')}
         </Button>
       ) : null}
@@ -290,7 +297,9 @@ function ExportBar({ ret, review, card }: { ret: Return; review: PeriodReview; c
         </Button>
       )}
       {review.blockers > 0 ? (
-        <span className="text-sm text-fg-muted">{t('gst.export.blocked')}</span>
+        <span className="text-sm text-fg-muted" data-testid="export-blocked">
+          {t('gst.export.blocked', { count: review.blockers })}
+        </span>
       ) : null}
       {filing ? (
         <FileDialog ret={ret} period={review.period} onClose={() => setFiling(false)} />
@@ -634,31 +643,90 @@ function Adjustments({ fp }: { fp: string }) {
   );
 }
 
-function Checks({ issues }: { issues: GstrIssue[] }) {
+function Checks({ issues, fp, blockers }: { issues: GstrIssue[]; fp: string; blockers: number }) {
   const { t } = useTranslation();
   const navigate = useAppNavigate();
+  const actions = useGstActions();
+  const [asking, setAsking] = useState<string | null>(null);
+  const [reason, setReason] = useState('');
   if (issues.length === 0) return <p>{t('gst.checks.none')}</p>;
+  const save = async (key: string) => {
+    try {
+      await actions.acknowledge(fp, key, reason);
+      toast.success(t('gst.checks.ackDone'));
+      setAsking(null);
+      setReason('');
+    } catch (e) {
+      toast.error(errText(e));
+    }
+  };
   return (
-    <ul className="flex flex-col gap-2">
-      {issues.map((i, idx) => (
-        <li
-          key={`${i.code}-${i.docId ?? idx}-${idx}`}
-          className="flex flex-wrap items-center gap-2 text-sm"
-        >
-          <Badge tone={i.severity === 'error' ? 'danger' : 'warning'}>
-            {i.severity === 'error' ? t('gst.checks.error') : t('gst.checks.warning')}
-          </Badge>
-          <span>{i.message}</span>
-          {i.docId ? (
-            <Button
-              variant="ghost"
-              onClick={() => navigate('/books/documents/new', { id: i.docId })}
-            >
-              {t('gst.checks.open')}
-            </Button>
-          ) : null}
-        </li>
-      ))}
-    </ul>
+    <div className="flex flex-col gap-3">
+      {blockers > 0 ? (
+        <p role="status" className="text-sm" data-testid="checks-summary">
+          {t('gst.checks.summary', { count: blockers })}
+        </p>
+      ) : null}
+      <ul className="flex flex-col gap-3">
+        {issues.map((i) => (
+          <li key={i.key} className="flex flex-col gap-1 text-sm" data-testid="issue">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge tone={i.severity === 'error' ? 'danger' : 'warning'}>
+                {i.severity === 'error' ? t('gst.checks.error') : t('gst.checks.warning')}
+              </Badge>
+              <span>{i.message}</span>
+              {i.docId ? (
+                <Button
+                  variant="ghost"
+                  onClick={() => navigate('/books/documents/new', { id: i.docId })}
+                >
+                  {t('gst.checks.open')}
+                </Button>
+              ) : null}
+              {i.acknowledged ? null : (
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setAsking(asking === i.key ? null : (i.key ?? null));
+                    setReason('');
+                  }}
+                >
+                  {t('gst.checks.ack')}
+                </Button>
+              )}
+            </div>
+            {i.acknowledged ? (
+              <div className="flex flex-wrap items-center gap-2 text-fg-muted">
+                <span>{t('gst.checks.acked', { reason: i.acknowledged })}</span>
+                <Button
+                  variant="ghost"
+                  onClick={() =>
+                    void actions
+                      .unacknowledge(fp, i.key!)
+                      .then(() => toast.success(t('gst.checks.ackRemoved')))
+                      .catch((e: unknown) => toast.error(errText(e)))
+                  }
+                >
+                  {t('gst.checks.takeBack')}
+                </Button>
+              </div>
+            ) : null}
+            {asking === i.key ? (
+              <div className="flex flex-wrap items-end gap-2">
+                <label className="flex min-w-72 flex-1 flex-col gap-1">
+                  {t('gst.checks.ackReason')}
+                  <Input
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                    ref={focusOnMount}
+                  />
+                </label>
+                <Button onClick={() => void save(i.key!)}>{t('gst.checks.ackSave')}</Button>
+              </div>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

@@ -1,7 +1,7 @@
 import { deflateSync } from 'node:zlib';
 
 import { gstinCheckChar } from '@gst/domain';
-import { expect, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 
 /**
  * Open a path with the deterministic demo business loaded (500 documents) and wait for the counts.
@@ -123,4 +123,30 @@ export async function runWizard(page: Page, o: WizardOptions = {}): Promise<numb
   await click('wizard-skip');
   await expect(page.getByTestId('wizard')).toHaveAttribute('data-step', 'done');
   return actions;
+}
+
+/**
+ * On the Filing Desk, acknowledge every problem the checks list for an open period (one reason for all),
+ * which is what turns export on. Leaves the Checks tab open.
+ */
+export async function acknowledgeAll(
+  region: Locator,
+  reason = 'Known and accepted for this test',
+): Promise<number> {
+  await region.getByRole('tab', { name: /^Checks/ }).click();
+  let done = 0;
+  for (let guard = 0; guard < 80; guard++) {
+    const buttons = region.getByRole('button', { name: 'Acknowledge', exact: true });
+    if ((await buttons.count()) === 0) break;
+    try {
+      await buttons.first().click({ timeout: 3_000 });
+    } catch {
+      continue; // the list was redrawn under the click: look again
+    }
+    await region.getByLabel('Why can this stand?').fill(reason);
+    await region.getByRole('button', { name: 'Save reason' }).click();
+    await expect(region.getByLabel('Why can this stand?')).toHaveCount(0);
+    done += 1;
+  }
+  return done;
 }

@@ -54,6 +54,8 @@ export interface GstrDoc {
   /** Export or SEZ supply under LUT/bond: no IGST charged. */
   lut: boolean;
   reverseCharge: boolean;
+  /** Purchase bills: the person ticked that the credit may be claimed. Absent means yes. */
+  itcEligible?: boolean;
   totalPaise: number;
   /** For a note: the invoice it corrects. */
   linkedNumber: string;
@@ -215,6 +217,16 @@ export interface GstrIssue {
   table: string;
   docId?: string;
   message: string;
+  /**
+   * Problems of one kind that share a cause (the same HSN taxed at the same rate on several documents) are
+   * one problem with one acknowledgement. This names the group; it is part of the key instead of the
+   * document and the wording.
+   */
+  group?: string;
+  /** Stable id of this problem in this period; set by `reviewPeriod`. Acknowledgements are kept against it. */
+  key?: string;
+  /** The reason a person gave for letting the problem stand, once they have. */
+  acknowledged?: string | null;
 }
 
 /** GSTR-3B */

@@ -20,6 +20,8 @@ import {
   type DraftIssue,
 } from '@gst/domain';
 
+import { impliedRateBp, type BillPrefill } from '../gst/prefill';
+
 export const GRID_COLUMNS = [
   'item',
   'hsn',
@@ -312,3 +314,30 @@ export const sameIssues = (a: readonly DraftIssue[], b: readonly DraftIssue[]): 
   a === b ||
   (a.length === b.length &&
     a.every((x, i) => x.field === b[i]!.field && x.code === b[i]!.code && x.line === b[i]!.line));
+
+/**
+ * Start a purchase bill from a GSTR-2B line: the supplier (as if chosen in the party picker), the
+ * supplier's own invoice number and date, and one line for the taxable value at the rate the tax implies.
+ */
+export function applyBillPrefill(
+  d: DraftDocument,
+  p: BillPrefill,
+  businessState: string,
+  lineKey: string,
+): DraftDocument {
+  const withParty = applyParty(d, p.party as unknown as Row, { businessState });
+  return {
+    ...withParty,
+    date: p.date,
+    supplierInvoiceNo: p.number,
+    supplierInvoiceDate: p.date,
+    lines: [
+      {
+        ...emptyDraftLine(lineKey),
+        description: `GSTR-2B ${p.number}`,
+        ratePaise: BigInt(p.taxable),
+        gstRateBp: impliedRateBp(p.taxable, p.igst, p.cgst, p.sgst),
+      },
+    ],
+  };
+}

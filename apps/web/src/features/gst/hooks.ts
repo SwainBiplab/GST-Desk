@@ -34,6 +34,10 @@ export const GST_TABLES = [
   'units',
   'number_series',
   'gst_adjustments',
+  'gst_issue_acks',
+  'payment_allocations',
+  'hsn_master',
+  'settings',
   'businesses',
 ];
 
@@ -105,10 +109,12 @@ export function useGstActions() {
   const exportFiles = useCallback(
     async (ret: Return, review: PeriodReview, which: 'json' | 'csv'): Promise<ExportFile[]> => {
       const { d, c } = need();
+      // the period is checked again from the database, so a screen that is out of date cannot export
+      const fresh = await new GstrRepo(d).assertExportable(c, review.period);
       const files =
         ret === 'gstr1'
-          ? [which === 'json' ? gstr1JsonFile(review) : gstr1CsvZip(review)]
-          : [gstr3bJsonFile(review)];
+          ? [which === 'json' ? gstr1JsonFile(fresh) : gstr1CsvZip(fresh)]
+          : [gstr3bJsonFile(fresh)];
       for (const f of files) downloadBytes(f.name, f.data as BlobPart, f.mime);
       await new GstrRepo(d).markExported(c, ret, review.period, GSTN_V1.version);
       return files;
@@ -160,5 +166,31 @@ export function useGstActions() {
     [database, ctx],
   );
 
-  return { exportFiles, markFiled, reopen, addAdjustment, removeAdjustment };
+  const acknowledge = useCallback(
+    async (fp: string, key: string, reason: string) => {
+      const { d, c } = need();
+      await new GstrRepo(d).acknowledge(c, fp, key, reason);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [database, ctx],
+  );
+
+  const unacknowledge = useCallback(
+    async (fp: string, key: string) => {
+      const { d, c } = need();
+      await new GstrRepo(d).unacknowledge(c, fp, key);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [database, ctx],
+  );
+
+  return {
+    exportFiles,
+    markFiled,
+    reopen,
+    addAdjustment,
+    removeAdjustment,
+    acknowledge,
+    unacknowledge,
+  };
 }

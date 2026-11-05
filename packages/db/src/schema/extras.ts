@@ -13,7 +13,16 @@ export const BREAK = '--> statement-breakpoint';
  * that does not exist yet. Each table here gets its guards in `9003_extras_gst` instead.
  */
 export const TABLES_AFTER_V1 = ['gst_filings', 'gst_adjustments'] as const;
-const later = (t: string) => (TABLES_AFTER_V1 as readonly string[]).includes(t);
+/** The GSTR-2B reconciliation tables: their guards are in `9004_extras_recon`. */
+export const TABLES_RECON = [
+  'gstr2b_imports',
+  'gstr2b_entries',
+  'gstr2b_decisions',
+  'gst_issue_acks',
+] as const;
+const later = (t: string) =>
+  (TABLES_AFTER_V1 as readonly string[]).includes(t) ||
+  (TABLES_RECON as readonly string[]).includes(t);
 const V1_NO_DELETE = NO_DELETE_TABLES.filter((t) => !later(t));
 const V1_TENANT = TENANT_TABLES.filter((t) => !later(t));
 
@@ -186,9 +195,9 @@ export function searchLatinSql(dialect: Dialect): string {
  * Guards for the GST return tables (added after migration 9000): no hard delete, and on Postgres the
  * same tenant isolation every business table has.
  */
-export function gstExtrasSql(dialect: Dialect): string {
+function guardsSql(dialect: Dialect, tables: readonly string[]): string {
   const stmts: string[] = [];
-  for (const t of TABLES_AFTER_V1) {
+  for (const t of tables) {
     if (dialect === 'sqlite') {
       stmts.push(
         `CREATE TRIGGER ${t}_no_delete BEFORE DELETE ON ${t} BEGIN SELECT RAISE(ABORT, 'hard delete forbidden on ${t}'); END`,
@@ -205,3 +214,12 @@ export function gstExtrasSql(dialect: Dialect): string {
   }
   return stmts.map((s) => `${s};`).join(`\n${BREAK}\n`) + '\n';
 }
+
+/**
+ * Guards for the GST return tables (added after migration 9000): no hard delete, and on Postgres the
+ * same tenant isolation every business table has.
+ */
+export const gstExtrasSql = (dialect: Dialect): string => guardsSql(dialect, TABLES_AFTER_V1);
+
+/** The same guards for the GSTR-2B reconciliation tables. */
+export const reconExtrasSql = (dialect: Dialect): string => guardsSql(dialect, TABLES_RECON);

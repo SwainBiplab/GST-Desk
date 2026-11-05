@@ -11,6 +11,7 @@ import { describe, expect, it } from 'vitest';
 import { checkAttachment, sniffMime, MAX_ATTACHMENT_BYTES } from './files';
 import {
   GRID_COLUMNS,
+  applyBillPrefill,
   applyItem,
   applyParty,
   cellText,
@@ -408,5 +409,49 @@ describe('comparing problem lists (so the grid does not redraw on every keystrok
     expect(sameIssues(a, [{ field: 'lines', code: 'rate', line: 2 }])).toBe(false);
     expect(sameIssues(a, [{ field: 'party', code: 'qty', line: 2 }])).toBe(false);
     expect(sameIssues(a, [...a, { field: 'date', code: 'missing' }])).toBe(false);
+  });
+});
+
+describe('a purchase bill started from a GSTR-2B line', () => {
+  const base = emptyDraft('purchase_bill', '2025-05-01', { supplierState: '27' });
+  const prefill = {
+    party: { id: 'p1', name: 'Acme Traders', gstin: '29AABCU9603R1ZJ', state_code: '29' },
+    number: 'INV/0012',
+    date: '2025-04-09',
+    taxable: 1_000_000,
+    igst: 180_000,
+    cgst: 0,
+    sgst: 0,
+    cess: 0,
+    at: 0,
+  };
+
+  it('takes the supplier, their invoice number and date, and one line at the rate the tax implies', () => {
+    const d = applyBillPrefill(base, prefill, '27', 'k1');
+    expect(d).toMatchObject({
+      partyId: 'p1',
+      partyName: 'Acme Traders',
+      partyGstin: '29AABCU9603R1ZJ',
+      // a purchase: the supplier's state is where it comes from, and the place of supply is the business
+      supplierState: '29',
+      placeOfSupply: '27',
+      date: '2025-04-09',
+      supplierInvoiceNo: 'INV/0012',
+      supplierInvoiceDate: '2025-04-09',
+    });
+    expect(d.lines).toHaveLength(1);
+    expect(d.lines[0]).toMatchObject({
+      key: 'k1',
+      description: 'GSTR-2B INV/0012',
+      ratePaise: 1_000_000n,
+      gstRateBp: 1800,
+    });
+  });
+
+  it('prices to the tax the supplier reported, so the bill matches the 2B line', () => {
+    const d = applyBillPrefill(base, prefill, '27', 'k1');
+    const built = buildDocument(d);
+    expect(built.money.total_taxable_paise).toBe(1_000_000);
+    expect(built.money.total_igst_paise).toBe(180_000);
   });
 });

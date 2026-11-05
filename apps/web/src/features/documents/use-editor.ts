@@ -27,11 +27,12 @@ import { toast } from '@gst/ui';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { newLineKey, withTrailingBlank } from './state';
+import { applyBillPrefill, newLineKey, withTrailingBlank } from './state';
 
 import { useAppDb } from '@/app/db';
 import { useUnsavedGuard } from '@/app/unsaved';
 import { useFeatureFlags } from '@/features/business/hooks';
+import { clearPrefill, peekPrefill } from '@/features/gst/prefill';
 
 export const AUTOSAVE_MS = 2000;
 
@@ -140,8 +141,8 @@ export function useDocumentEditor(opts: {
   const scheme = business?.['scheme'] === 'composition' ? 'composition' : 'regular';
   const businessState: string = business?.['state_code'] ?? '';
 
-  const [draft, setDraftState] = useState<DraftDocument>(() =>
-    withTrailingBlank(
+  const [draft, setDraftState] = useState<DraftDocument>(() => {
+    const blank = withTrailingBlank(
       emptyDraft(
         opts.type,
         today(() => new Date()),
@@ -150,8 +151,16 @@ export function useDocumentEditor(opts: {
           composition: scheme === 'composition' && opts.type === 'bill_of_supply',
         },
       ),
-    ),
-  );
+    );
+    // a purchase bill started from a GSTR-2B line (the GST returns screen leaves it for a minute or two)
+    const waiting = !opts.id && opts.type === 'purchase_bill' ? peekPrefill() : null;
+    return waiting
+      ? withTrailingBlank(applyBillPrefill(blank, waiting, businessState, newLineKey()))
+      : blank;
+  });
+  useEffect(() => {
+    if (!opts.id && opts.type === 'purchase_bill') clearPrefill();
+  }, [opts.id, opts.type]);
   const [meta, setMeta] = useState<DocMeta>(NEW_META);
   const [revising, setRevising] = useState(false);
   const revisingRef = useRef(false);

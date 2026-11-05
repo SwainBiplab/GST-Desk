@@ -83,6 +83,32 @@ describe.each(DIALECTS)('GST returns on the seeded book (%s)', (dialect) => {
     expect(checked).toBeGreaterThan(6);
   });
 
+  it("asks for four HSN digits up to INR 5 crore of last year's turnover and six above", async () => {
+    // the seeded book is small
+    const p = periods.find((x) => x.fp === '042025')!;
+    expect(await repo.priorYearTurnover(ctx, p)).toBeLessThan(GstrRepo.SIX_DIGIT_TURNOVER_PAISE);
+    expect(await repo.hsnDigitsFor(ctx, p)).toBe(4);
+    // the year before April 2025 is April 2024 to March 2025: the turnover counts only that year
+    const fy2425 = await repo.priorYearTurnover(ctx, p);
+    const sum = await runReport(d, ctx, 'sales_register', {
+      from: '2024-04-01',
+      to: '2025-03-31',
+      today: '2025-03-31',
+    });
+    expect(fy2425).toBe(sum.totals['taxable'] ?? 0);
+
+    class Big extends GstrRepo {
+      constructor(private readonly t: number) {
+        super(d);
+      }
+      override async priorYearTurnover(): Promise<number> {
+        return this.t;
+      }
+    }
+    expect(await new Big(GstrRepo.SIX_DIGIT_TURNOVER_PAISE).hsnDigitsFor(ctx, p)).toBe(4);
+    expect(await new Big(GstrRepo.SIX_DIGIT_TURNOVER_PAISE + 1).hsnDigitsFor(ctx, p)).toBe(6);
+  });
+
   it('reads quarters too', async () => {
     const q = quarterPeriod('27AAPFU0939F1ZV', 2025, 6);
     const m = periods.filter((p) => p.from >= q.from && p.to <= q.to);
