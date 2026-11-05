@@ -1,4 +1,4 @@
-import { STATES, entityType } from '@gst/domain';
+import { DIRECT_TAX, STATES, entityType } from '@gst/domain';
 import { PRINT_LANGUAGES, PRINT_LANGUAGE_NAMES } from '@gst/i18n';
 import {
   Button,
@@ -32,6 +32,7 @@ import {
 import { useUnsavedGuard } from '@/app/unsaved';
 import { TranslitInput } from '@/features/i18n/translit-input';
 import { Field } from '@/features/onboarding/field';
+import { dyn } from '@/lib/dyn-key';
 
 const STATE_OPTIONS = Object.entries(STATES).filter(([code]) => code !== '97' && code !== '99');
 
@@ -503,6 +504,183 @@ export function PartyForm({
                   rows={3}
                   value={draft.notes}
                   onValueChange={(notes) => change({ notes })}
+                />
+              )}
+            </Field>
+          </section>
+
+          <section className="grid gap-4" data-testid="party-tax-section">
+            <h3 className="text-sm font-semibold">{t('directTax.party.heading')}</h3>
+            <Field
+              label={t('directTax.cols.pan')}
+              error={errors['pan']}
+              hint={t('directTax.party.panNeeded')}
+            >
+              {(c) => (
+                <Input
+                  {...c}
+                  data-testid="party-pan"
+                  value={draft.gstin.trim() ? (derived?.pan ?? '') : draft.pan}
+                  disabled={!!derived}
+                  maxLength={10}
+                  onChange={(e) => change({ pan: e.target.value.toUpperCase() })}
+                />
+              )}
+            </Field>
+            <Field label={t('directTax.party.deducteeType')}>
+              {(c) => (
+                <Select
+                  value={draft.deducteeType || 'auto'}
+                  onValueChange={(v) =>
+                    change({ deducteeType: v === 'auto' ? '' : (v as PartyDraft['deducteeType']) })
+                  }
+                >
+                  <SelectTrigger {...c} data-testid="party-deductee-type">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="auto">{t('directTax.party.noSection')}</SelectItem>
+                    <SelectItem value="company">{t('directTax.party.types.company')}</SelectItem>
+                    <SelectItem value="non_company">
+                      {t('directTax.party.types.non_company')}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            </Field>
+            <Field label={t('directTax.party.tdsSection')}>
+              {(c) => (
+                <Select
+                  value={draft.tdsSection || 'none'}
+                  onValueChange={(v) => change({ tdsSection: v === 'none' ? '' : v })}
+                >
+                  <SelectTrigger {...c} data-testid="party-tds-section">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">{t('directTax.party.noSection')}</SelectItem>
+                    {DIRECT_TAX.tds.map((r) => (
+                      <SelectItem key={r.section} value={r.section}>
+                        {t(dyn(`directTax.sections.${r.section}`))}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </Field>
+            {draft.tdsSection === '194C' ? (
+              <Field label={t('directTax.party.category')}>
+                {(c) => (
+                  <Select
+                    value={draft.tdsCategory || 'other'}
+                    onValueChange={(v) => change({ tdsCategory: v as PartyDraft['tdsCategory'] })}
+                  >
+                    <SelectTrigger {...c} data-testid="party-tds-category">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="individual_huf">
+                        {t('directTax.party.categories.individual_huf')}
+                      </SelectItem>
+                      <SelectItem value="other">{t('directTax.party.categories.other')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              </Field>
+            ) : null}
+            {draft.tdsSection === '194J' ? (
+              <Field label={t('directTax.party.kind')}>
+                {(c) => (
+                  <Select
+                    value={draft.tdsKind || 'professional'}
+                    onValueChange={(v) => change({ tdsKind: v as PartyDraft['tdsKind'] })}
+                  >
+                    <SelectTrigger {...c} data-testid="party-tds-kind">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="professional">
+                        {t('directTax.party.kinds.professional')}
+                      </SelectItem>
+                      <SelectItem value="technical">
+                        {t('directTax.party.kinds.technical')}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              </Field>
+            ) : null}
+            <Field label={t('directTax.party.tcsNature')}>
+              {(c) => (
+                <Select
+                  value={draft.tcsNature || 'none'}
+                  onValueChange={(v) => change({ tcsNature: v === 'none' ? '' : v })}
+                >
+                  <SelectTrigger {...c} data-testid="party-tcs-nature">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">{t('directTax.party.noNature')}</SelectItem>
+                    {DIRECT_TAX.tcs
+                      .filter((r) => r.nature !== 'sale_of_goods')
+                      .map((r) => (
+                        <SelectItem key={r.nature} value={r.nature}>
+                          {t(dyn(`directTax.nature.${r.nature}`))}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </Field>
+            <h4 className="text-sm font-medium">{t('directTax.party.lowerHeading')}</h4>
+            <Field label={t('directTax.party.certNo')}>
+              {(c) => (
+                <Input
+                  {...c}
+                  data-testid="party-cert-no"
+                  value={draft.lowerCertNo}
+                  onChange={(e) => change({ lowerCertNo: e.target.value })}
+                />
+              )}
+            </Field>
+            <Field label={t('directTax.party.certRate')} error={errors['lowerCertRate']}>
+              {(c) => (
+                <Input
+                  {...c}
+                  data-testid="party-cert-rate"
+                  inputMode="decimal"
+                  value={draft.lowerCertRate}
+                  onChange={(e) => change({ lowerCertRate: e.target.value })}
+                />
+              )}
+            </Field>
+            <Field label={t('directTax.party.certFrom')} error={errors['lowerCertFrom']}>
+              {(c) => (
+                <Input
+                  {...c}
+                  type="date"
+                  value={draft.lowerCertFrom}
+                  onChange={(e) => change({ lowerCertFrom: e.target.value })}
+                />
+              )}
+            </Field>
+            <Field label={t('directTax.party.certTo')} error={errors['lowerCertTo']}>
+              {(c) => (
+                <Input
+                  {...c}
+                  type="date"
+                  value={draft.lowerCertTo}
+                  onChange={(e) => change({ lowerCertTo: e.target.value })}
+                />
+              )}
+            </Field>
+            <Field label={t('directTax.party.certLimit')} error={errors['lowerCertLimit']}>
+              {(c) => (
+                <Input
+                  {...c}
+                  inputMode="decimal"
+                  value={draft.lowerCertLimit}
+                  onChange={(e) => change({ lowerCertLimit: e.target.value })}
                 />
               )}
             </Field>

@@ -22,8 +22,11 @@ export const TABLES_RECON = [
 ] as const;
 /** The e-invoice and e-way bill tables: their guards are in `9005_extras_gsp`. */
 export const TABLES_GSP = ['einvoices', 'ewaybills', 'gsp_jobs', 'gsp_log'] as const;
+/** The TDS and TCS tables: their guards are in `9006_extras_tax`. */
+export const TABLES_TAX = ['tax_challans', 'tax_deductions', 'tds_receivable'] as const;
 const later = (t: string) =>
   (TABLES_AFTER_V1 as readonly string[]).includes(t) ||
+  (TABLES_TAX as readonly string[]).includes(t) ||
   (TABLES_RECON as readonly string[]).includes(t) ||
   (TABLES_GSP as readonly string[]).includes(t);
 const V1_NO_DELETE = NO_DELETE_TABLES.filter((t) => !later(t));
@@ -229,3 +232,6 @@ export const reconExtrasSql = (dialect: Dialect): string => guardsSql(dialect, T
 
 /** The same guards for the e-invoice and e-way bill tables. */
 export const gspExtrasSql = (dialect: Dialect): string => guardsSql(dialect, TABLES_GSP);
+
+/** The same guards for the TDS and TCS tables. */
+export const taxExtrasSql = (dialect: Dialect): string => guardsSql(dialect, TABLES_TAX);

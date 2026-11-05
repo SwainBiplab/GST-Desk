@@ -3,7 +3,7 @@
  * "quick" mode is the short form used inline from the invoice grid: name, GSTIN or state, phone.
  */
 import type { Row } from '@gst/db';
-import { STATES, checkGstin, parseGstin } from '@gst/domain';
+import { PAN, STATES, checkGstin, parseGstin } from '@gst/domain';
 
 export type PartyType = 'customer' | 'supplier' | 'both';
 export type FormMode = 'full' | 'quick';
@@ -50,6 +50,22 @@ export interface PartyDraft {
   notes: string;
   /** Comma separated. */
   tags: string;
+  /** PAN typed in, for a party with no GSTIN (a valid GSTIN gives its own PAN). */
+  pan: string;
+  deducteeType: '' | 'company' | 'non_company';
+  /** The TDS section to deduct under when we pay this party; empty means none. */
+  tdsSection: string;
+  tdsCategory: '' | 'individual_huf' | 'other';
+  tdsKind: '' | 'professional' | 'technical';
+  /** What we collect TCS on when we sell to this party; empty means nothing. */
+  tcsNature: string;
+  lowerCertNo: string;
+  /** A percentage as typed. */
+  lowerCertRate: string;
+  lowerCertFrom: string;
+  lowerCertTo: string;
+  /** Rupees as typed. */
+  lowerCertLimit: string;
 }
 
 const blankAddress = (): AddressDraft => ({ line1: '', city: '', pincode: '' });
@@ -78,6 +94,17 @@ export const emptyPartyDraft = (type: PartyType = 'customer'): PartyDraft => ({
   openingDate: '',
   notes: '',
   tags: '',
+  pan: '',
+  deducteeType: '',
+  tdsSection: '',
+  tdsCategory: '',
+  tdsKind: '',
+  tcsNature: '',
+  lowerCertNo: '',
+  lowerCertRate: '',
+  lowerCertFrom: '',
+  lowerCertTo: '',
+  lowerCertLimit: '',
 });
 
 export type Errors = Partial<Record<string, string>>;
@@ -152,6 +179,20 @@ export function validateParty(d: PartyDraft, mode: FormMode = 'full'): Errors {
   const opening = rupeesToPaise(d.opening);
   if (opening !== null && Number.isNaN(opening)) e['opening'] = 'amount';
   if (d.openingDate && !/^\d{4}-\d{2}-\d{2}$/.test(d.openingDate)) e['openingDate'] = 'date';
+  if (d.pan.trim() && !PAN.test(d.pan.trim().toUpperCase())) e['pan'] = 'pan';
+  const hasCert = [d.lowerCertNo, d.lowerCertRate, d.lowerCertFrom, d.lowerCertTo].some((x) =>
+    x.trim(),
+  );
+  if (hasCert) {
+    const rate = Number(d.lowerCertRate);
+    if (d.lowerCertRate.trim() === '' || !Number.isFinite(rate) || rate < 0 || rate > 100)
+      e['lowerCertRate'] = 'certRate';
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d.lowerCertFrom)) e['lowerCertFrom'] = 'date';
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d.lowerCertTo)) e['lowerCertTo'] = 'date';
+    else if (d.lowerCertFrom && d.lowerCertTo < d.lowerCertFrom) e['lowerCertTo'] = 'certDates';
+    const lim = rupeesToPaise(d.lowerCertLimit);
+    if (lim !== null && (Number.isNaN(lim) || lim < 0)) e['lowerCertLimit'] = 'amount';
+  }
   return e;
 }
 
@@ -171,7 +212,7 @@ export function draftToValues(d: PartyDraft): Record<string, unknown> {
     language: d.language || null,
     trade_name: d.tradeName.trim() || null,
     gstin: derived?.gstin ?? null,
-    pan: derived?.pan ?? null,
+    pan: derived?.pan ?? (d.pan.trim() ? d.pan.trim().toUpperCase() : null),
     state_code: stateCode || null,
     country: d.country.trim() || 'India',
     phone: d.phone.trim() ? normalisePhone(d.phone) : null,
@@ -191,6 +232,18 @@ export function draftToValues(d: PartyDraft): Record<string, unknown> {
     is_export: exporting,
     is_unregistered: !derived,
     is_composition: !!derived && d.isComposition,
+    deductee_type: d.deducteeType || null,
+    tds_section: d.tdsSection || null,
+    tds_category: d.tdsSection === '194C' ? d.tdsCategory || null : null,
+    tds_kind: d.tdsSection === '194J' ? d.tdsKind || null : null,
+    tcs_nature: d.tcsNature || null,
+    lower_cert_no: d.lowerCertNo.trim() || null,
+    lower_cert_rate_bp: d.lowerCertRate.trim() ? Math.round(Number(d.lowerCertRate) * 100) : null,
+    lower_cert_from: d.lowerCertFrom || null,
+    lower_cert_to: d.lowerCertTo || null,
+    lower_cert_limit_paise: d.lowerCertLimit.trim()
+      ? (rupeesToPaise(d.lowerCertLimit) ?? null)
+      : null,
   };
 }
 
@@ -242,6 +295,20 @@ export function rowToDraft(row: Row): PartyDraft {
     openingDate: row['opening_balance_date'] ?? '',
     notes: row['notes'] ?? '',
     tags: ((row['tags_json'] ?? []) as string[]).join(', '),
+    pan: row['gstin'] ? '' : (row['pan'] ?? ''),
+    deducteeType: row['deductee_type'] ?? '',
+    tdsSection: row['tds_section'] ?? '',
+    tdsCategory: row['tds_category'] ?? '',
+    tdsKind: row['tds_kind'] ?? '',
+    tcsNature: row['tcs_nature'] ?? '',
+    lowerCertNo: row['lower_cert_no'] ?? '',
+    lowerCertRate:
+      row['lower_cert_rate_bp'] == null ? '' : String(Number(row['lower_cert_rate_bp']) / 100),
+    lowerCertFrom: row['lower_cert_from'] ?? '',
+    lowerCertTo: row['lower_cert_to'] ?? '',
+    lowerCertLimit: row['lower_cert_limit_paise']
+      ? (Number(row['lower_cert_limit_paise']) / 100).toFixed(2)
+      : '',
   };
 }
 

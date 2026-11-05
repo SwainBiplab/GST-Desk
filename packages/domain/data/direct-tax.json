@@ -1,0 +1,256 @@
+{
+  "version": "2026.11.1",
+  "verified": false,
+  "note": "Written from the Income-tax Act 1961 and the Finance Acts 2024 and 2025 as known on 2026-11-05. NOT verified by a chartered accountant. The Income-tax Act 2025 takes effect on 1 April 2026 and renumbers these sections; the section names below are the 1961 Act's, which deductors still quote on forms for periods before that date. Every rate, threshold and date is data: change it here, never in code.",
+  "noPanRateBp": 2000,
+  "tds": [
+    {
+      "section": "194C",
+      "code": "94C",
+      "label": "Payment to contractors",
+      "base": "excl_gst",
+      "categories": { "individual_huf": 100, "other": 200 },
+      "periods": [
+        {
+          "from": "2000-01-01",
+          "singleThresholdPaise": 3000000,
+          "aggregateThresholdPaise": 10000000
+        }
+      ]
+    },
+    {
+      "section": "194J",
+      "code": "94J",
+      "label": "Professional and technical fees, royalty",
+      "base": "excl_gst",
+      "kinds": { "professional": 1000, "technical": 200 },
+      "periods": [
+        { "from": "2000-01-01", "aggregateThresholdPaise": 3000000 },
+        { "from": "2025-04-01", "aggregateThresholdPaise": 5000000 }
+      ]
+    },
+    {
+      "section": "194H",
+      "code": "94H",
+      "label": "Commission or brokerage",
+      "base": "excl_gst",
+      "periods": [
+        { "from": "2000-01-01", "rateBp": 500, "aggregateThresholdPaise": 1500000 },
+        { "from": "2024-10-01", "rateBp": 200, "aggregateThresholdPaise": 1500000 },
+        { "from": "2025-04-01", "rateBp": 200, "aggregateThresholdPaise": 2000000 }
+      ]
+    },
+    {
+      "section": "194I(a)",
+      "code": "94I",
+      "label": "Rent of plant and machinery",
+      "base": "excl_gst",
+      "periods": [
+        { "from": "2000-01-01", "rateBp": 200, "aggregateThresholdPaise": 24000000 },
+        { "from": "2025-04-01", "rateBp": 200, "aggregateThresholdPaise": 60000000 }
+      ]
+    },
+    {
+      "section": "194I(b)",
+      "code": "94I",
+      "label": "Rent of land, building or furniture",
+      "base": "excl_gst",
+      "periods": [
+        { "from": "2000-01-01", "rateBp": 1000, "aggregateThresholdPaise": 24000000 },
+        { "from": "2025-04-01", "rateBp": 1000, "aggregateThresholdPaise": 60000000 }
+      ]
+    },
+    {
+      "section": "194Q",
+      "code": "94Q",
+      "label": "Purchase of goods above INR 50 lakh",
+      "base": "excl_gst",
+      "onExcessOnly": true,
+      "buyerTurnoverFloorPaise": 10000000000,
+      "periods": [{ "from": "2021-07-01", "rateBp": 10, "aggregateThresholdPaise": 500000000 }]
+    }
+  ],
+  "tcs": [
+    {
+      "section": "206C(1)",
+      "nature": "alcoholic_liquor",
+      "code": "6CA",
+      "label": "Alcoholic liquor for human consumption",
+      "base": "excl_gst",
+      "periods": [{ "from": "2000-01-01", "rateBp": 100 }]
+    },
+    {
+      "section": "206C(1)",
+      "nature": "timber_forest_lease",
+      "code": "6CB",
+      "label": "Timber obtained under a forest lease",
+      "base": "excl_gst",
+      "periods": [{ "from": "2000-01-01", "rateBp": 250 }]
+    },
+    {
+      "section": "206C(1)",
+      "nature": "timber_other",
+      "code": "6CC",
+      "label": "Timber obtained by any mode other than a forest lease",
+      "base": "excl_gst",
+      "periods": [{ "from": "2000-01-01", "rateBp": 250 }]
+    },
+    {
+      "section": "206C(1)",
+      "nature": "forest_produce",
+      "code": "6CD",
+      "label": "Any other forest produce, not tendu leaves",
+      "base": "excl_gst",
+      "periods": [{ "from": "2000-01-01", "rateBp": 250 }]
+    },
+    {
+      "section": "206C(1)",
+      "nature": "scrap",
+      "code": "6CE",
+      "label": "Scrap",
+      "base": "excl_gst",
+      "periods": [{ "from": "2000-01-01", "rateBp": 100 }]
+    },
+    {
+      "section": "206C(1)",
+      "nature": "tendu_leaves",
+      "code": "6CF",
+      "label": "Tendu leaves",
+      "base": "excl_gst",
+      "periods": [{ "from": "2000-01-01", "rateBp": 500 }]
+    },
+    {
+      "section": "206C(1)",
+      "nature": "minerals",
+      "code": "6CH",
+      "label": "Minerals: coal, lignite, iron ore",
+      "base": "excl_gst",
+      "periods": [{ "from": "2000-01-01", "rateBp": 100 }]
+    },
+    {
+      "section": "206C(1F)",
+      "nature": "motor_vehicle",
+      "code": "6CI",
+      "label": "Motor vehicle of more than INR 10 lakh",
+      "base": "excl_gst",
+      "periods": [
+        { "from": "2000-01-01", "rateBp": 100, "perTransactionThresholdPaise": 100000000 }
+      ]
+    },
+    {
+      "section": "206C(1H)",
+      "nature": "sale_of_goods",
+      "code": "6CR",
+      "label": "Sale of goods above INR 50 lakh",
+      "base": "incl_gst",
+      "onExcessOnly": true,
+      "periods": [
+        {
+          "from": "2020-10-01",
+          "to": "2025-03-31",
+          "rateBp": 10,
+          "aggregateThresholdPaise": 500000000
+        }
+      ]
+    }
+  ],
+  "due": {
+    "depositDay": 7,
+    "marchDeposit": "04-30",
+    "returnDates": { "Q1": "07-31", "Q2": "10-31", "Q3": "01-31", "Q4": "05-31" },
+    "lateDeductionInterestBpPerMonth": 100,
+    "lateDepositInterestBpPerMonth": 150
+  },
+  "incomeTax": {
+    "years": {
+      "2025-26": {
+        "assessmentYear": "2026-27",
+        "note": "Finance Act 2025",
+        "new": {
+          "slabs": [
+            { "upTo": 40000000, "rateBp": 0 },
+            { "upTo": 80000000, "rateBp": 500 },
+            { "upTo": 120000000, "rateBp": 1000 },
+            { "upTo": 160000000, "rateBp": 1500 },
+            { "upTo": 200000000, "rateBp": 2000 },
+            { "upTo": 240000000, "rateBp": 2500 },
+            { "upTo": null, "rateBp": 3000 }
+          ],
+          "rebate": { "incomeLimitPaise": 120000000, "maxPaise": 6000000 },
+          "surchargeSlabs": [
+            { "above": 500000000, "rateBp": 1000 },
+            { "above": 1000000000, "rateBp": 1500 },
+            { "above": 2000000000, "rateBp": 2500 }
+          ]
+        },
+        "old": {
+          "slabsByAge": {
+            "below60": [
+              { "upTo": 25000000, "rateBp": 0 },
+              { "upTo": 50000000, "rateBp": 500 },
+              { "upTo": 100000000, "rateBp": 2000 },
+              { "upTo": null, "rateBp": 3000 }
+            ],
+            "senior": [
+              { "upTo": 30000000, "rateBp": 0 },
+              { "upTo": 50000000, "rateBp": 500 },
+              { "upTo": 100000000, "rateBp": 2000 },
+              { "upTo": null, "rateBp": 3000 }
+            ],
+            "super_senior": [
+              { "upTo": 50000000, "rateBp": 0 },
+              { "upTo": 100000000, "rateBp": 2000 },
+              { "upTo": null, "rateBp": 3000 }
+            ]
+          },
+          "rebate": { "incomeLimitPaise": 50000000, "maxPaise": 1250000 },
+          "surchargeSlabs": [
+            { "above": 500000000, "rateBp": 1000 },
+            { "above": 1000000000, "rateBp": 1500 },
+            { "above": 2000000000, "rateBp": 2500 },
+            { "above": 5000000000, "rateBp": 3700 }
+          ],
+          "limits": {
+            "section80C": 15000000,
+            "section80CCD1B": 5000000,
+            "section80D": 2500000,
+            "section80DSenior": 5000000,
+            "homeLoanInterest24b": 20000000
+          }
+        },
+        "cessBp": 400
+      },
+      "2026-27": {
+        "assessmentYear": "2027-28",
+        "note": "Assumed unchanged from 2025-26 for the slabs. Confirm against the Finance Act 2026 and the Income-tax Act 2025 before relying on it.",
+        "sameAs": "2025-26"
+      }
+    },
+    "presumptive": {
+      "44AD": {
+        "rateBp": 800,
+        "digitalRateBp": 600,
+        "turnoverLimitPaise": 2000000000,
+        "turnoverLimitDigitalPaise": 3000000000,
+        "cashReceiptShareLimitBp": 500
+      },
+      "44ADA": {
+        "rateBp": 5000,
+        "receiptsLimitPaise": 500000000,
+        "receiptsLimitDigitalPaise": 750000000,
+        "cashReceiptShareLimitBp": 500
+      }
+    },
+    "advanceTax": {
+      "minimumLiabilityPaise": 1000000,
+      "instalments": [
+        { "due": "06-15", "cumulativeBp": 1500, "relaxedBp": 1200, "months": 3 },
+        { "due": "09-15", "cumulativeBp": 4500, "relaxedBp": 3600, "months": 3 },
+        { "due": "12-15", "cumulativeBp": 7500, "months": 3 },
+        { "due": "03-15", "cumulativeBp": 10000, "months": 1 }
+      ],
+      "section234BThresholdBp": 9000,
+      "interestBpPerMonth": 100
+    }
+  }
+}

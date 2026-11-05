@@ -21,6 +21,7 @@ export * from './repositories/reports';
 export * from './repositories/gstr';
 export * from './repositories/gstr2b';
 export * from './repositories/einvoice';
+export * from './repositories/direct-tax';
 export * from './repositories/inventory';
 export * from './backup';
 export * from './repositories/trash';

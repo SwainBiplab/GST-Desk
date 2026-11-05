@@ -13,6 +13,9 @@ export const errors = {
   },
   val: {
     gstinRequired: 'Enter your GSTIN, or tick "not registered yet".',
+    pan: 'A PAN is 5 letters, 4 digits and a letter, like ABCDE1234F.',
+    certRate: 'Enter the rate on the certificate, between 0 and 100.',
+    certDates: 'The certificate cannot end before it starts.',
     gstin_format: 'That is not a GSTIN: it should be 15 letters and digits.',
     gstin_checksum: 'The last character does not match. Check for a typing mistake.',
     gstin_state: 'The first two digits are not an Indian state code.',

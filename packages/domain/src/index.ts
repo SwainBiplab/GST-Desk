@@ -29,6 +29,7 @@ export * from './documents/rows';
 export * from './reports';
 export * from './inventory';
 export * from './backup';
+export * from './direct-tax';
 export * from './gstr';
 export * from './reconcile';
 export * from './einvoice';

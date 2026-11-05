@@ -57,6 +57,13 @@
       "when": 1793887572456,
       "tag": "0007_married_obadiah_stane",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793893223078,
+      "tag": "0008_cloudy_nextwave",
+      "breakpoints": true
     }
   ]
 }

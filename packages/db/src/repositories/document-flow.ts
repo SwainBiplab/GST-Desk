@@ -910,7 +910,7 @@ export class DocumentFlowRepo extends BaseRepo {
   }
 
   /** The first filed return (GSTR-1 first) whose period covers `date`, or null. */
-  private async filedReturnCovering(
+  private async filedReturnCoveringIn(
     tx: any,
     c: Ctx,
     date: string,
@@ -967,7 +967,7 @@ export class DocumentFlowRepo extends BaseRepo {
     if (blocker) throw new RuleError(blocker);
     // once a return that covers the document's date has been filed, the number has been reported to
     // the GST portal: the document cannot be cancelled, only corrected by a credit note (s.34)
-    const filed = await this.filedReturnCovering(tx, c, String(current['date']));
+    const filed = await this.filedReturnCoveringIn(tx, c, String(current['date']));
     if (filed)
       throw new RuleError(
         `${filed.returnType.toUpperCase()} for period ${filed.fp} has been filed with this document in it. A filed document cannot be cancelled; issue a credit note against it instead.`,

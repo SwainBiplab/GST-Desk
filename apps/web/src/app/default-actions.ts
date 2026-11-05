@@ -28,6 +28,18 @@ const KEYWORDS: Record<PageId, string[]> = {
   reports: ['ledger', 'summary'],
   gst: ['gst', 'gstr', 'gstr1', 'gstr3b', 'filing', 'return', 'file'],
   einvoice: ['irn', 'e-invoice', 'einvoice', 'eway', 'e-way', 'ewb', 'qr'],
+  directtax: [
+    'tds',
+    'tcs',
+    '26q',
+    '27eq',
+    'challan',
+    'income tax',
+    'itr',
+    'advance tax',
+    '194c',
+    '194j',
+  ],
   inbox: ['review', 'scan', 'notifications'],
   settings: ['preferences', 'business', 'setup'],
 };

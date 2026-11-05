@@ -28,3 +28,5 @@ A reviewer works through this and records the date and name in the table above.
 1. `pnpm i18n:check` lists what is missing; `pnpm i18n:draft` writes a draft for every missing string to `packages/i18n/locales-todo/<lang>.json` (English with the glossary's terms already swapped in).
 2. A translator adds the real string to `packages/i18n/src/locales/<lang>.ts` in the same place as in `en.ts`. Keep every `{{placeholder}}` and the plural forms (`_one`, `_other`).
 3. `pnpm i18n:draft` again drops it from the todo list; `pnpm i18n:check` must pass.
+
+Note (prompt 33): the TDS, TCS and income tax page and the party tax fields are machine drafts in every language, Hindi included (backlog B-131).

@@ -225,6 +225,16 @@ Kind: belongs to a business. In a business export.
 | `is_export` | true or false | yes | default false |
 | `is_unregistered` | true or false | yes | default false |
 | `is_composition` | true or false | yes | default false |
+| `deductee_type` | text |  | one of `company`, `non_company` |
+| `tds_section` | text |  |  |
+| `tds_category` | text |  | one of `individual_huf`, `other` |
+| `tds_kind` | text |  | one of `professional`, `technical` |
+| `tcs_nature` | text |  |  |
+| `lower_cert_no` | text |  |  |
+| `lower_cert_rate_bp` | integer |  |  |
+| `lower_cert_from` | date (`YYYY-MM-DD`) |  |  |
+| `lower_cert_to` | date (`YYYY-MM-DD`) |  |  |
+| `lower_cert_limit_paise` | integer (paise, micro-units or a count) |  |  |
 
 ### `items`
 
@@ -563,6 +573,91 @@ Kind: belongs to a business. In a business export.
 | `arn` | text |  |  |
 | `filed_on` | date (`YYYY-MM-DD`) |  |  |
 | `due_override` | date (`YYYY-MM-DD`) |  |  |
+| `note` | text |  |  |
+
+### `tax_challans`
+
+Kind: belongs to a business. In a business export.
+
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `kind` | text | yes | one of `tds`, `tcs` |
+| `fy` | text | yes |  |
+| `quarter` | text | yes | one of `Q1`, `Q2`, `Q3`, `Q4` |
+| `section` | text |  |  |
+| `bsr_code` | text | yes |  |
+| `deposit_date` | date (`YYYY-MM-DD`) | yes |  |
+| `serial` | text | yes |  |
+| `tax_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `interest_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `fee_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `note` | text |  |  |
+
+### `tax_deductions`
+
+Kind: belongs to a business. In a business export.
+
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `kind` | text | yes | one of `tds`, `tcs` |
+| `party_id` | id (text) | yes | refers to `parties` |
+| `document_id` | id (text) |  | refers to `documents` |
+| `section` | text | yes |  |
+| `nature` | text |  |  |
+| `date` | date (`YYYY-MM-DD`) | yes |  |
+| `fy` | text | yes |  |
+| `quarter` | text | yes | one of `Q1`, `Q2`, `Q3`, `Q4` |
+| `base_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `rate_bp` | integer | yes | default 0 |
+| `tax_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `no_pan` | true or false | yes | default false |
+| `lower_cert` | true or false | yes | default false |
+| `challan_id` | id (text) |  | refers to `tax_challans` |
+| `note` | text |  |  |
+
+### `tds_receivable`
+
+Kind: belongs to a business. In a business export.
+
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `party_id` | id (text) | yes | refers to `parties` |
+| `fy` | text | yes |  |
+| `quarter` | text | yes | one of `Q1`, `Q2`, `Q3`, `Q4` |
+| `section` | text | yes |  |
+| `date` | date (`YYYY-MM-DD`) | yes |  |
+| `gross_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `tds_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `certificate_no` | text |  |  |
+| `certificate_date` | date (`YYYY-MM-DD`) |  |  |
+| `status` | text | yes | one of `expected`, `certificate_received`, `claimed`; default "expected" |
 | `note` | text |  |  |
 
 ### `gst_adjustments`

@@ -133,6 +133,22 @@ export const SPEC: TableSpec[] = [
       is_export: c.bool().nn.default(false),
       is_unregistered: c.bool().nn.default(false),
       is_composition: c.bool().nn.default(false),
+      /** Who the party is for TDS returns: a company (code 01) or anyone else (code 02). */
+      deductee_type: c.text().oneOf(['company', 'non_company']),
+      /** The TDS section to deduct under when we pay this party (`194C`, `194J`, ...); empty means none. */
+      tds_section: c.text(),
+      /** 194C rate group: individual or HUF (1%) or anyone else (2%). */
+      tds_category: c.text().oneOf(['individual_huf', 'other']),
+      /** 194J rate: professional (10%) or technical service (2%). */
+      tds_kind: c.text().oneOf(['professional', 'technical']),
+      /** What we collect TCS on when we sell to this party (`scrap`, `motor_vehicle`, ...); empty means none. */
+      tcs_nature: c.text(),
+      /** A lower or nil deduction certificate (section 197) the party gave us. */
+      lower_cert_no: c.text(),
+      lower_cert_rate_bp: c.int(),
+      lower_cert_from: c.date(),
+      lower_cert_to: c.date(),
+      lower_cert_limit_paise: c.big(),
     },
     indexes: [{ cols: ['business_id', 'gstin'] }, { cols: ['business_id', 'name'] }],
   },
@@ -426,6 +442,81 @@ export const SPEC: TableSpec[] = [
         where: 'deleted_at IS NULL',
       },
     ],
+  },
+  {
+    name: 'tax_challans',
+    kind: 'tenant',
+    cols: {
+      kind: c.text().nn.oneOf(['tds', 'tcs']),
+      /** `2025-26`. */
+      fy: c.text().nn,
+      /** `Q1` to `Q4`. */
+      quarter: c.text().nn.oneOf(['Q1', 'Q2', 'Q3', 'Q4']),
+      section: c.text(),
+      /** The 7-digit code of the bank branch that took the deposit. */
+      bsr_code: c.text().nn,
+      deposit_date: c.date().nn,
+      /** The challan serial number the bank gave. */
+      serial: c.text().nn,
+      tax_paise: money(),
+      interest_paise: money(),
+      fee_paise: money(),
+      note: c.text(),
+    },
+    indexes: [{ cols: ['business_id', 'fy', 'quarter'] }],
+  },
+  {
+    name: 'tax_deductions',
+    kind: 'tenant',
+    cols: {
+      /** `tds` we deducted when paying; `tcs` we collected when selling. */
+      kind: c.text().nn.oneOf(['tds', 'tcs']),
+      party_id: c.uuid().nn.ref('parties'),
+      document_id: c.uuid().ref('documents'),
+      /** `194C`, `206C(1)`, ... */
+      section: c.text().nn,
+      /** For TCS, which goods (`scrap`, `motor_vehicle`, ...). */
+      nature: c.text(),
+      /** The date of payment or credit (TDS) or of collection (TCS). */
+      date: c.date().nn,
+      fy: c.text().nn,
+      quarter: c.text().nn.oneOf(['Q1', 'Q2', 'Q3', 'Q4']),
+      base_paise: money(),
+      rate_bp: bp(),
+      tax_paise: money(),
+      no_pan: c.bool().nn.default(false),
+      lower_cert: c.bool().nn.default(false),
+      challan_id: c.uuid().ref('tax_challans'),
+      note: c.text(),
+    },
+    indexes: [
+      { cols: ['business_id', 'fy', 'quarter', 'kind'] },
+      { cols: ['business_id', 'party_id', 'fy'] },
+      { cols: ['document_id'] },
+    ],
+  },
+  {
+    name: 'tds_receivable',
+    kind: 'tenant',
+    cols: {
+      party_id: c.uuid().nn.ref('parties'),
+      fy: c.text().nn,
+      quarter: c.text().nn.oneOf(['Q1', 'Q2', 'Q3', 'Q4']),
+      section: c.text().nn,
+      date: c.date().nn,
+      /** What the customer paid or credited, before their deduction. */
+      gross_paise: money(),
+      /** What they deducted and owe the government on our behalf. */
+      tds_paise: money(),
+      certificate_no: c.text(),
+      certificate_date: c.date(),
+      status: c
+        .text()
+        .nn.default('expected')
+        .oneOf(['expected', 'certificate_received', 'claimed']),
+      note: c.text(),
+    },
+    indexes: [{ cols: ['business_id', 'fy', 'quarter'] }, { cols: ['business_id', 'party_id'] }],
   },
   {
     name: 'gst_adjustments',

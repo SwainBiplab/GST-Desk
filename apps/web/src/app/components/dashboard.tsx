@@ -13,6 +13,7 @@ import type { Shell } from '../store';
 import { useConfirm } from './confirm';
 
 import { SettingsPage } from '@/features/business/settings-page';
+import { DirectTaxPage } from '@/features/direct-tax/direct-tax-page';
 import { DocumentsPage } from '@/features/documents/documents-page';
 import { EditorRoute } from '@/features/documents/editor-route';
 import { EinvoicePage } from '@/features/einvoice/einvoice-page';
@@ -167,6 +168,13 @@ export function PlaceholderPage({ page, shell }: { page: PageId; shell: Shell })
     return (
       <div data-shell={shell} className="h-full overflow-auto">
         <EinvoicePage shell={shell} />
+      </div>
+    );
+  }
+  if (page === 'directtax' && ctx) {
+    return (
+      <div data-shell={shell} className="h-full overflow-auto">
+        <DirectTaxPage shell={shell} />
       </div>
     );
   }
