@@ -136,14 +136,15 @@ describe('the runtime', () => {
     await setLanguage(i18n, 'hi');
     expect(i18n.t('nav.sell')).toBe('बिक्री');
     expect(i18n.t('errors:boundary.title')).toBe('कुछ गड़बड़ हो गई');
-    // not translated yet: English, never a raw key
-    expect(i18n.t('parties.form.titleNew')).toBe(en.parties.form.titleNew);
+    expect(i18n.t('parties.form.titleNew')).toBe('नई पार्टी');
     expect(i18n.t('title.tax_invoice', { ns: 'print' })).toBe(
       PRINT_CATALOGUE.hi['title.tax_invoice'],
     );
 
     await setLanguage(i18n, 'ta');
     expect(i18n.t('nav.sell')).toBe('விற்பனை');
+    // not translated yet in Tamil: English, never a raw key
+    expect(i18n.t('parties.form.titleNew')).toBe(en.parties.form.titleNew);
     await setLanguage(i18n, 'en');
     expect(i18n.t('nav.sell')).toBe('Sell');
   });

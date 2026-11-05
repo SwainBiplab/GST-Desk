@@ -4,13 +4,13 @@ Status of every language, and what a native speaker and the CA reviewer still ha
 
 How to read the table: **screens** is the share of the English catalogue (`ui`, `errors`, `help`) that has a translation in the language file; the rest shows in English and has a draft waiting in `packages/i18n/locales-todo/<lang>.json`. **Print** is the printed-document catalogue (`packages/i18n/src/print.ts`), complete in all six. Run `pnpm i18n:check` for the live numbers.
 
-| Language     | Screens translated                           | Print labels    | Reminder text | Glossary | Native-speaker review | CA review |
-| ------------ | -------------------------------------------- | --------------- | ------------- | -------- | --------------------- | --------- |
-| हिन्दी (hi)  | about 6% (navigation, chrome, inbox, errors) | complete, draft | draft         | draft    | pending               | pending   |
-| मराठी (mr)   | about 6%                                     | complete, draft | draft         | draft    | pending               | pending   |
-| தமிழ் (ta)   | about 6%                                     | complete, draft | draft         | draft    | pending               | pending   |
-| বাংলা (bn)   | about 6%                                     | complete, draft | draft         | draft    | pending               | pending   |
-| ગુજરાતી (gu) | about 6%                                     | complete, draft | draft         | draft    | pending               | pending   |
+| Language     | Screens translated | Print labels    | Reminder text | Glossary | Native-speaker review | CA review |
+| ------------ | ------------------ | --------------- | ------------- | -------- | --------------------- | --------- |
+| हिन्दी (hi)  | 100% (draft)       | complete, draft | draft         | draft    | pending               | pending   |
+| मराठी (mr)   | about 6%           | complete, draft | draft         | draft    | pending               | pending   |
+| தமிழ் (ta)   | about 6%           | complete, draft | draft         | draft    | pending               | pending   |
+| বাংলা (bn)   | about 6%           | complete, draft | draft         | draft    | pending               | pending   |
+| ગુજરાતી (gu) | about 6%           | complete, draft | draft         | draft    | pending               | pending   |
 
 ## Checklist for each language
 

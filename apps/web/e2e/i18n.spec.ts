@@ -115,7 +115,7 @@ test.describe('languages', () => {
   test('the longest strings do not break the layout at 1366 by 768 in compact density', async ({
     page,
   }) => {
-    for (const lng of ['ta', 'bn', 'pseudo']) {
+    for (const lng of ['hi', 'ta', 'bn', 'pseudo']) {
       await page.goto(`/books/dashboard?demo=1&lng=${lng}`);
       await expect(page.getByTestId('badge-documents')).toHaveText('500', { timeout: 30_000 });
       for (const path of ['dashboard', 'inbox', 'parties', 'items', 'documents', 'settings']) {
