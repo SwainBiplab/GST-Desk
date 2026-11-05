@@ -37,6 +37,7 @@ import {
   moveLine,
   pasteBlock,
   removeLines,
+  sameIssues,
   setCell,
   updateLine,
   type GridColumn,
@@ -413,7 +414,7 @@ export const LineGrid = memo(
     a.draft.lines === b.draft.lines &&
     a.draft.discountMode === b.draft.discountMode &&
     a.built === b.built &&
-    a.issues === b.issues &&
+    sameIssues(a.issues, b.issues) &&
     a.units === b.units &&
     a.hidden === b.hidden &&
     a.readOnly === b.readOnly,

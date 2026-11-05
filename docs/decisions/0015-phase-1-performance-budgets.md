@@ -24,3 +24,15 @@ Measured over 56 keystrokes in a 200-line invoice, the 95th percentile of key-to
 
 - A budget is only ever changed here, with the reason and a date, never by editing the number to make a run pass.
 - The per-chunk size guards will fail a build that makes the PDF worker or the editor route much heavier, which is how the duplication in decision 1 would have been caught.
+
+## Update: the keystroke exception, worked on (Phase 2, prompt 30 follow-up)
+
+**What was found.** A profile of the editor during typing (200 lines, a keystroke in the PO number) showed three costs that had nothing to do with the field being typed in:
+
+1. **The line grid redrew its canvas on every keystroke.** It is memoised so that it redraws only when its data changes, but the editor passed it `[]` (a new empty array on every render) when problems were not being shown, and in Shop a new `Set` of hidden columns. Either defeats the memo. They are now module constants, and the grid also compares problem lists by content (`sameIssues`, unit tested).
+2. **The place-of-supply dropdown re-rendered its 38 items** (and their translations) on every keystroke in any other field, because the dropdown keeps every item mounted. They are now a memoised component.
+3. **The preview re-ran a scan of the whole 200-line model for scripts** each time it re-rendered. It now does that once per model, and the preview component skips a render when its inputs are unchanged.
+
+**Result** (this Windows development laptop, production build, six runs each way; `perf/documents.perf.ts`): median key-to-frame **9 ms** (was 10 to 12); 95th percentile **10 to 12 ms in five runs and 16 ms in one** (before: 13 to 20). On the 4x-throttled profile the figure is unchanged within noise (70 to 83 ms). What remains is mostly React reconciling the header and footer inputs and their translations.
+
+**Status.** The 16 ms target is met on the machine used here. The exception is **not closed**: the ADR asked for a re-measure on the CI runner and on the reference laptop, which has not been done, and a slower machine may still cross 16 ms. The hard line stays at 24 ms until that run exists. When it does and the p95 is under 16 ms, remove `keystrokeP95HardMs` and close B-092.

@@ -112,6 +112,12 @@ const SHOP_HIDDEN: readonly GridColumn[] = [
   'note',
 ];
 const COLUMNS_KEY = 'documents.hidden_columns';
+/**
+ * Constants, not values made during a render: the grid redraws its canvas when a prop changes, and a
+ * new empty array or a new set on every keystroke made it redraw on every keystroke.
+ */
+const SHOP_HIDDEN_SET: ReadonlySet<GridColumn> = new Set(SHOP_HIDDEN);
+const NO_ISSUES: DraftIssue[] = [];
 
 type Side = 'preview' | 'attachment' | 'history';
 
@@ -189,7 +195,7 @@ export function EditorPage({
       if (Array.isArray(v)) setHidden(new Set(v.filter((c) => GRID_COLUMNS.includes(c))));
     });
   }, [database, ctx, simple]);
-  const hiddenNow = simple ? new Set(SHOP_HIDDEN) : hidden;
+  const hiddenNow = simple ? SHOP_HIDDEN_SET : hidden;
   const toggleColumn = (col: GridColumn) => {
     const next = new Set(hidden);
     if (next.has(col)) next.delete(col);
@@ -806,7 +812,7 @@ export function EditorPage({
             ref={grid}
             draft={draft}
             built={built}
-            issues={showIssues ? editor.issues : []}
+            issues={showIssues ? editor.issues : NO_ISSUES}
             units={units}
             hidden={hiddenNow}
             readOnly={readOnly}

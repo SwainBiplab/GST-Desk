@@ -18,6 +18,7 @@ import {
   pasteBlock,
   qtyText,
   removeLines,
+  sameIssues,
   setCell,
   updateLine,
   withTrailingBlank,
@@ -391,5 +392,21 @@ describe('purchase bill attachments', () => {
     const big = new Uint8Array(MAX_ATTACHMENT_BYTES + 1);
     big.set(pdf);
     expect(checkAttachment(big)).toEqual({ ok: false, reason: 'too_big' });
+  });
+});
+
+describe('comparing problem lists (so the grid does not redraw on every keystroke)', () => {
+  const a = [{ field: 'lines', code: 'qty', line: 2 }];
+  it('treats the same problems in a new array as the same', () => {
+    expect(sameIssues(a, [{ field: 'lines', code: 'qty', line: 2 }])).toBe(true);
+    expect(sameIssues([], [])).toBe(true);
+    expect(sameIssues(a, a)).toBe(true);
+  });
+  it('sees a different problem, line or count', () => {
+    expect(sameIssues(a, [])).toBe(false);
+    expect(sameIssues(a, [{ field: 'lines', code: 'qty', line: 3 }])).toBe(false);
+    expect(sameIssues(a, [{ field: 'lines', code: 'rate', line: 2 }])).toBe(false);
+    expect(sameIssues(a, [{ field: 'party', code: 'qty', line: 2 }])).toBe(false);
+    expect(sameIssues(a, [...a, { field: 'date', code: 'missing' }])).toBe(false);
   });
 });

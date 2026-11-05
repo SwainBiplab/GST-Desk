@@ -7,7 +7,7 @@ import {
   type TemplateSpec,
 } from '@gst/print';
 import { Button, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@gst/ui';
-import { useDeferredValue, useMemo, useState } from 'react';
+import { memo, useDeferredValue, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { familiesFor, usePrintFonts } from '../print/fonts-client';
@@ -21,7 +21,7 @@ export type PaperSize = 'page' | 'thermal';
  * get. It follows the form 150 ms after the last change (the model arrives already debounced). Choose
  * a template, the full page or the receipt roll, and zoom.
  */
-export function DocumentPreview({
+export const DocumentPreview = memo(function DocumentPreview({
   model,
   spec,
   templates,
@@ -39,7 +39,12 @@ export function DocumentPreview({
   const [zoom, setZoom] = useState(70);
   // drawn at a lower priority than typing: a keystroke is never held up by a redraw of the page
   const shownModel = useDeferredValue(model);
-  const fonts = usePrintFonts(shownModel ? familiesFor(shownModel, spec) : ['latin', 'latinExt']);
+  // scanning a 200-line model for scripts is not free: once per model, not once per render
+  const families = useMemo(
+    () => (shownModel ? familiesFor(shownModel, spec) : ['latin' as const, 'latinExt' as const]),
+    [shownModel, spec],
+  );
+  const fonts = usePrintFonts(families);
 
   const pages = useMemo(
     () =>
@@ -127,4 +132,4 @@ export function DocumentPreview({
       </div>
     </div>
   );
-}
+});

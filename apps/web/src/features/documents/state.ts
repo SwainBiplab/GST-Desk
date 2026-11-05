@@ -17,6 +17,7 @@ import {
   type DraftDocument,
   type DraftLine,
   type DocumentType,
+  type DraftIssue,
 } from '@gst/domain';
 
 export const GRID_COLUMNS = [
@@ -301,3 +302,13 @@ export function pasteBlock(
   lines = withTrailingBlank({ ...d, lines }).lines;
   return { draft: { ...d, lines }, rejected };
 }
+
+/**
+ * Two lists of problems are the same when they say the same things, whatever array they live in. The
+ * line grid redraws its canvas when this is false, so it must not be false just because a list was
+ * made again (every keystroke makes a new one).
+ */
+export const sameIssues = (a: readonly DraftIssue[], b: readonly DraftIssue[]): boolean =>
+  a === b ||
+  (a.length === b.length &&
+    a.every((x, i) => x.field === b[i]!.field && x.code === b[i]!.code && x.line === b[i]!.line));

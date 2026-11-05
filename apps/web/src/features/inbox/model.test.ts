@@ -66,7 +66,9 @@ describe('inbox rows', () => {
 
   it('refuses to accept kinds that are not built yet', () => {
     expect(canAccept(row('hsn_suggestion', {}))).toBe(true);
-    expect(canAccept(row('prefiling_issue', {}))).toBe(false);
+    // the GST return checks are built (accepting only acknowledges); reconciliation arrives with prompt 31
+    expect(canAccept(row('prefiling_issue', {}))).toBe(true);
+    expect(canAccept(row('reconciliation_mismatch', {}))).toBe(false);
     expect(canAccept(row('ai_extraction', {}))).toBe(false);
     expect(canAccept(row('hsn_suggestion', {}, { status: 'accepted' }))).toBe(false);
   });

@@ -11,6 +11,7 @@ import {
   SelectValue,
   Switch,
 } from '@gst/ui';
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { PartyPicker } from './party-picker';
@@ -23,6 +24,25 @@ import type { TemplateOption } from '@/features/print/use-templates';
 const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD', 'AUD', 'CAD', 'JPY'] as const;
 const STATE_OPTIONS = Object.entries(STATES).filter(([code]) => code !== '97' && code !== '99');
 const REF_FIELDS = ['po', 'challan'] as const;
+
+/**
+ * The states as dropdown items. The dropdown keeps every item mounted, so redrawing them on each
+ * keystroke in an unrelated field (a PO number, say) cost several milliseconds of a 16 ms frame; as
+ * their own memoised component they redraw only when the list or the language changes.
+ */
+const StateItems = memo(function StateItems({ outside }: { outside: boolean }) {
+  const { t } = useTranslation();
+  return (
+    <>
+      {STATE_OPTIONS.map(([code, name]) => (
+        <SelectItem key={code} value={code}>
+          {name} ({code})
+        </SelectItem>
+      ))}
+      {outside && <SelectItem value="96">{t('docs.header.outsideIndia')}</SelectItem>}
+    </>
+  );
+});
 
 const errorOf = (issues: DraftIssue[], field: string): string | undefined => {
   const i = issues.find((x) => x.field === field);
@@ -188,14 +208,7 @@ export function EditorHeader({
                 <SelectValue placeholder={t('docs.header.posPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
-                {STATE_OPTIONS.map(([code, name]) => (
-                  <SelectItem key={code} value={code}>
-                    {name} ({code})
-                  </SelectItem>
-                ))}
-                {draft.export && (
-                  <SelectItem value="96">{t('docs.header.outsideIndia')}</SelectItem>
-                )}
+                <StateItems outside={draft.export} />
               </SelectContent>
             </Select>
           )}
