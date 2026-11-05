@@ -108,6 +108,10 @@ export const SPEC: TableSpec[] = [
     cols: {
       type: c.text().nn.oneOf(['customer', 'supplier', 'both']),
       name: c.text().nn,
+      /** What the name sounds like in Roman letters, kept when the name is typed in a native script, so search works either way. */
+      name_latin: c.text(),
+      /** The language this party's documents and reminders are in; empty means the business default. */
+      language: c.text().oneOf(['en', 'hi', 'ta', 'bn', 'gu', 'mr']),
       trade_name: c.text(),
       gstin: c.text(),
       pan: c.text(),
@@ -138,6 +142,8 @@ export const SPEC: TableSpec[] = [
     cols: {
       kind: c.text().nn.default('goods').oneOf(['goods', 'service']),
       name: c.text().nn,
+      /** The Roman-letter form of the name when it is typed in a native script (for search). */
+      name_latin: c.text(),
       description: c.text(),
       sku: c.text(),
       barcode: c.text(),

@@ -110,7 +110,8 @@ describe('time based detectors', () => {
   });
   it('reminders are one per customer per week, in their language', () => {
     const deps = {
-      languageOf: (s: string | null) => (s === '27' ? 'mr' : 'en'),
+      languageOf: (s: string | null, chosen?: string | null) =>
+        chosen ?? (s === '27' ? 'mr' : 'en'),
       draft: (l: string, v: { name: string }) => `${l}:${v.name}`,
     };
     const f = detectReminders(
@@ -138,6 +139,24 @@ describe('time based detectors', () => {
       deps,
     );
     expect(f).toHaveLength(1);
+    const chosen = detectReminders(
+      [
+        {
+          partyId: 'p3',
+          name: 'C',
+          phone: null,
+          stateCode: '27',
+          language: 'ta',
+          amountPaise: 100,
+          invoices: 1,
+          oldestDays: 3,
+        },
+      ],
+      NOW,
+      deps,
+    );
+    // a language the party chose wins over the one their state suggests
+    expect(chosen[0]!.suggestion.language).toBe('ta');
     expect(f[0]!.key).toBe(`reminder_due:p1:${isoWeekKey(NOW)}`);
     expect(f[0]!.suggestion).toMatchObject({ language: 'mr', message: 'mr:A' });
     expect(isoWeekKey(NOW)).toBe('2026-W24');

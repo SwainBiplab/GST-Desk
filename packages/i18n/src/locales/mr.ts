@@ -1,0 +1,143 @@
+/**
+ * मराठी. First drafts for review by a native speaker (docs/i18n/review.md). Anything not here is
+ * shown in English. Business terms follow the glossary (`src/glossary.ts`).
+ */
+import type { LocaleBundle } from '.';
+
+export const bundle: LocaleBundle = {
+  ui: {
+    app: { name: 'GST Desk', skip: 'थेट मजकुराकडे जा' },
+    shell: { shop: 'दुकान', books: 'खाते', switch: 'मोड बदला' },
+    nav: {
+      label: 'मुख्य मेनू',
+      dashboard: 'डॅशबोर्ड',
+      sell: 'विक्री',
+      parties: 'पार्ट्या',
+      items: 'माल',
+      documents: 'कागदपत्रे',
+      payments: 'देयके',
+      reports: 'अहवाल',
+      inbox: 'इनबॉक्स',
+      settings: 'सेटिंग्ज',
+      purchases: 'खरेदी',
+      sections: {
+        overview: 'आढावा',
+        sales: 'विक्री',
+        purchases: 'खरेदी',
+        parties: 'पार्ट्या',
+        items: 'माल',
+        money: 'पैसे',
+        reports: 'अहवाल',
+        gst: 'जीएसटी',
+        inbox: 'इनबॉक्स',
+        settings: 'सेटिंग्ज',
+      },
+    },
+    actions: {
+      newBill: 'नवे बिल',
+      receivePayment: 'पैसे घ्या',
+      scanBill: 'बिल स्कॅन करा',
+      search: 'शोधा किंवा कमांड चालवा',
+      openPanel: 'तपशील पॅनेल दाखवा',
+      closePanel: 'तपशील पॅनेल लपवा',
+    },
+    strip: {
+      sales: 'आजची विक्री',
+      cash: 'आज मिळालेली रोकड',
+      pending: 'ग्राहकांकडून येणे बाकी',
+    },
+    chrome: {
+      business: 'व्यवसाय',
+      noBusiness: 'अजून व्यवसाय नाही',
+      addBusiness: 'व्यवसाय जोडा',
+      local: 'स्थानिक',
+      notifications: 'सूचना',
+      help: 'मदत',
+      keyboardMap: 'कीबोर्ड शॉर्टकट',
+      density: 'घनता',
+      compact: 'दाट',
+      comfortable: 'आरामदायी',
+      theme: 'थीम',
+      language: 'भाषा',
+    },
+    page: {
+      notBuilt: 'ही स्क्रीन अजून तयार नाही.',
+      unknown: 'पान सापडले नाही',
+      back: 'डॅशबोर्डवर परत जा',
+    },
+    confirm: { yes: 'होय', cancel: 'रद्द करा' },
+    unsaved: {
+      title: 'सेव्ह न करता सोडायचे?',
+      body: 'तुमचे बदल सेव्ह झालेले नाहीत. आता सोडल्यास ते जातील.',
+      leave: 'सोडा',
+      stay: 'थांबा',
+    },
+    welcome: {
+      language: {
+        label: 'भाषा',
+        note: 'अॅप तुम्ही निवडलेल्या भाषेत चालेल. जे शब्द अजून भाषांतरित नाहीत ते इंग्रजीत दिसतील.',
+      },
+    },
+    inbox: {
+      title: 'इनबॉक्स',
+      subtitle:
+        'अॅपने तुमच्या तपासणीसाठी पकडलेल्या गोष्टी. तुम्ही स्वीकारेपर्यंत काहीही बदलत नाही.',
+      views: { open: 'तपासायचे', snoozed: 'पुढे ढकललेले', done: 'पूर्ण' },
+      kinds: {
+        duplicate_party: 'संभाव्य दुहेरी पार्टी',
+        duplicate_item: 'संभाव्य दुहेरी माल',
+        hsn_suggestion: 'HSN सूचना',
+        reminder_due: 'देयकाची आठवण',
+        low_stock: 'कमी साठा',
+        draft_stale: 'जुना मसुदा',
+        backup_failed: 'बॅकअप झाला नाही',
+        rate_change: 'जीएसटी दर बदलला',
+      },
+      filters: { kind: 'प्रकार', allKinds: 'सर्व प्रकार', search: 'इनबॉक्समध्ये शोधा' },
+      count_one: '{{count}} नोंद',
+      count_other: '{{count}} नोंदी',
+      empty: {
+        open: 'सगळे ठीक आहे. कशाकडे लक्ष द्यायची गरज नाही.',
+        snoozed: 'काहीही पुढे ढकललेले नाही.',
+        done: 'अजून काही पूर्ण झालेले नाही.',
+      },
+      actions: {
+        accept: 'स्वीकारा',
+        acceptEdited: 'बदलांसह स्वीकारा',
+        edit: 'बदला',
+        reject: 'नाकारा',
+        snooze: 'नंतर',
+        open: 'नोंद उघडा',
+        unsnooze: 'परत आणा',
+        acknowledge: 'ठीक आहे',
+        runChecks: 'आता तपासा',
+        bulk: 'अनेक स्वीकारा',
+        sendReminder: 'WhatsApp वर पाठवा',
+      },
+      snooze: { tomorrow: 'उद्या', week: 'पुढच्या आठवड्यात', month: 'पुढच्या महिन्यात' },
+      status: { accepted: 'स्वीकारले', rejected: 'नाकारले', expired: 'आता गरज नाही' },
+      toast: {
+        accepted: 'स्वीकारले',
+        acknowledged: 'पाहिले म्हणून नोंदवले',
+        rejected: 'नाकारले',
+        snoozed: 'नंतरसाठी ठेवले',
+        unsnoozed: 'इनबॉक्समध्ये परत',
+        nothingNew: 'काही नवीन सापडले नाही',
+      },
+      reject: { title: 'ही सूचना नाकारा', confirm: 'नाकारा' },
+      keys: 'J / K हलवा · A स्वीकारा · E बदला · R नाकारा · S नंतर · O नोंद उघडा',
+    },
+  },
+  errors: {
+    boundary: {
+      title: 'काहीतरी चुकले',
+      body: 'तुमचा डेटा सुरक्षित आहे. तुम्ही तपासणी-माहिती (वैयक्तिक तपशीलांशिवाय) कॉपी करून मदतीला पाठवू शकता.',
+      copy: 'तपासणी-माहिती कॉपी करा',
+      copied: 'तपासणी-माहिती कॉपी झाली',
+      reload: 'पुन्हा उघडा',
+    },
+  },
+  help: {
+    keymap: { title: 'कीबोर्ड शॉर्टकट', description: 'या मोडमध्ये चालणारे शॉर्टकट.' },
+  },
+};

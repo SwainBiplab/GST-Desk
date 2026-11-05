@@ -29,6 +29,13 @@
       "when": 1793858913052,
       "tag": "0003_misty_unus",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793861272877,
+      "tag": "0004_hot_thena",
+      "breakpoints": true
     }
   ]
 }

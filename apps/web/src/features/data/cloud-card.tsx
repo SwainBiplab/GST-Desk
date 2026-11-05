@@ -21,6 +21,7 @@ import { uploadBackup, type CloudProvider } from './cloud';
 
 import { useAppDb } from '@/app/db';
 import { isTauri } from '@/app/sqlite/backends';
+import { BRAND } from '@/lib/terms';
 
 const empty: CloudSettings = {
   enabled: false,
@@ -102,8 +103,8 @@ export function CloudCard() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="google">Google Drive</SelectItem>
-              <SelectItem value="onedrive">OneDrive</SelectItem>
+              <SelectItem value="google">{BRAND.google}</SelectItem>
+              <SelectItem value="onedrive">{BRAND.onedrive}</SelectItem>
             </SelectContent>
           </Select>
         </label>

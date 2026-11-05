@@ -20,6 +20,7 @@ import type { Shell } from '@/app/store';
 import { ChecklistCard } from '@/features/business/checklist-card';
 import { useFeatureFlags } from '@/features/business/hooks';
 import { DownloadReminder } from '@/features/data/background';
+import { dyn } from '@/lib/dyn-key';
 
 type Search = Record<string, string>;
 
@@ -317,7 +318,7 @@ export function DashboardCards({ shell }: { shell: Shell }) {
 
   const card = (key: string, children: ReactNode) => (
     <Card key={key} data-testid={`card-${key}`} className="min-h-32">
-      <CardTitle>{t(`dash.${shell === 'shop' ? 'shop' : 'books'}.${key}`)}</CardTitle>
+      <CardTitle>{t(dyn(`dash.${shell === 'shop' ? 'shop' : 'books'}.${key}`))}</CardTitle>
       <Reveal ready={!!d} order={keys.indexOf(key)}>
         {d ? children : <p className="pt-2 text-fg-muted">{t('dash.loading')}</p>}
       </Reveal>

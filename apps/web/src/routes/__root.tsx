@@ -13,8 +13,12 @@ import { registerDefaultActions } from '@/app/default-actions';
 import { lastShell } from '@/app/store';
 import { BackgroundJobs } from '@/features/data/background';
 import { InboxJobs } from '@/features/inbox/jobs';
+import i18n, { i18nReady } from '@/lib/i18n';
 
 registerDefaultActions();
+// the titles are in the language of the screens: write them again once it is loaded, and when it changes
+void i18nReady.then(registerDefaultActions);
+i18n.on('languageChanged', registerDefaultActions);
 
 function NotFound() {
   const { t } = useTranslation();

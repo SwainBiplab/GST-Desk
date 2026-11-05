@@ -290,13 +290,15 @@ export interface OverduePartyLite {
   name: string;
   phone: string | null;
   stateCode: string | null;
+  /** The language the party chose for their documents; empty means guess from the state. */
+  language?: string | null;
   amountPaise: number;
   invoices: number;
   oldestDays: number;
 }
 
 export interface ReminderDeps {
-  languageOf: (stateCode: string | null) => string;
+  languageOf: (stateCode: string | null, chosen?: string | null) => string;
   draft: (
     language: string,
     v: { name: string; amountPaise: number; invoices: number; oldestDays: number },
@@ -313,7 +315,7 @@ export function detectReminders(
   return parties
     .filter((p) => p.amountPaise > 0 && p.oldestDays > 0)
     .map((p) => {
-      const language = deps.languageOf(p.stateCode);
+      const language = deps.languageOf(p.stateCode, p.language);
       return {
         kind: 'reminder_due',
         key: `reminder_due:${p.partyId}:${week}`,

@@ -17,6 +17,7 @@ import {
 import { useTranslation } from 'react-i18next';
 
 import { useAppDb, useLiveQuery } from '@/app/db';
+import { useTerm } from '@/lib/terms';
 
 interface VoucherMeta {
   paymentId?: string;
@@ -38,6 +39,7 @@ const addressLine = (a: unknown): string => {
  */
 export function VoucherDialog({ row, onClose }: { row: PaymentListRow; onClose: () => void }) {
   const { t } = useTranslation();
+  const term = useTerm();
   const { business } = useAppDb();
   const data = useLiveQuery<{ voucher: Row; party: Row | null; accounts: Row[] } | null>({
     tables: ['documents', 'payments', 'business_accounts'],
@@ -104,7 +106,11 @@ export function VoucherDialog({ row, onClose }: { row: PaymentListRow; onClose: 
               <div>
                 <h2 className="text-base font-bold">{businessName}</h2>
                 <p>{addressLine(business?.['address'])}</p>
-                {business?.['gstin'] && <p>GSTIN: {String(business['gstin'])}</p>}
+                {business?.['gstin'] && (
+                  <p>
+                    {term('gstin')}: {String(business['gstin'])}
+                  </p>
+                )}
               </div>
               <div className="text-right">
                 <h3 className="text-sm font-bold uppercase">{t('voucher.title')}</h3>

@@ -23,6 +23,10 @@ export interface ContactDraft {
 export interface PartyDraft {
   type: PartyType;
   name: string;
+  /** The Roman-letter form of the name, kept when it is typed in a native script, for search. */
+  nameLatin: string;
+  /** The language of this party's documents and reminders; empty means the business default. */
+  language: string;
   tradeName: string;
   gstin: string;
   stateCode: string;
@@ -53,6 +57,8 @@ const blankAddress = (): AddressDraft => ({ line1: '', city: '', pincode: '' });
 export const emptyPartyDraft = (type: PartyType = 'customer'): PartyDraft => ({
   type,
   name: '',
+  nameLatin: '',
+  language: '',
   tradeName: '',
   gstin: '',
   stateCode: '',
@@ -161,6 +167,8 @@ export function draftToValues(d: PartyDraft): Record<string, unknown> {
   return {
     type: d.type,
     name: d.name.trim(),
+    name_latin: d.nameLatin.trim() || null,
+    language: d.language || null,
     trade_name: d.tradeName.trim() || null,
     gstin: derived?.gstin ?? null,
     pan: derived?.pan ?? null,
@@ -203,6 +211,8 @@ export function rowToDraft(row: Row): PartyDraft {
     ...emptyPartyDraft(row['type']),
     type: row['type'],
     name: row['name'] ?? '',
+    nameLatin: row['name_latin'] ?? '',
+    language: row['language'] ?? '',
     tradeName: row['trade_name'] ?? '',
     gstin: row['gstin'] ?? '',
     stateCode: row['state_code'] ?? '',

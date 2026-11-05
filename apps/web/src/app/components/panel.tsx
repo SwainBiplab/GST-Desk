@@ -67,7 +67,7 @@ export function RightPanel() {
       <div
         role="separator"
         aria-orientation="vertical"
-        aria-label="Resize details panel"
+        aria-label={t('actions.resizePanel')}
         aria-valuemin={MIN}
         aria-valuemax={MAX}
         aria-valuenow={width}
@@ -80,7 +80,7 @@ export function RightPanel() {
         onKeyDown={onKeyDown}
       />
       <aside
-        aria-label="Details"
+        aria-label={t('actions.panelTitle')}
         data-testid="right-panel"
         style={{ width }}
         className="flex shrink-0 flex-col gap-2 overflow-auto bg-bg p-3"
@@ -94,7 +94,7 @@ export function RightPanel() {
             <PanelRightClose size={16} aria-hidden />
           </Button>
         </div>
-        <TracePanel title="Details">{content}</TracePanel>
+        <TracePanel title={t('actions.panelTitle')}>{content}</TracePanel>
       </aside>
     </>
   );

@@ -13,6 +13,7 @@ import { NavEntry } from './nav';
 import { RightPanel, RightPanelProvider } from './panel';
 
 import { useFeatureFlags } from '@/features/business/hooks';
+import { dyn } from '@/lib/dyn-key';
 
 function useShell(shell: Shell) {
   const setShell = useAppStore((s) => s.setShell);
@@ -118,7 +119,7 @@ function Breadcrumb() {
     else crumbs.push(t(`nav.${page}`));
   }
   return (
-    <nav aria-label="Breadcrumb">
+    <nav aria-label={t('nav.breadcrumb')}>
       <ol className="flex items-center gap-1 text-sm text-fg-muted">
         {crumbs.map((c, i) => (
           <li
@@ -163,7 +164,7 @@ export function BooksLayout() {
             {sections.map((section) => (
               <div key={section.id} className="pb-2">
                 <p className="px-2 pb-0.5 text-xs font-medium uppercase tracking-wide text-fg-muted">
-                  {t(section.label)}
+                  {t(dyn(section.label))}
                 </p>
                 {section.items.map((item) => (
                   <NavEntry key={item.id} shell="books" item={item} />

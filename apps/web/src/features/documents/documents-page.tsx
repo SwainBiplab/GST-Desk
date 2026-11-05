@@ -31,6 +31,7 @@ import { useFeatureFlags } from '@/features/business/hooks';
 import { usePositions } from '@/features/payments/hooks';
 import { PayStatusBadge } from '@/features/payments/status-badge';
 import { BulkExportDialog } from '@/features/print/bulk-export';
+import { dyn } from '@/lib/dyn-key';
 
 const ALL_TYPES: DocumentType[] = [
   'tax_invoice',
@@ -156,7 +157,7 @@ export function DocumentsPage({ shell }: { shell: Shell }) {
                 className="flex flex-wrap items-center gap-2 border-b border-border p-2 text-sm last:border-b-0"
                 data-testid="draft-row"
               >
-                <span className="w-32 text-fg-muted">{t(`docs.types.${r['type']}`)}</span>
+                <span className="w-32 text-fg-muted">{t(dyn(`docs.types.${r['type']}`))}</span>
                 <span className="min-w-0 flex-1 truncate">
                   {r['party_name'] || t('docs.preview.cash')}
                 </span>
@@ -278,14 +279,14 @@ export function DocumentsPage({ shell }: { shell: Shell }) {
                       {r['number'] ?? '-'}
                     </button>
                   </td>
-                  <td className="p-2">{t(`docs.types.${r['type']}`)}</td>
+                  <td className="p-2">{t(dyn(`docs.types.${r['type']}`))}</td>
                   <td className="p-2">{r['date']}</td>
                   <td className="p-2">{r['party_name'] ?? ''}</td>
                   <td className="p-2 text-right">
                     <MoneyText paise={BigInt(Number(r['total_paise']))} negativeRed />
                   </td>
                   <td className="p-2">
-                    <Badge>{t(`docs.status.${r['status']}`)}</Badge>
+                    <Badge>{t(dyn(`docs.status.${r['status']}`))}</Badge>
                   </td>
                   <td className="p-2">
                     {r['status'] === 'issued' && (

@@ -6,3 +6,4 @@ pnpm-lock.yaml
 packages/domain/data/hsn-v*.json
 apps/web/src/routeTree.gen.ts
 docs/export-schema.md
+packages/i18n/locales-todo

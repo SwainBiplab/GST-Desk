@@ -44,6 +44,8 @@ import { useAppDb, useLiveQuery } from '@/app/db';
 import { useAppNavigate } from '@/app/hooks';
 import type { Shell } from '@/app/store';
 import { editorPath } from '@/features/documents/editor-page';
+import { dyn } from '@/lib/dyn-key';
+import { useTerm } from '@/lib/terms';
 
 const ROW_HEIGHT = 32;
 /** The most rows printed on paper; a longer register is exported instead. */
@@ -376,9 +378,9 @@ export function ReportView({
               {def.typeOptions.map((o) => (
                 <SelectItem key={o} value={o}>
                   {state.id === 'gst_summary'
-                    ? t(`reports.side.${o}`)
+                    ? t(dyn(`reports.side.${o}`))
                     : state.id === 'stock_summary'
-                      ? t(`reports.stockFilter.${o}`)
+                      ? t(dyn(`reports.stockFilter.${o}`))
                       : t(`docs.types.${o}`, { defaultValue: o })}
                 </SelectItem>
               ))}
@@ -713,6 +715,7 @@ function PrintSheet(props: {
   lang: string;
 }) {
   const { t } = useTranslation();
+  const term = useTerm();
   const { columns, rows, totals, tr, state } = props;
   return (
     <div
@@ -721,7 +724,11 @@ function PrintSheet(props: {
       lang={props.lang}
     >
       <h1 className="text-lg font-bold">{props.business}</h1>
-      {props.gstin && <p>GSTIN {props.gstin}</p>}
+      {props.gstin && (
+        <p>
+          {term('gstin')} {props.gstin}
+        </p>
+      )}
       <h2 className="pt-2 text-base font-semibold">{props.title}</h2>
       <p className="pb-2">{t('reports.printPeriod', { from: state.from, to: state.to })}</p>
       <table className="w-full border-collapse">

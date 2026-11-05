@@ -19,6 +19,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
+    "@gst/i18n": "workspace:*",
     "@gst/config": "workspace:*",
     "@storybook/addon-a11y": "^8.6.19",
     "@storybook/addon-essentials": "^8.6.14",

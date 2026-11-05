@@ -45,6 +45,7 @@ import { MergeDialog } from './merge';
 import { useAppDb } from '@/app/db';
 import { useAppNavigate } from '@/app/hooks';
 import type { Shell } from '@/app/store';
+import { dyn } from '@/lib/dyn-key';
 
 export interface PartyRow {
   id: string;
@@ -391,7 +392,7 @@ function BooksTable({
                   className="inline-flex items-center gap-1 py-1 hover:text-fg focus-visible:outline-2 focus-visible:outline-ring"
                   onClick={c.getToggleSortingHandler()}
                 >
-                  {t(`parties.cols.${c.id}`)}
+                  {t(dyn(`parties.cols.${c.id}`))}
                   {dir === 'asc' && <ArrowUp size={12} aria-hidden />}
                   {dir === 'desc' && <ArrowDown size={12} aria-hidden />}
                 </button>
@@ -454,7 +455,7 @@ function BooksTable({
                     ) : c.id === 'balance' || c.id === 'overdue' ? (
                       <MoneyText paise={c.id === 'balance' ? p.balance : p.overdue} negativeRed />
                     ) : c.id === 'type' ? (
-                      t(`parties.types.${p.type}`)
+                      t(dyn(`parties.types.${p.type}`))
                     ) : (
                       String(p[c.id as keyof PartyRow] ?? '')
                     )}
@@ -486,7 +487,7 @@ function ShopCards({ rows, onOpen }: { rows: PartyRow[]; onOpen: (id: string) =>
               <span className="flex-1">
                 <span className="block font-medium">{p.name}</span>
                 <span className="block text-xs text-fg-muted">
-                  {t(`parties.types.${p.type}`)}
+                  {t(dyn(`parties.types.${p.type}`))}
                   {p.city ? ` | ${p.city}` : ''}
                   {p.phone ? ` | ${p.phone}` : ''}
                 </span>

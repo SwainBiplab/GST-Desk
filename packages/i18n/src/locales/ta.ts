@@ -1,0 +1,150 @@
+/**
+ * தமிழ். First drafts for review by a native speaker (docs/i18n/review.md). Anything not here is
+ * shown in English. Business terms follow the glossary (`src/glossary.ts`).
+ */
+import type { LocaleBundle } from '.';
+
+export const bundle: LocaleBundle = {
+  ui: {
+    app: { name: 'GST Desk', skip: 'உள்ளடக்கத்திற்குச் செல்' },
+    shell: { shop: 'கடை', books: 'கணக்கு', switch: 'முறையை மாற்று' },
+    nav: {
+      label: 'முதன்மை மெனு',
+      dashboard: 'முகப்பு',
+      sell: 'விற்பனை',
+      parties: 'தரப்பினர்',
+      items: 'பொருட்கள்',
+      documents: 'ஆவணங்கள்',
+      payments: 'பணம் செலுத்துதல்',
+      reports: 'அறிக்கைகள்',
+      inbox: 'இன்பாக்ஸ்',
+      settings: 'அமைப்புகள்',
+      purchases: 'கொள்முதல்',
+      sections: {
+        overview: 'மேலோட்டம்',
+        sales: 'விற்பனை',
+        purchases: 'கொள்முதல்',
+        parties: 'தரப்பினர்',
+        items: 'பொருட்கள்',
+        money: 'பணம்',
+        reports: 'அறிக்கைகள்',
+        gst: 'ஜிஎஸ்டி',
+        inbox: 'இன்பாக்ஸ்',
+        settings: 'அமைப்புகள்',
+      },
+    },
+    actions: {
+      newBill: 'புதிய பில்',
+      receivePayment: 'பணம் பெறு',
+      scanBill: 'பில்லை ஸ்கேன் செய்',
+      search: 'தேடு அல்லது கட்டளை இயக்கு',
+      openPanel: 'விவரப் பலகையைக் காட்டு',
+      closePanel: 'விவரப் பலகையை மறை',
+    },
+    strip: {
+      sales: 'இன்றைய விற்பனை',
+      cash: 'இன்று பெற்ற ரொக்கம்',
+      pending: 'வாடிக்கையாளர்களிடமிருந்து வர வேண்டியது',
+    },
+    chrome: {
+      business: 'வணிகம்',
+      noBusiness: 'இன்னும் வணிகம் இல்லை',
+      addBusiness: 'வணிகத்தைச் சேர்',
+      local: 'உள்ளூர்',
+      notifications: 'அறிவிப்புகள்',
+      help: 'உதவி',
+      keyboardMap: 'விசைப்பலகை குறுக்குவழிகள்',
+      density: 'அடர்த்தி',
+      compact: 'நெருக்கம்',
+      comfortable: 'வசதியானது',
+      theme: 'தோற்றம்',
+      language: 'மொழி',
+    },
+    page: {
+      notBuilt: 'இந்தத் திரை இன்னும் தயாராகவில்லை.',
+      unknown: 'பக்கம் கிடைக்கவில்லை',
+      back: 'முகப்புக்குத் திரும்பு',
+    },
+    confirm: { yes: 'ஆம்', cancel: 'ரத்து செய்' },
+    unsaved: {
+      title: 'சேமிக்காமல் வெளியேறவா?',
+      body: 'உங்கள் மாற்றங்கள் சேமிக்கப்படவில்லை. இப்போது வெளியேறினால் அவை இழக்கப்படும்.',
+      leave: 'வெளியேறு',
+      stay: 'இரு',
+    },
+    welcome: {
+      language: {
+        label: 'மொழி',
+        note: 'ஆப் நீங்கள் தேர்ந்த மொழியில் இயங்கும். இன்னும் மொழிபெயர்க்கப்படாதவை ஆங்கிலத்தில் தெரியும்.',
+      },
+    },
+    inbox: {
+      title: 'இன்பாக்ஸ்',
+      subtitle:
+        'நீங்கள் பார்க்க வேண்டியவற்றை ஆப் கண்டறிந்துள்ளது. நீங்கள் ஏற்கும் வரை எதுவும் மாறாது.',
+      views: { open: 'பார்க்க வேண்டியவை', snoozed: 'ஒத்திவைத்தவை', done: 'முடிந்தவை' },
+      kinds: {
+        duplicate_party: 'இரட்டைத் தரப்பினராக இருக்கலாம்',
+        duplicate_item: 'இரட்டைப் பொருளாக இருக்கலாம்',
+        hsn_suggestion: 'HSN பரிந்துரை',
+        reminder_due: 'பணம் செலுத்த நினைவூட்டல்',
+        low_stock: 'இருப்பு குறைவு',
+        draft_stale: 'பழைய வரைவு',
+        backup_failed: 'காப்புப்பிரதி தோல்வி',
+        rate_change: 'ஜிஎஸ்டி விகிதம் மாறியது',
+      },
+      filters: { kind: 'வகை', allKinds: 'எல்லா வகைகளும்', search: 'இன்பாக்ஸில் தேடு' },
+      count_one: '{{count}} பதிவு',
+      count_other: '{{count}} பதிவுகள்',
+      empty: {
+        open: 'எல்லாம் சரி. கவனிக்க எதுவும் இல்லை.',
+        snoozed: 'எதுவும் ஒத்திவைக்கப்படவில்லை.',
+        done: 'இன்னும் எதுவும் முடிக்கப்படவில்லை.',
+      },
+      actions: {
+        accept: 'ஏற்று',
+        acceptEdited: 'மாற்றங்களுடன் ஏற்று',
+        edit: 'மாற்று',
+        reject: 'நிராகரி',
+        snooze: 'பின்னர்',
+        open: 'பதிவைத் திற',
+        unsnooze: 'திரும்பக் கொண்டு வா',
+        acknowledge: 'சரி',
+        runChecks: 'இப்போது சரிபார்',
+        bulk: 'பலவற்றை ஏற்று',
+        sendReminder: 'WhatsApp-இல் அனுப்பு',
+      },
+      snooze: { tomorrow: 'நாளை', week: 'அடுத்த வாரம்', month: 'அடுத்த மாதம்' },
+      status: {
+        accepted: 'ஏற்கப்பட்டது',
+        rejected: 'நிராகரிக்கப்பட்டது',
+        expired: 'இனி தேவையில்லை',
+      },
+      toast: {
+        accepted: 'ஏற்கப்பட்டது',
+        acknowledged: 'பார்த்ததாகக் குறிக்கப்பட்டது',
+        rejected: 'நிராகரிக்கப்பட்டது',
+        snoozed: 'ஒத்திவைக்கப்பட்டது',
+        unsnoozed: 'இன்பாக்ஸுக்குத் திரும்பியது',
+        nothingNew: 'புதிதாக எதுவும் இல்லை',
+      },
+      reject: { title: 'இந்தப் பரிந்துரையை நிராகரி', confirm: 'நிராகரி' },
+      keys: 'J / K நகர்த்து · A ஏற்று · E மாற்று · R நிராகரி · S பின்னர் · O பதிவைத் திற',
+    },
+  },
+  errors: {
+    boundary: {
+      title: 'ஏதோ தவறு நடந்துவிட்டது',
+      body: 'உங்கள் தரவு பாதுகாப்பாக உள்ளது. தனிப்பட்ட விவரங்கள் இல்லாத சோதனை விவரங்களை நகலெடுத்து உதவிக்கு அனுப்பலாம்.',
+      copy: 'சோதனை விவரங்களை நகலெடு',
+      copied: 'சோதனை விவரங்கள் நகலெடுக்கப்பட்டன',
+      reload: 'மீண்டும் திற',
+    },
+  },
+  help: {
+    keymap: {
+      title: 'விசைப்பலகை குறுக்குவழிகள்',
+      description: 'இந்த முறையில் வேலை செய்யும் குறுக்குவழிகள்.',
+    },
+  },
+};

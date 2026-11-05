@@ -30,6 +30,7 @@ import { HsnField } from './hsn-field';
 import { ItemImages } from './item-images';
 
 import { useUnsavedGuard } from '@/app/unsaved';
+import { TranslitInput } from '@/features/i18n/translit-input';
 import { Field } from '@/features/onboarding/field';
 
 const NONE = '-';
@@ -148,12 +149,12 @@ export function ItemForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label={t('items.form.name')} error={shown['name']} className="sm:col-span-2">
           {(c) => (
-            <Input
+            <TranslitInput
               {...c}
               data-autofocus
               data-testid="item-name"
               value={draft.name}
-              onChange={(e) => change({ name: e.target.value })}
+              onValueChange={(name, nameLatin) => change({ name, nameLatin })}
             />
           )}
         </Field>

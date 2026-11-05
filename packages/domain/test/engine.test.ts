@@ -4,6 +4,7 @@ import {
   PostingError,
   allocate,
   amountToWordsEn,
+  amountToWords,
   amountToWordsHi,
   b2clThreshold,
   checkGstin,
@@ -470,5 +471,14 @@ describe('ledger posting', () => {
     expect(() => postPayment({ direction: 'received', mode: 'cash', amountPaise: 0n })).toThrow(
       PostingError,
     );
+  });
+});
+
+describe('amount in words by language', () => {
+  it('uses Hindi for Hindi and Marathi and English for the rest, never blank', () => {
+    expect(amountToWords('hi', 100n)).toBe('एक रुपये मात्र');
+    expect(amountToWords('mr', 100n)).toBe(amountToWordsHi(100n));
+    for (const l of ['en', 'ta', 'bn', 'gu', 'xx'])
+      expect(amountToWords(l, 12345650n)).toBe(amountToWordsEn(12345650n));
   });
 });

@@ -182,20 +182,27 @@ export const defaultLanguages: LanguageOption[] = [
   { code: 'ta', label: 'தமிழ்' },
   { code: 'bn', label: 'বাংলা' },
   { code: 'gu', label: 'ગુજરાતી' },
+  { code: 'mr', label: 'मराठी' },
 ];
 
 /** Switches the document `lang`, which drives the font fallback stack and line-height tokens. */
 export function LanguageSwitcher({
   languages = defaultLanguages,
+  current,
+  label = 'Language',
   onChange,
 }: {
   languages?: LanguageOption[];
+  /** The language in use, marked in the list. */
+  current?: string;
+  /** The accessible name of the button, in the language of the screen. */
+  label?: string;
   onChange?: (code: string) => void;
 }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" aria-label="Language">
+        <Button variant="ghost" aria-label={label} data-testid="language-switcher">
           <Languages size={16} aria-hidden />
         </Button>
       </DropdownMenuTrigger>
@@ -203,12 +210,16 @@ export function LanguageSwitcher({
         {languages.map((l) => (
           <DropdownMenuItem
             key={l.code}
+            data-testid={`lang-${l.code}`}
+            lang={l.code}
+            aria-current={l.code === current ? 'true' : undefined}
             onSelect={() => {
               document.documentElement.lang = l.code;
               onChange?.(l.code);
             }}
           >
             {l.label}
+            {l.code === current ? ' ✓' : ''}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

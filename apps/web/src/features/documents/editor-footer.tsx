@@ -28,6 +28,7 @@ import { isPurchase } from './state';
 
 import { useAppDb } from '@/app/db';
 import { Field } from '@/features/onboarding/field';
+import { useTerm } from '@/lib/terms';
 
 type TaxMode = 'none' | 'tcs' | 'tds_buyer' | 'tds_us';
 
@@ -267,6 +268,7 @@ export function EditorFooter({
 /** The totals, each of which opens the trace. */
 export function TotalsBox({ built, onTrace }: { built: BuiltDocument; onTrace: () => void }) {
   const { t } = useTranslation();
+  const term = useTerm();
   const t0 = built.totals;
   return (
     <dl
@@ -281,14 +283,22 @@ export function TotalsBox({ built, onTrace }: { built: BuiltDocument; onTrace: (
           onTrace={onTrace}
         />
       )}
-      {t0.cgstPaise > 0n && <TotalRow label="CGST" paise={t0.cgstPaise} onTrace={onTrace} />}
-      {t0.sgstPaise > 0n && <TotalRow label="SGST" paise={t0.sgstPaise} onTrace={onTrace} />}
-      {t0.utgstPaise > 0n && <TotalRow label="UTGST" paise={t0.utgstPaise} onTrace={onTrace} />}
-      {t0.igstPaise > 0n && <TotalRow label="IGST" paise={t0.igstPaise} onTrace={onTrace} />}
+      {t0.cgstPaise > 0n && (
+        <TotalRow label={term('cgst')} paise={t0.cgstPaise} onTrace={onTrace} />
+      )}
+      {t0.sgstPaise > 0n && (
+        <TotalRow label={term('sgst')} paise={t0.sgstPaise} onTrace={onTrace} />
+      )}
+      {t0.utgstPaise > 0n && (
+        <TotalRow label={term('utgst')} paise={t0.utgstPaise} onTrace={onTrace} />
+      )}
+      {t0.igstPaise > 0n && (
+        <TotalRow label={term('igst')} paise={t0.igstPaise} onTrace={onTrace} />
+      )}
       {t0.cessPaise > 0n && (
         <TotalRow label={t('docs.totals.cess')} paise={t0.cessPaise} onTrace={onTrace} />
       )}
-      {t0.tcsPaise > 0n && <TotalRow label="TCS" paise={t0.tcsPaise} onTrace={onTrace} />}
+      {t0.tcsPaise > 0n && <TotalRow label={term('tcs')} paise={t0.tcsPaise} onTrace={onTrace} />}
       {t0.roundOffPaise !== 0n && (
         <TotalRow label={t('docs.totals.roundOff')} paise={t0.roundOffPaise} onTrace={onTrace} />
       )}

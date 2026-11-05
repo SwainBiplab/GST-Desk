@@ -1,4 +1,5 @@
 import { STATES, entityType } from '@gst/domain';
+import { PRINT_LANGUAGES, PRINT_LANGUAGE_NAMES } from '@gst/i18n';
 import {
   Button,
   Checkbox,
@@ -12,7 +13,6 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-  Textarea,
 } from '@gst/ui';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
@@ -30,6 +30,7 @@ import {
 } from './form';
 
 import { useUnsavedGuard } from '@/app/unsaved';
+import { TranslitInput } from '@/features/i18n/translit-input';
 import { Field } from '@/features/onboarding/field';
 
 const STATE_OPTIONS = Object.entries(STATES).filter(([code]) => code !== '97' && code !== '99');
@@ -165,12 +166,12 @@ export function PartyForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label={t('parties.form.name')} error={errors['name']} className="sm:col-span-2">
           {(c) => (
-            <Input
+            <TranslitInput
               {...c}
               data-autofocus
               data-testid="party-name"
               value={draft.name}
-              onChange={(e) => change({ name: e.target.value })}
+              onValueChange={(name, nameLatin) => change({ name, nameLatin })}
             />
           )}
         </Field>
@@ -398,6 +399,26 @@ export function PartyForm({
 
           <section className="grid gap-4 sm:grid-cols-2">
             <h3 className="font-medium sm:col-span-2">{t('parties.form.terms')}</h3>
+            <Field label={t('parties.form.language')} className="sm:col-span-2">
+              {(c) => (
+                <Select
+                  value={draft.language || 'default'}
+                  onValueChange={(v) => change({ language: v === 'default' ? '' : v })}
+                >
+                  <SelectTrigger {...c} data-testid="party-language">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="default">{t('parties.form.languageDefault')}</SelectItem>
+                    {PRINT_LANGUAGES.map((l) => (
+                      <SelectItem key={l} value={l} lang={l}>
+                        {PRINT_LANGUAGE_NAMES[l]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </Field>
             <Field label={t('parties.form.creditDays')} error={errors['creditDays']}>
               {(c) => (
                 <Input
@@ -476,11 +497,12 @@ export function PartyForm({
             </Field>
             <Field label={t('parties.form.notes')}>
               {(c) => (
-                <Textarea
-                  {...c}
+                <TranslitInput
+                  {...(c as object)}
+                  multiline
                   rows={3}
                   value={draft.notes}
-                  onChange={(e) => change({ notes: e.target.value })}
+                  onValueChange={(notes) => change({ notes })}
                 />
               )}
             </Field>

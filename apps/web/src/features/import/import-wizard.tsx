@@ -30,6 +30,7 @@ import type { ImportReview, ImportSpec } from './types';
 
 import { useAppDb } from '@/app/db';
 import { downloadText } from '@/features/parties/csv';
+import { dyn } from '@/lib/dyn-key';
 
 type Step = 'upload' | 'map' | 'review' | 'run' | 'done';
 
@@ -60,7 +61,7 @@ interface Loaded {
  * cancel. Nothing is stored unless every selected row is stored.
  */
 export function ImportWizard({ spec, onClose }: { spec: ImportSpec; onClose: () => void }) {
-  const { t } = useTranslation();
+  const { t } = useTranslation(['ui', 'errors']);
   const { database, ctx } = useAppDb();
   const [step, setStep] = useState<Step>('upload');
   const [loaded, setLoaded] = useState<Loaded | null>(null);
@@ -74,7 +75,7 @@ export function ImportWizard({ spec, onClose }: { spec: ImportSpec; onClose: () 
   const [busy, setBusy] = useState(false);
   const cancel = useRef(false);
 
-  const label = (key: string) => t(`import.fields.${key}`);
+  const label = (key: string) => t(dyn(`import.fields.${key}`));
 
   const onFile = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -164,7 +165,7 @@ export function ImportWizard({ spec, onClose }: { spec: ImportSpec; onClose: () 
   };
 
   const problemText = (r: ImportReview['invalid'][number]) =>
-    r.problems.map((p) => `${label(p.field)}: ${t(`val.${p.code}`)}`).join('; ');
+    r.problems.map((p) => `${label(p.field)}: ${t(dyn(`errors:val.${p.code}`))}`).join('; ');
 
   const downloadProblems = () => {
     if (!review || !loaded) return;

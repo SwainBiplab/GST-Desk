@@ -4,7 +4,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import './index.css';
-import './lib/i18n';
+import { i18nReady } from './lib/i18n';
 import { routeTree } from './routeTree.gen';
 
 const queryClient = new QueryClient({
@@ -21,10 +21,13 @@ declare module '@tanstack/react-router' {
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element');
 
-createRoot(root).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
-  </StrictMode>,
-);
+// the screens render once the language is loaded, so a key is never shown for a moment
+void i18nReady.then(() => {
+  createRoot(root).render(
+    <StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    </StrictMode>,
+  );
+});

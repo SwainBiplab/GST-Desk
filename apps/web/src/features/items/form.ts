@@ -26,6 +26,8 @@ export const MAX_IMAGES = 5;
 export interface ItemDraft {
   kind: 'goods' | 'service';
   name: string;
+  /** The Roman-letter form of the name, kept when it is typed in a native script, for search. */
+  nameLatin: string;
   description: string;
   sku: string;
   barcode: string;
@@ -55,6 +57,7 @@ export type Errors = Record<string, string>;
 export const emptyItemDraft = (over: Partial<ItemDraft> = {}): ItemDraft => ({
   kind: 'goods',
   name: '',
+  nameLatin: '',
   description: '',
   sku: '',
   barcode: '',
@@ -189,6 +192,7 @@ export function draftToValues(d: ItemDraft): Record<string, unknown> {
   return {
     kind: d.kind,
     name: d.name.trim(),
+    name_latin: d.nameLatin.trim() || null,
     description: d.description.trim() || null,
     sku: fields.sku ?? null,
     barcode: fields.barcode ?? null,
@@ -229,6 +233,7 @@ export function rowToDraft(r: Row): ItemDraft {
   return emptyItemDraft({
     kind: r['kind'],
     name: r['name'] ?? '',
+    nameLatin: r['name_latin'] ?? '',
     description: r['description'] ?? '',
     sku: r['sku'] ?? '',
     barcode: r['barcode'] ?? '',

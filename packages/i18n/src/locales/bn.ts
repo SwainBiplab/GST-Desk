@@ -1,0 +1,143 @@
+/**
+ * বাংলা. First drafts for review by a native speaker (docs/i18n/review.md). Anything not here is
+ * shown in English. Business terms follow the glossary (`src/glossary.ts`).
+ */
+import type { LocaleBundle } from '.';
+
+export const bundle: LocaleBundle = {
+  ui: {
+    app: { name: 'GST Desk', skip: 'সরাসরি বিষয়বস্তুতে যান' },
+    shell: { shop: 'দোকান', books: 'হিসাব', switch: 'মোড বদলান' },
+    nav: {
+      label: 'প্রধান মেনু',
+      dashboard: 'ড্যাশবোর্ড',
+      sell: 'বিক্রি',
+      parties: 'পার্টি',
+      items: 'পণ্য',
+      documents: 'নথি',
+      payments: 'পেমেন্ট',
+      reports: 'রিপোর্ট',
+      inbox: 'ইনবক্স',
+      settings: 'সেটিংস',
+      purchases: 'কেনা',
+      sections: {
+        overview: 'সারসংক্ষেপ',
+        sales: 'বিক্রি',
+        purchases: 'কেনা',
+        parties: 'পার্টি',
+        items: 'পণ্য',
+        money: 'টাকাপয়সা',
+        reports: 'রিপোর্ট',
+        gst: 'জিএসটি',
+        inbox: 'ইনবক্স',
+        settings: 'সেটিংস',
+      },
+    },
+    actions: {
+      newBill: 'নতুন বিল',
+      receivePayment: 'পেমেন্ট নিন',
+      scanBill: 'বিল স্ক্যান করুন',
+      search: 'খুঁজুন বা কমান্ড চালান',
+      openPanel: 'বিবরণ প্যানেল দেখান',
+      closePanel: 'বিবরণ প্যানেল লুকান',
+    },
+    strip: {
+      sales: 'আজকের বিক্রি',
+      cash: 'আজ পাওয়া নগদ',
+      pending: 'গ্রাহকদের কাছে পাওনা',
+    },
+    chrome: {
+      business: 'ব্যবসা',
+      noBusiness: 'এখনও কোনো ব্যবসা নেই',
+      addBusiness: 'ব্যবসা যোগ করুন',
+      local: 'স্থানীয়',
+      notifications: 'বিজ্ঞপ্তি',
+      help: 'সাহায্য',
+      keyboardMap: 'কিবোর্ড শর্টকাট',
+      density: 'ঘনত্ব',
+      compact: 'ঘন',
+      comfortable: 'আরামদায়ক',
+      theme: 'থিম',
+      language: 'ভাষা',
+    },
+    page: {
+      notBuilt: 'এই স্ক্রিন এখনও তৈরি হয়নি।',
+      unknown: 'পাতা পাওয়া যায়নি',
+      back: 'ড্যাশবোর্ডে ফিরুন',
+    },
+    confirm: { yes: 'হ্যাঁ', cancel: 'বাতিল' },
+    unsaved: {
+      title: 'সেভ না করে ছেড়ে যাবেন?',
+      body: 'আপনার পরিবর্তন সেভ হয়নি। এখন ছাড়লে সেগুলো হারিয়ে যাবে।',
+      leave: 'ছাড়ুন',
+      stay: 'থাকুন',
+    },
+    welcome: {
+      language: {
+        label: 'ভাষা',
+        note: 'অ্যাপ আপনার বাছা ভাষায় চলবে। যেগুলোর অনুবাদ এখনও হয়নি সেগুলো ইংরেজিতে দেখা যাবে।',
+      },
+    },
+    inbox: {
+      title: 'ইনবক্স',
+      subtitle:
+        'অ্যাপ যা আপনার দেখার জন্য খুঁজে পেয়েছে। আপনি মেনে না নেওয়া পর্যন্ত কিছুই বদলায় না।',
+      views: { open: 'দেখার বাকি', snoozed: 'পিছিয়ে রাখা', done: 'শেষ' },
+      kinds: {
+        duplicate_party: 'সম্ভাব্য দ্বিতীয় পার্টি',
+        duplicate_item: 'সম্ভাব্য দ্বিতীয় পণ্য',
+        hsn_suggestion: 'HSN পরামর্শ',
+        reminder_due: 'টাকা দেওয়ার অনুস্মারক',
+        low_stock: 'মজুত কম',
+        draft_stale: 'পুরনো খসড়া',
+        backup_failed: 'ব্যাকআপ হয়নি',
+        rate_change: 'জিএসটি হার বদলেছে',
+      },
+      filters: { kind: 'ধরন', allKinds: 'সব ধরন', search: 'ইনবক্সে খুঁজুন' },
+      count_one: '{{count}}টি এন্ট্রি',
+      count_other: '{{count}}টি এন্ট্রি',
+      empty: {
+        open: 'সব ঠিক আছে। নজর দেওয়ার মতো কিছু নেই।',
+        snoozed: 'কিছুই পিছিয়ে রাখা নেই।',
+        done: 'এখনও কিছু শেষ হয়নি।',
+      },
+      actions: {
+        accept: 'মেনে নিন',
+        acceptEdited: 'বদলসহ মেনে নিন',
+        edit: 'বদলান',
+        reject: 'বাতিল করুন',
+        snooze: 'পরে',
+        open: 'রেকর্ড খুলুন',
+        unsnooze: 'ফিরিয়ে আনুন',
+        acknowledge: 'ঠিক আছে',
+        runChecks: 'এখন দেখুন',
+        bulk: 'অনেকগুলো মেনে নিন',
+        sendReminder: 'WhatsApp-এ পাঠান',
+      },
+      snooze: { tomorrow: 'কাল', week: 'আগামী সপ্তাহে', month: 'আগামী মাসে' },
+      status: { accepted: 'মেনে নেওয়া হয়েছে', rejected: 'বাতিল', expired: 'আর দরকার নেই' },
+      toast: {
+        accepted: 'মেনে নেওয়া হয়েছে',
+        acknowledged: 'দেখা হয়েছে বলে চিহ্নিত',
+        rejected: 'বাতিল করা হয়েছে',
+        snoozed: 'পরের জন্য রাখা হয়েছে',
+        unsnoozed: 'ইনবক্সে ফিরেছে',
+        nothingNew: 'নতুন কিছু পাওয়া যায়নি',
+      },
+      reject: { title: 'এই পরামর্শ বাতিল করুন', confirm: 'বাতিল করুন' },
+      keys: 'J / K সরান · A মেনে নিন · E বদলান · R বাতিল · S পরে · O রেকর্ড খুলুন',
+    },
+  },
+  errors: {
+    boundary: {
+      title: 'কিছু একটা ভুল হয়েছে',
+      body: 'আপনার ডেটা নিরাপদ। ব্যক্তিগত তথ্য ছাড়া পরীক্ষার বিবরণ কপি করে সহায়তায় পাঠাতে পারেন।',
+      copy: 'পরীক্ষার বিবরণ কপি করুন',
+      copied: 'পরীক্ষার বিবরণ কপি হয়েছে',
+      reload: 'আবার খুলুন',
+    },
+  },
+  help: {
+    keymap: { title: 'কিবোর্ড শর্টকাট', description: 'এই মোডে যে শর্টকাট চলে।' },
+  },
+};

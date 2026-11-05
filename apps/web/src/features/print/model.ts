@@ -10,6 +10,7 @@ import {
   type Row,
 } from '@gst/db';
 import { STATES } from '@gst/domain';
+import { isLanguage } from '@gst/i18n';
 import {
   buildStoredPrintModel,
   type PrintAccount,
@@ -100,6 +101,7 @@ export function printParty(row: Row): PrintParty {
     address: addressLines(billing),
     stateName: code ? `${STATES[code] ?? ''} (${code})`.trim() : null,
     phone: (row['phone'] as string | null) ?? null,
+    ...(isLanguage(row['language']) ? { language: row['language'] } : {}),
   };
 }
 

@@ -7,7 +7,7 @@
  * terms, signature) moves whole to the next page when it does not fit; later pages carry a
  * "continued" strip and the repeated table header; every page says "Page x of y".
  */
-import { amountToWordsEn, amountToWordsHi } from '@gst/domain';
+import { amountToWords } from '@gst/domain';
 import { printLabel, type PrintLabelKey, type PrintLanguage } from '@gst/i18n';
 
 import type { TextMeasurer, Weight } from './fonts';
@@ -77,16 +77,6 @@ export interface LayoutOptions {
 
 const LH = 1.32; // line height as a multiple of the font size
 const PAD = 3; // cell padding
-
-const WORDS: Record<PrintLanguage, (p: bigint) => string> = {
-  en: amountToWordsEn,
-  hi: amountToWordsHi,
-  // other languages print the amount in words in English until their own words exist
-  ta: amountToWordsEn,
-  bn: amountToWordsEn,
-  gu: amountToWordsEn,
-  mr: amountToWordsHi,
-};
 
 /** Greedy word wrap by measured width; a word wider than the box is broken by character. */
 export function wrapText(
@@ -725,7 +715,7 @@ function totalsBlock(c: Ctx): Draw {
     const left = new Sheet(c, 0, s.w - half - 10);
     left.y = top;
     left.text(c.label('amountInWords'), { size: c.size * 0.9, color: spec.theme.muted });
-    left.text(WORDS[c.lang](model.totals.totalPaise), { weight: 'bold', tag: 'words' });
+    left.text(amountToWords(c.lang, model.totals.totalPaise), { weight: 'bold', tag: 'words' });
     if (model.foreign)
       left.text(`${c.label('inForeign')}: ${model.foreign.currency} ${model.foreign.amount}`, {
         color: spec.theme.muted,

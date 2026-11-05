@@ -32,6 +32,7 @@ import { useAppNavigate } from '@/app/hooks';
 import type { Shell } from '@/app/store';
 import { useFeatureFlags } from '@/features/business/hooks';
 import { downloadText } from '@/features/parties/csv';
+import { dyn } from '@/lib/dyn-key';
 
 type SortKey = 'name' | 'sku' | 'hsn' | 'sale' | 'gst';
 const ROW_HEIGHT = 36;
@@ -419,7 +420,7 @@ export function ItemList({
                       </button>
                     </div>
                     <div role="cell" className="truncate px-2">
-                      {t(`items.kinds.${r['kind']}`)}
+                      {t(dyn(`items.kinds.${r['kind']}`))}
                     </div>
                     <div role="cell" className="truncate px-2">
                       {r['sku'] ?? ''}

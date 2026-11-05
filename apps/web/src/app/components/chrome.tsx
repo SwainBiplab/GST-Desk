@@ -1,3 +1,4 @@
+import type { Language } from '@gst/i18n';
 import {
   Badge,
   Button,
@@ -19,6 +20,8 @@ import { useAppStore, type Shell } from '../store';
 
 import { useFeatureFlags } from '@/features/business/hooks';
 import { useBackupStatus } from '@/features/data/backup-service';
+import { changeLanguage } from '@/lib/i18n';
+import { KEYS } from '@/lib/terms';
 
 /** Business name with a menu to switch between businesses (FR-003). */
 export function BusinessSwitcher({ large = false }: { large?: boolean }) {
@@ -154,7 +157,7 @@ export function HelpMenu() {
           {t('chrome.keyboardMap')} (?)
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => setCommandOpen(true)}>
-          {t('actions.search')} (Ctrl+K)
+          {t('actions.search')} ({KEYS.commandBar})
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -258,9 +261,21 @@ export function SearchButton() {
       <Search size={14} aria-hidden />
       <span className="hidden md:inline">{t('actions.search')}</span>
       <kbd className="ml-auto hidden rounded-sm border border-border px-1 text-xs md:inline">
-        Ctrl K
+        {KEYS.commandBarCap}
       </kbd>
     </Button>
+  );
+}
+
+/** Language of the screens: the choice applies at once, with no reload, and is kept on this device. */
+function UiLanguageSwitcher() {
+  const { t, i18n } = useTranslation();
+  return (
+    <LanguageSwitcher
+      current={i18n.language}
+      label={t('chrome.language')}
+      onChange={(code) => void changeLanguage(code as Language)}
+    />
   );
 }
 
@@ -272,7 +287,7 @@ export function ChromeControls({ shell }: { shell: Shell }) {
       <SearchButton />
       <DensityButton shell={shell} />
       <ThemeToggle />
-      <LanguageSwitcher />
+      <UiLanguageSwitcher />
       <SyncPill />
       <NotificationBell shell={shell} />
       <HelpMenu />

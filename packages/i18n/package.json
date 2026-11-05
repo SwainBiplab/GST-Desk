@@ -12,11 +12,19 @@
     "build": "tsc -p tsconfig.json --noEmit",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "i18n:extract": "tsx scripts/extract.ts",
+    "i18n:check": "tsx scripts/check.ts",
+    "i18n:draft": "tsx scripts/draft.ts"
+  },
+  "dependencies": {
+    "i18next": "^26.7.1"
   },
   "devDependencies": {
     "@gst/config": "workspace:*",
+    "@types/node": "^26.6.6",
     "eslint": "^9.39.0",
+    "tsx": "^4.23.15",
     "typescript": "~6.0.0",
     "vitest": "^5.1.0"
   }

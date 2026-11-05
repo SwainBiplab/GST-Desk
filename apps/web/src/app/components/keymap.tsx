@@ -18,15 +18,15 @@ import { useAppStore } from '../store';
 
 /** The in-app keyboard map (`?`). Content comes from the same list as docs/keyboard.md. */
 export function KeymapDialog() {
-  const { t } = useTranslation();
+  const { t } = useTranslation(['ui', 'help']);
   const open = useAppStore((s) => s.keymapOpen);
   const setOpen = useAppStore((s) => s.setKeymapOpen);
   const { shell } = useActionContext();
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent data-testid="keymap" onCloseAutoFocus={restoreFocus}>
-        <DialogTitle>{t('keymap.title')}</DialogTitle>
-        <DialogDescription>{t('keymap.description')}</DialogDescription>
+        <DialogTitle>{t('help:keymap.title')}</DialogTitle>
+        <DialogDescription>{t('help:keymap.description')}</DialogDescription>
         <Table className="mt-3">
           <TableBody>
             {shortcutsFor(shell).map((s) => (

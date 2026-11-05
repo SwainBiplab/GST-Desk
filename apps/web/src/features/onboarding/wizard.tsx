@@ -1,3 +1,4 @@
+import type { Language } from '@gst/i18n';
 import {
   Badge,
   Button,
@@ -36,6 +37,7 @@ import {
   type BusinessDraft,
   type Errors,
 } from '@/features/business/profile';
+import { changeLanguage } from '@/lib/i18n';
 
 const ALL = ['language', 'start', 'registration', 'details', 'preset', 'bank', 'done'] as const;
 const ADD = ['registration', 'details', 'preset', 'bank', 'done'] as const;
@@ -126,12 +128,8 @@ export function Wizard({ addMode = false }: { addMode?: boolean }) {
       return;
     }
     if (step === 'language') {
-      try {
-        localStorage.setItem('gst.lang', draft.language);
-      } catch {
-        /* ignore */
-      }
-      document.documentElement.lang = draft.language;
+      // the app switches to the chosen language now, and keeps it on this device
+      await changeLanguage(draft.language as Language);
       setShell(draft.shell);
     }
     if (step === 'start' && draft.start === 'sample') {

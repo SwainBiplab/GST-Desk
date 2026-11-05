@@ -47,7 +47,7 @@ export function AutoRulesDialog(props: {
         </div>
         <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={props.onClose}>
-            {t('common.cancel', { defaultValue: 'Cancel' })}
+            {t('confirm.cancel')}
           </Button>
           <Button
             data-testid="auto-save"
@@ -57,7 +57,7 @@ export function AutoRulesDialog(props: {
               void props.onSave(v === OFF ? null : Number(v)).finally(() => setBusy(false));
             }}
           >
-            OK
+            {t('confirm.ok')}
           </Button>
         </div>
       </AlertDialogContent>

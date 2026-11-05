@@ -16,6 +16,7 @@ import { useHsnVersions } from './hooks';
 import { useAppDb } from '@/app/db';
 import { Field } from '@/features/onboarding/field';
 import { HSN_UPDATE_KEY, checkForHsnUpdate, isAllowedUpdateUrl } from '@/lib/hsn';
+import { EXAMPLE } from '@/lib/terms';
 
 /**
  * The HSN/SAC master: which versions are installed, and the optional address to check for newer
@@ -107,7 +108,7 @@ export function HsnMasterDialog({ onClose }: { onClose: () => void }) {
               {...c}
               inputMode="url"
               data-testid="hsn-url"
-              placeholder="https://"
+              placeholder={EXAMPLE.url}
               value={url}
               onChange={(e) => setUrl(e.target.value)}
             />

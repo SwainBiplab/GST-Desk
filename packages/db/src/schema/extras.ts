@@ -7,12 +7,19 @@ import { NO_DELETE_TABLES, TENANT_TABLES } from './spec';
 
 export const BREAK = '--> statement-breakpoint';
 
-/** Searchable text columns per table. */
-export const SEARCH_COLUMNS: Record<string, string[]> = {
+/** Searchable text columns per table, as migration 9000 created them. Frozen: a changed list is a new migration. */
+export const SEARCH_COLUMNS_V1: Record<string, string[]> = {
   parties: ['name', 'trade_name', 'gstin', 'phone', 'email', 'city'],
   items: ['name', 'sku', 'barcode', 'hsn'],
   documents: ['number', 'party_name', 'notes'],
   hsn_master: ['code', 'description'],
+};
+
+/** What search reads now: names also match their Roman-letter form (migration 9002). */
+export const SEARCH_COLUMNS: Record<string, string[]> = {
+  ...SEARCH_COLUMNS_V1,
+  parties: ['name', 'name_latin', 'trade_name', 'gstin', 'phone', 'email', 'city'],
+  items: ['name', 'name_latin', 'sku', 'barcode', 'hsn'],
 };
 
 /** Reference tables have no business_id. */
@@ -23,7 +30,7 @@ const STEMMED = new Set(['hsn_master']);
 
 function sqliteExtras(): string[] {
   const out: string[] = [];
-  for (const [table, cols] of Object.entries(SEARCH_COLUMNS)) {
+  for (const [table, cols] of Object.entries(SEARCH_COLUMNS_V1)) {
     const fts = `${table}_fts`;
     const scoped = !GLOBAL_SEARCH.has(table);
     const lead = scoped ? ['id', 'business_id'] : ['id'];
@@ -56,7 +63,7 @@ function sqliteExtras(): string[] {
 
 function pgExtras(): string[] {
   const out: string[] = [];
-  for (const [table, cols] of Object.entries(SEARCH_COLUMNS)) {
+  for (const [table, cols] of Object.entries(SEARCH_COLUMNS_V1)) {
     // Separators become spaces so `QS-77` and `a@b.com` split into words like they do in SQLite.
     const expr = `translate(${cols.map((c) => `coalesce(${c}, '')`).join(` || ' ' || `)}, '-_/.@', '     ')`;
     out.push(
@@ -119,6 +126,48 @@ export function purgeSql(dialect: Dialect): string {
     stmts.push(
       `CREATE OR REPLACE FUNCTION forbid_hard_delete() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF TG_TABLE_NAME IN ('parties', 'items', 'documents') AND (to_jsonb(OLD)->>'deleted_at') IS NOT NULL THEN RETURN OLD; END IF; IF TG_TABLE_NAME = 'document_lines' AND EXISTS (SELECT 1 FROM documents d WHERE d.id = OLD.document_id AND d.deleted_at IS NOT NULL) THEN RETURN OLD; END IF; RAISE EXCEPTION 'hard delete forbidden on %', TG_TABLE_NAME; END $$`,
     );
+  }
+  return stmts.map((s) => `${s};`).join(`\n${BREAK}\n`) + '\n';
+}
+
+/** Tables whose search columns changed in 9002. */
+const REINDEXED = ['parties', 'items'] as const;
+
+/**
+ * Makes names searchable by their Roman-letter form: the search index of parties and items is rebuilt
+ * with `name_latin` in it (SQLite: a new full-text table, triggers and a backfill; Postgres: the
+ * generated `search` column is replaced). Nothing else about search changes.
+ */
+export function searchLatinSql(dialect: Dialect): string {
+  const stmts: string[] = [];
+  for (const table of REINDEXED) {
+    const cols = SEARCH_COLUMNS[table]!;
+    if (dialect === 'sqlite') {
+      const fts = `${table}_fts`;
+      const lead = ['id', 'business_id'];
+      const colList = [...lead, ...cols].join(', ');
+      const newVals = [
+        ...lead.map((c) => `new.${c}`),
+        ...cols.map((c) => `coalesce(new.${c}, '')`),
+      ].join(', ');
+      stmts.push(
+        `DROP TRIGGER ${table}_fts_ai`,
+        `DROP TRIGGER ${table}_fts_au`,
+        `DROP TABLE ${fts}`,
+        `CREATE VIRTUAL TABLE ${fts} USING fts5(${lead.map((c) => `${c} UNINDEXED`).join(', ')}, ${cols.join(', ')}, tokenize='unicode61 remove_diacritics 2')`,
+        `CREATE TRIGGER ${table}_fts_ai AFTER INSERT ON ${table} WHEN new.deleted_at IS NULL BEGIN INSERT INTO ${fts}(${colList}) VALUES (${newVals}); END`,
+        `CREATE TRIGGER ${table}_fts_au AFTER UPDATE ON ${table} BEGIN DELETE FROM ${fts} WHERE id = old.id; INSERT INTO ${fts}(${colList}) SELECT ${newVals} WHERE new.deleted_at IS NULL; END`,
+        `INSERT INTO ${fts}(${colList}) SELECT ${[...lead, ...cols.map((c) => `coalesce(${c}, '')`)].join(', ')} FROM ${table} WHERE deleted_at IS NULL`,
+      );
+    } else {
+      const expr = `translate(${cols.map((c) => `coalesce(${c}, '')`).join(` || ' ' || `)}, '-_/.@', '     ')`;
+      stmts.push(
+        `DROP INDEX ${table}_search_idx`,
+        `ALTER TABLE ${table} DROP COLUMN search`,
+        `ALTER TABLE ${table} ADD COLUMN search tsvector GENERATED ALWAYS AS (to_tsvector('simple', ${expr})) STORED`,
+        `CREATE INDEX ${table}_search_idx ON ${table} USING gin (search)`,
+      );
+    }
   }
   return stmts.map((s) => `${s};`).join(`\n${BREAK}\n`) + '\n';
 }

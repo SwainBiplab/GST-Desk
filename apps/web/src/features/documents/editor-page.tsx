@@ -79,7 +79,12 @@ import {
 import { familiesFor, loadFonts } from '@/features/print/fonts-client';
 import { makePdf, stampCancelled } from '@/features/print/pdf-client';
 import { modelNow, usePrintContext, usePrintModel } from '@/features/print/use-print-model';
-import { specOf, useDefaultTemplateId, useTemplates } from '@/features/print/use-templates';
+import {
+  specOf,
+  useDefaultTemplateId,
+  useTemplates,
+  withPartyLanguage,
+} from '@/features/print/use-templates';
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
 
@@ -162,7 +167,7 @@ export function EditorPage({
   const defaultTemplate = useDefaultTemplateId(draft.type, shell);
   const [pickedTemplate, setPickedTemplate] = useState<string | null>(null);
   const templateId = pickedTemplate ?? defaultTemplate;
-  const spec = specOf(templates.options, templateId);
+  const baseSpec = specOf(templates.options, templateId);
   const partyQuery = useParty(draft.partyId);
   const printContext = usePrintContext();
   const model = usePrintModel({
@@ -173,6 +178,8 @@ export function EditorPage({
     revision: meta.revision,
     party: partyQuery.data ?? null,
   });
+  // a party with a language of their own gets their copy in it
+  const spec = withPartyLanguage(baseSpec, model?.party);
 
   // the business's column choices
   useEffect(() => {

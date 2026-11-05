@@ -203,6 +203,8 @@ Kind: belongs to a business. In a business export.
 | `updated_by` | text |  |  |
 | `type` | text | yes | one of `customer`, `supplier`, `both` |
 | `name` | text | yes |  |
+| `name_latin` | text |  |  |
+| `language` | text |  | one of `en`, `hi`, `ta`, `bn`, `gu`, `mr` |
 | `trade_name` | text |  |  |
 | `gstin` | text |  |  |
 | `pan` | text |  |  |
@@ -241,6 +243,7 @@ Kind: belongs to a business. In a business export.
 | `updated_by` | text |  |  |
 | `kind` | text | yes | one of `goods`, `service`; default "goods" |
 | `name` | text | yes |  |
+| `name_latin` | text |  |  |
 | `description` | text |  |  |
 | `sku` | text |  |  |
 | `barcode` | text |  |  |

@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useAppDb, useLiveQuery } from '@/app/db';
 import { Field } from '@/features/onboarding/field';
+import { dyn } from '@/lib/dyn-key';
 
 type Kind = 'bank' | 'upi' | 'cash' | 'wallet';
 const KINDS: Kind[] = ['bank', 'upi', 'cash', 'wallet'];
@@ -81,7 +82,7 @@ export function AccountsTab() {
                     {a['is_default'] && <Badge>{t('accounts.default')}</Badge>}
                   </p>
                   <p className="text-sm text-fg-muted">
-                    {t(`accounts.kinds.${a['kind']}`)}
+                    {t(dyn(`accounts.kinds.${a['kind']}`))}
                     {a['upi_id'] ? ` · ${a['upi_id']}` : ''}
                     {a['account_no'] ? ` · ${a['account_no']}` : ''}
                     {a['ifsc'] ? ` · ${a['ifsc']}` : ''}

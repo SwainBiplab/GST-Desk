@@ -3,6 +3,8 @@ import { useId } from 'react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { dyn } from '@/lib/dyn-key';
+
 export interface FieldProps {
   label: string;
   /** Error key from the validators (`val.<key>`). */
@@ -19,10 +21,10 @@ export interface FieldProps {
 
 /** Label, control and an inline message wired together for screen readers. */
 export function Field({ label, error, hint, className, children }: FieldProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation(['ui', 'errors']);
   const id = useId();
   const messageId = `${id}-msg`;
-  const message = error ? t(`val.${error}`) : hint;
+  const message = error ? t(dyn(`errors:val.${error}`)) : hint;
   return (
     <div className={cn('flex flex-col gap-1', className)}>
       <label htmlFor={id} className="text-sm font-medium">

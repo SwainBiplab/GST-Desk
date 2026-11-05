@@ -6,8 +6,10 @@ import { registerAction, type ActionContext } from './actions';
 import { PAGE_IDS, type PageId } from './nav';
 import { GO_TO } from './shortcuts';
 
+import { dyn } from '@/lib/dyn-key';
+
 const t = (key: string, opts?: Record<string, unknown>): string =>
-  opts ? (i18n.t(key, opts) as string) : (i18n.t(key) as string);
+  opts ? (i18n.t(dyn(key), opts) as string) : (i18n.t(dyn(key)) as string);
 const shellOf = (c: ActionContext) => c.shell ?? 'shop';
 const go = (page: PageId, search?: Record<string, unknown>) => (c: ActionContext) =>
   c.navigate(`/${shellOf(c)}/${page}`, search);
@@ -32,13 +34,11 @@ const HINT: Partial<Record<PageId, string>> = Object.fromEntries(
   Object.entries(GO_TO).map(([k, v]) => [v.page, `G then ${k.toUpperCase()}`]),
 );
 
-let registered = false;
-
-/** Register the built-in actions once. Features add theirs with `registerAction`. */
+/**
+ * Register the built-in actions. Their titles are words, so this runs again when the language is ready
+ * and whenever it changes (registering an id again replaces it). Features add theirs with `registerAction`.
+ */
 export function registerDefaultActions(): void {
-  if (registered) return;
-  registered = true;
-
   for (const page of PAGE_IDS) {
     registerAction({
       id: `nav.${page}`,

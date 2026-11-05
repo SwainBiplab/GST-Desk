@@ -18,6 +18,7 @@ import { PartyForm } from './party-form';
 import { useAppDb } from '@/app/db';
 import { useAppNavigate } from '@/app/hooks';
 import { useAppStore } from '@/app/store';
+import { dyn } from '@/lib/dyn-key';
 
 /** Candidates that look like the party being saved. Uses the Tier 0 rules provider (offline). */
 export function useDuplicateCheck() {
@@ -79,7 +80,8 @@ function DuplicatesDialog({
               <span className="flex-1">
                 <span className="font-medium">{m.name}</span>
                 <span className="block text-xs text-fg-muted">
-                  {m.reasons.map((r) => t(REASONS[r])).join(', ')} | {Math.round(m.score * 100)}%
+                  {m.reasons.map((r) => t(dyn(REASONS[r]))).join(', ')} |{' '}
+                  {Math.round(m.score * 100)}%
                 </span>
               </span>
               <Button type="button" variant="outline" onClick={() => onOpen(m.id)}>

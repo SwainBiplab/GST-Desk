@@ -21,7 +21,7 @@ import {
   type Database,
   type Row,
 } from '@gst/db';
-import { languageOfState, reminderText, type PrintLanguage } from '@gst/i18n';
+import { isLanguage, languageOfState, reminderText, type PrintLanguage } from '@gst/i18n';
 
 import {
   detectBackupFailure,
@@ -190,6 +190,7 @@ async function doRun(db: Database, ctx: Ctx, opts: Tier0Options): Promise<Tier0R
         name: party?.['name'] ?? doc.partyName,
         phone: party?.['phone'] ?? null,
         stateCode: party?.['state_code'] ?? null,
+        language: party?.['language'] ?? null,
         amountPaise: 0,
         invoices: 0,
         oldestDays: 0,
@@ -203,7 +204,8 @@ async function doRun(db: Database, ctx: Ctx, opts: Tier0Options): Promise<Tier0R
     add(
       'reminder_due',
       detectReminders([...byParty.values()], now, {
-        languageOf: (s) => languageOfState(s),
+        // the language the party chose, else the one their state suggests
+        languageOf: (s, chosen) => (isLanguage(chosen) ? chosen : languageOfState(s)),
         draft: (language, v) =>
           reminderText(language as PrintLanguage, {
             party: v.name,

@@ -57,6 +57,7 @@ import { useTemplates, type TemplateOption } from './use-templates';
 
 import { useAppDb, useLiveQuery } from '@/app/db';
 import { Field } from '@/features/onboarding/field';
+import { roll } from '@/lib/terms';
 
 const DOC_TYPES = [
   'tax_invoice',
@@ -776,8 +777,8 @@ export function PrintTab() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="58">58 mm</SelectItem>
-                    <SelectItem value="80">80 mm</SelectItem>
+                    <SelectItem value="58">{roll(58)}</SelectItem>
+                    <SelectItem value="80">{roll(80)}</SelectItem>
                   </SelectContent>
                 </Select>
               )}
@@ -834,8 +835,8 @@ export function PrintTab() {
             <thead className="text-left text-xs text-fg-muted">
               <tr>
                 <th className="font-medium">{t('print.designer.documentType')}</th>
-                <th className="text-center font-medium">Books</th>
-                <th className="text-center font-medium">Shop</th>
+                <th className="text-center font-medium">{t('shell.books')}</th>
+                <th className="text-center font-medium">{t('shell.shop')}</th>
               </tr>
             </thead>
             <tbody>

@@ -8,7 +8,7 @@ import { downloadBytes, patternName } from './actions';
 import { familiesFor, loadFonts } from './fonts-client';
 import { loadPrintContext, modelForDocument } from './model';
 import { cancelPdfWork, makePdf } from './pdf-client';
-import { specOf, useTemplates } from './use-templates';
+import { specOf, useTemplates, withPartyLanguage } from './use-templates';
 
 import { useAppDb } from '@/app/db';
 
@@ -61,7 +61,10 @@ export function BulkExportDialog({
           const found = await modelForDocument(database, ctx, pc, id);
           if (!found) continue;
           const { model } = found;
-          const spec = specOf(options, await templates.resolveId(ctx, model.type, 'books'));
+          const spec = withPartyLanguage(
+            specOf(options, await templates.resolveId(ctx, model.type, 'books')),
+            model.party,
+          );
           let name = patternName(pattern, model, fyStart);
           for (let n = 2; files[name]; n++) name = name.replace(/(-\d+)?\.pdf$/, `-${n}.pdf`);
           setState({ kind: 'running', done: i, total: ids.length, name });

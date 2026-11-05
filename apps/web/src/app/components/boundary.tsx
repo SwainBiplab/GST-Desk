@@ -8,7 +8,7 @@ import { buildDiagnostics } from '../diagnostics';
 declare const __APP_VERSION__: string;
 
 function ErrorScreen({ error, onReset }: { error: unknown; onReset?: () => void }) {
-  const { t } = useTranslation();
+  const { t } = useTranslation(['ui', 'errors']);
   const { kind, persistent } = useAppDb();
   const copy = async () => {
     const text = buildDiagnostics({
@@ -21,10 +21,10 @@ function ErrorScreen({ error, onReset }: { error: unknown; onReset?: () => void 
     });
     try {
       await navigator.clipboard.writeText(text);
-      toast.success(t('error.copied'));
+      toast.success(t('errors:boundary.copied'));
     } catch {
       // clipboard blocked: show it so it can be copied by hand
-      window.prompt(t('error.copy'), text);
+      window.prompt(t('errors:boundary.copy'), text);
     }
   };
   return (
@@ -33,14 +33,14 @@ function ErrorScreen({ error, onReset }: { error: unknown; onReset?: () => void 
       className="mx-auto mt-16 max-w-md rounded-lg border border-border bg-surface-1 p-6"
       data-testid="error-screen"
     >
-      <h1 className="text-xl font-semibold">{t('error.title')}</h1>
-      <p className="py-3 text-fg-muted">{t('error.body')}</p>
+      <h1 className="text-xl font-semibold">{t('errors:boundary.title')}</h1>
+      <p className="py-3 text-fg-muted">{t('errors:boundary.body')}</p>
       <div className="flex gap-2">
         <Button onClick={() => void copy()} data-testid="copy-diagnostics">
-          {t('error.copy')}
+          {t('errors:boundary.copy')}
         </Button>
         <Button variant="outline" onClick={() => (onReset ? onReset() : location.reload())}>
-          {t('error.reload')}
+          {t('errors:boundary.reload')}
         </Button>
       </div>
     </div>

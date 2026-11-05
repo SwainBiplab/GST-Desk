@@ -16,6 +16,7 @@ import { AuditDiff } from './audit-diff';
 
 import { useLiveQuery } from '@/app/db';
 import { downloadText } from '@/features/parties/csv';
+import { EXAMPLE } from '@/lib/terms';
 
 const TABLES = [
   'documents',
@@ -127,7 +128,7 @@ export function AuditViewer() {
           <Input
             data-testid="audit-document"
             value={number}
-            placeholder="INV/26-27/0001"
+            placeholder={EXAMPLE.documentNumber}
             onChange={(e) => setNumber(e.target.value)}
           />
         </label>

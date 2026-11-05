@@ -225,3 +225,12 @@ export function amountToWordsHi(amount: bigint): string {
   const r = `${integerToWordsHi(rupees)} रुपये`;
   return ps > 0 ? `${r} और ${HI_0_99[ps]!} पैसे मात्र` : `${r} मात्र`;
 }
+
+/**
+ * The amount in words for a language: English and Hindi have their own words, Marathi reads in Hindi's
+ * (the number words are the same Devanagari ones), and Tamil, Bengali and Gujarati fall back to English
+ * until their words are written and reviewed (backlog B-075), so a document never prints a blank.
+ */
+export function amountToWords(language: string, amount: bigint): string {
+  return language === 'hi' || language === 'mr' ? amountToWordsHi(amount) : amountToWordsEn(amount);
+}

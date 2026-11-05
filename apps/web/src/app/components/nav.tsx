@@ -6,6 +6,8 @@ import { useCounts, useLocationInfo } from '../hooks';
 import type { NavItem } from '../nav';
 import type { Shell } from '../store';
 
+import { dyn } from '@/lib/dyn-key';
+
 function isActive(item: NavItem, page: string | null, search: Record<string, unknown>): boolean {
   if (item.page !== page) return false;
   if (item.search) return Object.entries(item.search).every(([k, v]) => search[k] === v);
@@ -31,7 +33,7 @@ export function NavEntry({
   const active = isActive(item, page, search);
   const badge = item.badge && counts ? counts[item.badge] : undefined;
   const Icon = item.icon;
-  const label = t(item.label);
+  const label = t(dyn(item.label));
   return (
     <Link
       to={`/${shell}/$page` as '/shop/$page'}

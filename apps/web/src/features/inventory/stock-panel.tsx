@@ -9,6 +9,7 @@ import { useAppNavigate } from '@/app/hooks';
 import type { Shell } from '@/app/store';
 import { editorPath } from '@/features/documents/editor-page';
 import { qtyText } from '@/features/reports/model';
+import { dyn } from '@/lib/dyn-key';
 
 /**
  * An item's stock: what it holds now, its reorder level, the value at purchase price, and every
@@ -99,7 +100,7 @@ export function StockPanel({ item, shell }: { item: Row; shell: Shell }) {
                         {m.documentNumber ?? ''}
                       </button>
                     ) : (
-                      <span>{m.note || t(`inventory.kind.${m.kind}`)}</span>
+                      <span>{m.note || t(dyn(`inventory.kind.${m.kind}`))}</span>
                     )}
                   </td>
                   <td

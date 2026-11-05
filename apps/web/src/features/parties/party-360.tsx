@@ -42,6 +42,7 @@ import { useAppNavigate } from '@/app/hooks';
 import type { Shell } from '@/app/store';
 import { usePositions } from '@/features/payments/hooks';
 import { PayStatusBadge } from '@/features/payments/status-badge';
+import { dyn } from '@/lib/dyn-key';
 
 const BUCKETS = ['current', 'd0_30', 'd31_60', 'd61_90', 'd90plus'] as const;
 
@@ -248,7 +249,7 @@ function PaymentsTab({ partyId }: { partyId: string }) {
             <TableCell className="tabular">{formatDate(toDate(p['date']))}</TableCell>
             <TableCell className="capitalize">{p['mode']}</TableCell>
             <TableCell>{p['reference'] ?? ''}</TableCell>
-            <TableCell>{t(`parties.payments.${p['direction']}`)}</TableCell>
+            <TableCell>{t(dyn(`parties.payments.${p['direction']}`))}</TableCell>
             <TableCell className="text-right">
               <MoneyText paise={p['amount_paise']} />
             </TableCell>

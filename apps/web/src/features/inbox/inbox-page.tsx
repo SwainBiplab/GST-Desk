@@ -53,6 +53,8 @@ import { useAppNavigate } from '@/app/hooks';
 import { isTypingTarget } from '@/app/shortcuts';
 import type { Shell } from '@/app/store';
 import { useFeatureFlags } from '@/features/business/hooks';
+import { dyn } from '@/lib/dyn-key';
+import { useTerm } from '@/lib/terms';
 
 type View = 'open' | 'snoozed' | 'done';
 
@@ -321,7 +323,7 @@ export function InboxPage({ shell }: { shell: Shell }) {
             <SelectItem value="all">{t('inbox.filters.allKinds')}</SelectItem>
             {kinds.map((k) => (
               <SelectItem key={k} value={k}>
-                {t(`inbox.kinds.${k}`)}
+                {t(dyn(`inbox.kinds.${k}`))}
               </SelectItem>
             ))}
           </SelectContent>
@@ -464,14 +466,14 @@ function KindBadge({ kind }: { kind: string }) {
   const { t } = useTranslation();
   return (
     <Badge tone={KIND_TONE[kind] ?? 'neutral'} className="whitespace-nowrap">
-      {t(`inbox.kinds.${kind}`)}
+      {t(dyn(`inbox.kinds.${kind}`))}
     </Badge>
   );
 }
 
 function summary(r: InboxRow, t: TFunction) {
   const known = kindInfo(r.kind) && !kindInfo(r.kind)!.pending;
-  return known ? t(`inbox.describe.${r.kind}`, describeArgs(r)) : t('inbox.describe.generic');
+  return known ? t(dyn(`inbox.describe.${r.kind}`), describeArgs(r)) : t('inbox.describe.generic');
 }
 
 function BooksRow({ row }: { row: InboxRow }) {
@@ -553,7 +555,7 @@ function StatusLine({ row }: { row: InboxRow }) {
   const { t } = useTranslation();
   return (
     <p className="text-xs text-fg-muted" data-testid="inbox-status">
-      {t(`inbox.status.${row.status}`)}
+      {t(dyn(`inbox.status.${row.status}`))}
       {row.rejectReason ? ` · ${t('inbox.reason', { reason: row.rejectReason })}` : ''}
     </p>
   );
@@ -731,7 +733,7 @@ function RejectDialog(props: {
         />
         <div className="flex justify-end gap-2 pt-3">
           <Button variant="ghost" onClick={props.onCancel}>
-            {t('common.cancel', { defaultValue: 'Cancel' })}
+            {t('confirm.cancel')}
           </Button>
           <Button
             data-testid="reject-confirm"
@@ -753,6 +755,7 @@ function EditDialog(props: {
   onConfirm: (value: Record<string, unknown>) => void;
 }) {
   const { t } = useTranslation();
+  const term = useTerm();
   const { row } = props;
   const s = row.suggestion;
   const fields = editableFields(row.kind);
@@ -778,7 +781,7 @@ function EditDialog(props: {
         <AlertDialogDescription>{headline(row)}</AlertDialogDescription>
         {fields.includes('code') && (
           <label className="block text-sm" htmlFor="edit-code">
-            HSN
+            {term('hsn')}
             <Input
               id="edit-code"
               ref={focusOnMount}
@@ -815,7 +818,7 @@ function EditDialog(props: {
         )}
         <div className="flex justify-end gap-2 pt-3">
           <Button variant="ghost" onClick={props.onCancel}>
-            {t('common.cancel', { defaultValue: 'Cancel' })}
+            {t('confirm.cancel')}
           </Button>
           <Button data-testid="edit-confirm" disabled={props.busy} onClick={submit}>
             {t('inbox.edit.apply')}
@@ -911,7 +914,7 @@ function BulkDialog({ rows, onClose }: { rows: InboxRow[]; onClose: () => void }
         <p className="pt-2 text-xs text-fg-muted">{t('inbox.bulk.all')}</p>
         <div className="flex justify-end gap-2 pt-3">
           <Button variant="ghost" onClick={onClose}>
-            {t('common.cancel', { defaultValue: 'Cancel' })}
+            {t('confirm.cancel')}
           </Button>
           <Button
             data-testid="bulk-confirm"

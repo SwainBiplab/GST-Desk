@@ -1,4 +1,5 @@
 import { TemplateRepo, type Row, type Shell } from '@gst/db';
+import type { PrintLanguage } from '@gst/i18n';
 import {
   PRESET_IDS,
   TemplateError,
@@ -64,3 +65,12 @@ export function useDefaultTemplateId(documentType: string, shell: Shell): string
 
 export const specOf = (options: readonly TemplateOption[], id: string): TemplateSpec =>
   (options.find((o) => o.id === id) ?? options[0]!).spec;
+
+/**
+ * A party can have its own language: their copy of a document prints in it whatever the template says,
+ * and a party with none uses the template's (the business's) language.
+ */
+export const withPartyLanguage = (
+  spec: TemplateSpec,
+  party: { language?: PrintLanguage } | null | undefined,
+): TemplateSpec => (party?.language ? { ...spec, language: party.language } : spec);

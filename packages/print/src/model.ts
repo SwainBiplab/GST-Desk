@@ -11,6 +11,7 @@ import {
   type DocumentType,
   type DraftDocument,
 } from '@gst/domain';
+import type { PrintLanguage } from '@gst/i18n';
 
 import type { SupplyKind } from './spec';
 
@@ -33,6 +34,8 @@ export interface PrintParty {
   address: string[];
   stateName: string | null;
   phone: string | null;
+  /** The language this party's documents are printed in; absent means the template's language. */
+  language?: PrintLanguage;
 }
 
 export interface PrintAccount {
