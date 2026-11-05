@@ -12,6 +12,7 @@ import type { HsnSuggestion } from '../rules/hsn';
 
 import type {
   BackupFailedItem,
+  PrefilingIssueItem,
   DraftStaleItem,
   DuplicateItemItem,
   DuplicatePartyItem,
@@ -379,4 +380,43 @@ export function detectBackupFailure(
       },
     },
   ];
+}
+
+/** A problem found by the GST return check (`GstrRepo.review`), as the inbox needs it. */
+export interface PrefilingIssueLite {
+  code: string;
+  table: string;
+  severity: 'error' | 'warning';
+  message: string;
+  docId?: string;
+}
+
+const hash = (text: string): string => {
+  let h = 5381;
+  for (let i = 0; i < text.length; i++) h = ((h << 5) + h + text.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(36);
+};
+
+/**
+ * One card per problem in a period. The key holds the period, the problem's code, the document (or
+ * table) and a hash of the wording, so two gaps in different series are two cards, and a problem that
+ * is fixed closes its card by itself.
+ */
+export function detectPrefilingIssues(
+  period: string,
+  issues: readonly PrefilingIssueLite[],
+): Finding<PrefilingIssueItem>[] {
+  return issues.map((i) => ({
+    kind: 'prefiling_issue',
+    key: `prefiling_issue:${period}:${i.code}:${i.docId ?? i.table}:${hash(i.message)}`,
+    payload: { period, table: i.table, documentId: i.docId ?? null },
+    suggestion: {
+      period,
+      table: i.table,
+      code: i.code,
+      severity: i.severity,
+      message: i.message,
+      ...(i.docId ? { documentId: i.docId } : {}),
+    },
+  }));
 }

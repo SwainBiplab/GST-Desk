@@ -9,5 +9,7 @@
   "backupMs": 60000,
   "restoreMs": 120000,
   "backupBlockMs": 250,
-  "restoreBlockMs": 400
+  "restoreBlockMs": 400,
+  "gstrReviewMs": 2000,
+  "gstrQuarterMs": 5000
 }

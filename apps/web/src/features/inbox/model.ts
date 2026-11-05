@@ -42,7 +42,8 @@ export type OpenTarget =
   | { to: 'parties'; search: Record<string, unknown> }
   | { to: 'items'; search: Record<string, unknown> }
   | { to: 'document'; search: Record<string, unknown> }
-  | { to: 'settings'; search: Record<string, unknown> };
+  | { to: 'settings'; search: Record<string, unknown> }
+  | { to: 'gst'; search: Record<string, unknown> };
 
 export function openTarget(r: InboxRow): OpenTarget | null {
   const s = r.suggestion;
@@ -61,6 +62,10 @@ export function openTarget(r: InboxRow): OpenTarget | null {
       return { to: 'document', search: { id: s['documentId'] } };
     case 'backup_failed':
       return { to: 'settings', search: { tab: 'backup' } };
+    case 'prefiling_issue':
+      return s['documentId']
+        ? { to: 'document', search: { id: s['documentId'] } }
+        : { to: 'gst', search: {} };
     default:
       return null;
   }
@@ -144,6 +149,7 @@ export function describeArgs(r: InboxRow): Record<string, unknown> {
     case 'draft_stale':
       return { label: s['label'], days: s['ageDays'] };
     case 'backup_failed':
+    case 'prefiling_issue':
       return { message: s['message'] };
     default:
       return {};

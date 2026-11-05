@@ -400,6 +400,49 @@ export const SPEC: TableSpec[] = [
     indexes: [{ cols: ['payment_id'] }, { cols: ['document_id'] }],
   },
   {
+    name: 'gst_filings',
+    kind: 'tenant',
+    cols: {
+      return_type: c.text().nn.oneOf(['gstr1', 'gstr3b']),
+      /** MMYYYY, the period key used in the GSTN files (the last month of a quarter). */
+      period_fp: c.text().nn,
+      period_from: c.date().nn,
+      period_to: c.date().nn,
+      status: c.text().nn.default('open').oneOf(['open', 'exported', 'filed']),
+      exported_at: c.ts(),
+      /** The file layout version the last export used (`data/gstn-schemas`). */
+      schema_version: c.text(),
+      /** Acknowledgement number the portal gave when the person filed. */
+      arn: c.text(),
+      filed_on: c.date(),
+      /** A due date the person set (an extension the government notified). */
+      due_override: c.date(),
+      note: c.text(),
+    },
+    indexes: [
+      {
+        cols: ['business_id', 'return_type', 'period_fp'],
+        unique: true,
+        where: 'deleted_at IS NULL',
+      },
+    ],
+  },
+  {
+    name: 'gst_adjustments',
+    kind: 'tenant',
+    cols: {
+      period_fp: c.text().nn,
+      /** `itc.availableOther`, `itc.reversedRules`, ... (see `ITC_FIELDS` in the domain package). */
+      field: c.text().nn,
+      igst_paise: money(),
+      cgst_paise: money(),
+      sgst_paise: money(),
+      cess_paise: money(),
+      reason: c.text().nn,
+    },
+    indexes: [{ cols: ['business_id', 'period_fp'] }],
+  },
+  {
     name: 'ledger_accounts',
     kind: 'tenant',
     cols: {

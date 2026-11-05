@@ -25,7 +25,8 @@ const KEYWORDS: Record<PageId, string[]> = {
   items: ['products', 'stock', 'inventory', 'hsn'],
   documents: ['invoices', 'bills', 'quotations', 'credit notes'],
   payments: ['money', 'receipts', 'cash', 'bank'],
-  reports: ['gst', 'gstr', 'ledger', 'summary'],
+  reports: ['ledger', 'summary'],
+  gst: ['gst', 'gstr', 'gstr1', 'gstr3b', 'filing', 'return', 'file'],
   inbox: ['review', 'scan', 'notifications'],
   settings: ['preferences', 'business', 'setup'],
 };

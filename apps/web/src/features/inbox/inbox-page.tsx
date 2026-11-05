@@ -71,6 +71,7 @@ const KIND_TONE: Record<string, 'info' | 'warning' | 'danger' | 'neutral' | 'acc
   low_stock: 'warning',
   draft_stale: 'neutral',
   backup_failed: 'danger',
+  prefiling_issue: 'warning',
 };
 
 /** Put the cursor in a dialog's first field when it opens, so a person can type straight away. */

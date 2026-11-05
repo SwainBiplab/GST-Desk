@@ -9,6 +9,7 @@
  */
 import {
   BusinessRepo,
+  GstrRepo,
   InventoryRepo,
   ItemRepo,
   PartyRepo,
@@ -29,6 +30,7 @@ import {
   detectDuplicateParties,
   detectHsnSuggestions,
   detectLowStock,
+  detectPrefilingIssues,
   detectRateChanges,
   detectReminders,
   detectStaleDrafts,
@@ -232,6 +234,15 @@ async function doRun(db: Database, ctx: Ctx, opts: Tier0Options): Promise<Tier0R
       ),
     );
 
+  if (want.has('prefiling_issue')) {
+    // the GST return check for last month and this month (nothing if the business does not file)
+    const day = new Date(now + IST).toISOString().slice(0, 10);
+    const found: Finding[] = [];
+    for (const r of await new GstrRepo(db).recentIssues(ctx, day))
+      found.push(...(detectPrefilingIssues(r.fp, r.issues) as Finding[]));
+    add('prefiling_issue', found);
+  }
+
   if (want.has('backup_failed') && opts.backup !== undefined)
     add('backup_failed', detectBackupFailure(opts.backup));
 
@@ -333,6 +344,7 @@ async function applyValue(db: Database, ctx: Ctx, kind: string, value: any): Pro
     case 'low_stock':
     case 'draft_stale':
     case 'backup_failed':
+    case 'prefiling_issue':
       return; // acknowledging is all there is to do
     default: {
       const info = KIND_INFO[kind as InboxKind];

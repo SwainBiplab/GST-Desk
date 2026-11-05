@@ -40,6 +40,7 @@ const ROUTES: Record<'shop' | 'books', string[]> = {
     'payments',
     'reports',
     'reports?report=sales_register',
+    'gst',
     'inbox',
     'settings',
     'settings?tab=features',

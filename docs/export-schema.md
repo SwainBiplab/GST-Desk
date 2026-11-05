@@ -538,6 +538,56 @@ Kind: belongs to a business. In a business export.
 | `kind` | text | yes | one of `payment`, `credit_applied`, `write_off`; default "payment" |
 | `source_document_id` | id (text) |  | refers to `documents` |
 
+### `gst_filings`
+
+Kind: belongs to a business. In a business export.
+
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `return_type` | text | yes | one of `gstr1`, `gstr3b` |
+| `period_fp` | text | yes |  |
+| `period_from` | date (`YYYY-MM-DD`) | yes |  |
+| `period_to` | date (`YYYY-MM-DD`) | yes |  |
+| `status` | text | yes | one of `open`, `exported`, `filed`; default "open" |
+| `exported_at` | time (epoch milliseconds) |  |  |
+| `schema_version` | text |  |  |
+| `arn` | text |  |  |
+| `filed_on` | date (`YYYY-MM-DD`) |  |  |
+| `due_override` | date (`YYYY-MM-DD`) |  |  |
+| `note` | text |  |  |
+
+### `gst_adjustments`
+
+Kind: belongs to a business. In a business export.
+
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `period_fp` | text | yes |  |
+| `field` | text | yes |  |
+| `igst_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `cgst_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `sgst_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `cess_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `reason` | text | yes |  |
+
 ### `ledger_accounts`
 
 Kind: belongs to a business. In a business export.

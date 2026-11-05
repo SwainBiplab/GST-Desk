@@ -143,6 +143,7 @@ export const a: LocaleBundle['ui'] = {
       low_stock: '“{{item}}”: {{onHand}} बचा है, दोबारा मँगाने का स्तर {{min}}।',
       draft_stale: 'एक ड्राफ़्ट ({{label}}) को {{days}} दिन से छुआ नहीं गया।',
       backup_failed: 'पिछला बैकअप पूरा नहीं हुआ: {{message}}',
+      prefiling_issue: '{{message}}',
       generic: 'जाँच का इंतज़ार है।',
     },
     reasons: {

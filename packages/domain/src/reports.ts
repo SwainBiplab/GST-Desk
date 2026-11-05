@@ -2,6 +2,8 @@
  * Pure helpers behind reports and dashboards (prompt 18): period presets in the Indian financial
  * year, ageing buckets, and the filing calendar. Dates are ISO `YYYY-MM-DD`; the clock is injected.
  */
+import { DUE_DATE_RULES_V1 } from '../data/gstn-schemas/due-dates';
+
 import { addDays } from './documents/rules';
 import { financialYear, fyOf, parseIso, toIso } from './fy';
 import { daysBetween } from './party-account';
@@ -151,9 +153,10 @@ export interface FilingDue {
 }
 
 /**
- * The static calendar until the Filing Desk (P2): for monthly filers GSTR-1 is due on the 11th and
- * GSTR-3B on the 20th of the month after the return month. Extensions the government announces are
- * not known here, so the screen calls them the usual dates. Returns the next dates, soonest first,
+ * The standard calendar for the dashboard (dates from `data/gstn-schemas/due-dates.ts`, the same ones the
+ * Filing Desk uses): for monthly filers GSTR-1 is due on the 11th and GSTR-3B on the 20th of the month
+ * after the return month. Extensions the government announces are not known here, so the screen calls
+ * them the usual dates. Returns the next dates, soonest first,
  * and keeps a return up to ten days late so a missed one is not hidden.
  */
 export function filingCalendar(today: string): FilingDue[] {
@@ -163,8 +166,8 @@ export function filingCalendar(today: string): FilingDue[] {
     const ret = shiftMonth(y, m, -back);
     const due = shiftMonth(ret.y, ret.m, 1);
     for (const [form, day] of [
-      ['gstr1', 11],
-      ['gstr3b', 20],
+      ['gstr1', DUE_DATE_RULES_V1.monthly.gstr1Day],
+      ['gstr3b', DUE_DATE_RULES_V1.monthly.gstr3bDay],
     ] as const) {
       const date = toIso(due.y, due.m, day);
       out.push({

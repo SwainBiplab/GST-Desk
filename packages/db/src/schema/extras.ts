@@ -7,6 +7,16 @@ import { NO_DELETE_TABLES, TENANT_TABLES } from './spec';
 
 export const BREAK = '--> statement-breakpoint';
 
+/**
+ * Tables added after migration 9000 was written. Migration 9000 is frozen as the first set of guards
+ * (a Phase 0 database is taken forward by running the later migrations), so it must not mention a table
+ * that does not exist yet. Each table here gets its guards in `9003_extras_gst` instead.
+ */
+export const TABLES_AFTER_V1 = ['gst_filings', 'gst_adjustments'] as const;
+const later = (t: string) => (TABLES_AFTER_V1 as readonly string[]).includes(t);
+const V1_NO_DELETE = NO_DELETE_TABLES.filter((t) => !later(t));
+const V1_TENANT = TENANT_TABLES.filter((t) => !later(t));
+
 /** Searchable text columns per table, as migration 9000 created them. Frozen: a changed list is a new migration. */
 export const SEARCH_COLUMNS_V1: Record<string, string[]> = {
   parties: ['name', 'trade_name', 'gstin', 'phone', 'email', 'city'],
@@ -49,7 +59,7 @@ function sqliteExtras(): string[] {
       `CREATE TRIGGER ${table}_fts_au AFTER UPDATE ON ${table} BEGIN DELETE FROM ${fts} WHERE id = old.id; INSERT INTO ${fts}(${colList}) SELECT ${newVals} WHERE new.deleted_at IS NULL; END`,
     );
   }
-  for (const t of NO_DELETE_TABLES) {
+  for (const t of V1_NO_DELETE) {
     out.push(
       `CREATE TRIGGER ${t}_no_delete BEFORE DELETE ON ${t} BEGIN SELECT RAISE(ABORT, 'hard delete forbidden on ${t}'); END`,
     );
@@ -74,7 +84,7 @@ function pgExtras(): string[] {
   out.push(
     `CREATE FUNCTION forbid_hard_delete() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'hard delete forbidden on %', TG_TABLE_NAME; END $$`,
   );
-  for (const t of NO_DELETE_TABLES) {
+  for (const t of V1_NO_DELETE) {
     out.push(
       `CREATE TRIGGER ${t}_no_delete BEFORE DELETE ON ${t} FOR EACH ROW EXECUTE FUNCTION forbid_hard_delete()`,
     );
@@ -85,7 +95,7 @@ function pgExtras(): string[] {
     `CREATE FUNCTION forbid_update() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION '% is append-only', TG_TABLE_NAME; END $$`,
     `CREATE TRIGGER audit_log_append_only BEFORE UPDATE ON audit_log FOR EACH ROW EXECUTE FUNCTION forbid_update()`,
   );
-  for (const t of TENANT_TABLES) {
+  for (const t of V1_TENANT) {
     const using = `org_id = current_setting('app.org_id')::uuid`;
     out.push(
       `ALTER TABLE ${t} ENABLE ROW LEVEL SECURITY`,
@@ -166,6 +176,30 @@ export function searchLatinSql(dialect: Dialect): string {
         `ALTER TABLE ${table} DROP COLUMN search`,
         `ALTER TABLE ${table} ADD COLUMN search tsvector GENERATED ALWAYS AS (to_tsvector('simple', ${expr})) STORED`,
         `CREATE INDEX ${table}_search_idx ON ${table} USING gin (search)`,
+      );
+    }
+  }
+  return stmts.map((s) => `${s};`).join(`\n${BREAK}\n`) + '\n';
+}
+
+/**
+ * Guards for the GST return tables (added after migration 9000): no hard delete, and on Postgres the
+ * same tenant isolation every business table has.
+ */
+export function gstExtrasSql(dialect: Dialect): string {
+  const stmts: string[] = [];
+  for (const t of TABLES_AFTER_V1) {
+    if (dialect === 'sqlite') {
+      stmts.push(
+        `CREATE TRIGGER ${t}_no_delete BEFORE DELETE ON ${t} BEGIN SELECT RAISE(ABORT, 'hard delete forbidden on ${t}'); END`,
+      );
+    } else {
+      const using = `org_id = current_setting('app.org_id')::uuid`;
+      stmts.push(
+        `CREATE TRIGGER ${t}_no_delete BEFORE DELETE ON ${t} FOR EACH ROW EXECUTE FUNCTION forbid_hard_delete()`,
+        `ALTER TABLE ${t} ENABLE ROW LEVEL SECURITY`,
+        `ALTER TABLE ${t} FORCE ROW LEVEL SECURITY`,
+        `CREATE POLICY tenant_isolation ON ${t} USING (${using}) WITH CHECK (${using})`,
       );
     }
   }

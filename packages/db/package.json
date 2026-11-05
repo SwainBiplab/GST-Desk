@@ -21,7 +21,7 @@
     "db:seed": "tsx scripts/seed.ts",
     "docs:export-schema": "tsx scripts/export-schema-doc.ts",
     "test:coverage": "vitest run --coverage",
-    "perf": "tsx perf/search.perf.ts && tsx perf/reports.perf.ts && tsx perf/backup.perf.ts"
+    "perf": "tsx perf/search.perf.ts && tsx perf/reports.perf.ts && tsx perf/gstr.perf.ts && tsx perf/backup.perf.ts"
   },
   "devDependencies": {
     "@gst/config": "workspace:*",

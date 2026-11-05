@@ -1,0 +1,195 @@
+{
+  "gstin": "27AAPFU0939F1ZV",
+  "fp": "042025",
+  "b2b": [
+    {
+      "ctin": "29AABCU9603R1ZJ",
+      "inv": [
+        {
+          "inum": "INV/1",
+          "idt": "10-04-2025",
+          "val": 1785,
+          "pos": "27",
+          "rchrg": "N",
+          "inv_typ": "R",
+          "itms": [
+            {
+              "num": 501,
+              "itm_det": {
+                "rt": 5,
+                "txval": 1700,
+                "camt": 42.5,
+                "samt": 42.5,
+                "csamt": 0
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "b2cs": [
+    {
+      "sply_ty": "INTRA",
+      "pos": "27",
+      "typ": "OE",
+      "rt": 5,
+      "txval": 1000,
+      "camt": 25,
+      "samt": 25,
+      "csamt": 0
+    }
+  ],
+  "cdnr": [
+    {
+      "ctin": "29AABCU9603R1ZJ",
+      "nt": [
+        {
+          "ntty": "C",
+          "nt_num": "CN/1",
+          "nt_dt": "10-04-2025",
+          "val": 420,
+          "pos": "27",
+          "rchrg": "N",
+          "inv_typ": "R",
+          "itms": [
+            {
+              "num": 501,
+              "itm_det": {
+                "rt": 5,
+                "txval": 400,
+                "camt": 10,
+                "samt": 10,
+                "csamt": 0
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "exp": [
+    {
+      "exp_typ": "WPAY",
+      "inv": [
+        {
+          "inum": "INV/3",
+          "idt": "10-04-2025",
+          "val": 10620,
+          "itms": [
+            {
+              "rt": 18,
+              "txval": 9000,
+              "iamt": 1620,
+              "csamt": 0
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "nil": {
+    "inv": [
+      {
+        "sply_ty": "INTRAB2B",
+        "expt_amt": 300,
+        "nil_amt": 0,
+        "ngsup_amt": 0
+      }
+    ]
+  },
+  "hsn": {
+    "hsn_b2b": [
+      {
+        "num": 1,
+        "hsn_sc": "6109",
+        "desc": "T-shirt",
+        "uqc": "NOS",
+        "qty": 1,
+        "rt": 0,
+        "val": 300,
+        "txval": 300,
+        "iamt": 0,
+        "camt": 0,
+        "samt": 0,
+        "csamt": 0
+      },
+      {
+        "num": 2,
+        "hsn_sc": "6109",
+        "desc": "T-shirt",
+        "uqc": "NOS",
+        "qty": 0,
+        "rt": 5,
+        "val": 1365,
+        "txval": 1300,
+        "iamt": 0,
+        "camt": 32.5,
+        "samt": 32.5,
+        "csamt": 0
+      }
+    ],
+    "hsn_b2c": [
+      {
+        "num": 1,
+        "hsn_sc": "6109",
+        "desc": "T-shirt",
+        "uqc": "NOS",
+        "qty": 1,
+        "rt": 5,
+        "val": 1050,
+        "txval": 1000,
+        "iamt": 0,
+        "camt": 25,
+        "samt": 25,
+        "csamt": 0
+      },
+      {
+        "num": 2,
+        "hsn_sc": "6109",
+        "desc": "T-shirt",
+        "uqc": "NOS",
+        "qty": 1,
+        "rt": 18,
+        "val": 10620,
+        "txval": 9000,
+        "iamt": 1620,
+        "camt": 0,
+        "samt": 0,
+        "csamt": 0
+      }
+    ]
+  },
+  "doc_issue": {
+    "doc_det": [
+      {
+        "doc_num": 1,
+        "doc_typ": "Invoices for outward supply",
+        "docs": [
+          {
+            "num": 1,
+            "from": "INV/1",
+            "to": "INV/4",
+            "totnum": 4,
+            "cancel": 0,
+            "net_issue": 4
+          }
+        ]
+      },
+      {
+        "doc_num": 5,
+        "doc_typ": "Credit Note",
+        "docs": [
+          {
+            "num": 1,
+            "from": "CN/1",
+            "to": "CN/1",
+            "totnum": 1,
+            "cancel": 0,
+            "net_issue": 1
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -30,6 +30,7 @@ export const TIER0_KINDS = [
   'draft_stale',
   'backup_failed',
   'rate_change',
+  'prefiling_issue',
 ] as const satisfies readonly InboxKind[];
 
 export const duplicatePartyItem = z.object({
@@ -106,6 +107,18 @@ export const backupFailedItem = z.object({
 });
 export type BackupFailedItem = z.infer<typeof backupFailedItem>;
 
+/** A problem the GST return check found in a period (a mistake in a document, a missing code, a gap). */
+export const prefilingIssueItem = z.object({
+  /** Return period, MMYYYY. */
+  period: z.string(),
+  table: z.string(),
+  code: z.string(),
+  severity: z.enum(['error', 'warning']),
+  message: z.string(),
+  documentId: z.string().optional(),
+});
+export type PrefilingIssueItem = z.infer<typeof prefilingIssueItem>;
+
 /** Kinds whose owner has not shipped yet: the card shows what it holds, Accept stays off. */
 export const genericItem = z.record(z.string(), z.unknown());
 
@@ -119,7 +132,7 @@ export const INBOX_SCHEMAS = {
   low_stock: lowStockItem,
   backup_failed: backupFailedItem,
   ai_extraction: genericItem,
-  prefiling_issue: genericItem,
+  prefiling_issue: prefilingIssueItem,
   reconciliation_mismatch: genericItem,
   sync_conflict: genericItem,
 } as const satisfies Record<InboxKind, z.ZodType>;
@@ -138,7 +151,7 @@ export interface KindInfo {
   /** Not built yet: Accept is disabled with a note. */
   pending?: string;
   /** Where "Open record" goes. */
-  opens: 'party' | 'item' | 'document' | 'settings' | 'none';
+  opens: 'party' | 'item' | 'document' | 'settings' | 'gst' | 'none';
 }
 
 export const KIND_INFO: Record<InboxKind, KindInfo> = {
@@ -162,13 +175,7 @@ export const KIND_INFO: Record<InboxKind, KindInfo> = {
     opens: 'item',
   },
   hsn_suggestion: { label: 'HSN suggestion', informational: false, bulk: true, opens: 'item' },
-  prefiling_issue: {
-    label: 'Filing check',
-    informational: false,
-    bulk: false,
-    pending: 'phase 2',
-    opens: 'none',
-  },
+  prefiling_issue: { label: 'Filing check', informational: true, bulk: false, opens: 'gst' },
   reconciliation_mismatch: {
     label: 'Reconciliation mismatch',
     informational: false,

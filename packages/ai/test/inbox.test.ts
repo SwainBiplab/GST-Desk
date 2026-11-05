@@ -183,3 +183,33 @@ describe.each(DIALECTS)('Tier 0 on the database (%s)', (dialect) => {
     expect((await new ReviewRepo(d).inbox(ctx, { view: 'open' })).length).toBe(1);
   });
 });
+
+describe.each(DIALECTS)('GST return checks in the inbox (%s)', (dialect) => {
+  it('raises one card per problem in last month and this month, once, and closes fixed ones', async () => {
+    const d = await openTestDb(dialect);
+    opened.push(d);
+    const { ctx } = await seedDemo(d, { documents: 120, parties: 12, items: 20 });
+    const reviews = new ReviewRepo(d);
+    // 15 October 2025, noon IST: checks cover September and October 2025
+    const now = Date.parse('2025-10-15T06:30:00Z');
+
+    const first = await runTier0(d, ctx, { kinds: ['prefiling_issue'], now });
+    const cards = await reviews.inbox(ctx, { view: 'open', kinds: ['prefiling_issue'] });
+    expect(first.created).toBeGreaterThan(0);
+    expect(cards.length).toBe(first.created);
+    for (const c of cards) {
+      const s = c['suggestion_json'];
+      expect(['092025', '102025']).toContain(s.period);
+      expect(['error', 'warning']).toContain(s.severity);
+      expect(typeof s.message).toBe('string');
+    }
+    // a second run raises nothing new
+    expect((await runTier0(d, ctx, { kinds: ['prefiling_issue'], now })).created).toBe(0);
+  });
+
+  it('raises nothing for a business with no GSTIN', async () => {
+    const { d, ctx } = await setup(dialect);
+    const r = await runTier0(d, ctx, { kinds: ['prefiling_issue'], now: Date.now() });
+    expect(r.created).toBe(0);
+  });
+});

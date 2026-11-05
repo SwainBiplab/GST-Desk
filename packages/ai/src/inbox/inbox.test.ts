@@ -4,6 +4,7 @@ import type { HsnSuggestion } from '../rules/hsn';
 
 import {
   detectBackupFailure,
+  detectPrefilingIssues,
   detectDuplicateItems,
   detectDuplicateParties,
   detectHsnSuggestions,
@@ -240,5 +241,55 @@ describe('eval fixtures from accepted items', () => {
       { suggestions: [{ code: '8544' }] },
       { suggestions: [{ code: '3919' }] },
     ]);
+  });
+});
+
+describe('detectPrefilingIssues', () => {
+  it('makes one finding per problem, with a key that tells two similar problems apart', () => {
+    const f = detectPrefilingIssues('092025', [
+      {
+        code: 'missing_pos',
+        table: '4',
+        severity: 'error',
+        message: 'INV/1: no place of supply',
+        docId: 'a',
+      },
+      {
+        code: 'series_gap',
+        table: '13',
+        severity: 'warning',
+        message: 'A/001 to A/005: a number may be missing',
+      },
+      {
+        code: 'series_gap',
+        table: '13',
+        severity: 'warning',
+        message: 'B/001 to B/004: a number may be missing',
+      },
+    ]);
+    expect(f).toHaveLength(3);
+    expect(new Set(f.map((x) => x.key)).size).toBe(3);
+    expect(f[0]).toMatchObject({
+      kind: 'prefiling_issue',
+      suggestion: { period: '092025', code: 'missing_pos', severity: 'error', documentId: 'a' },
+    });
+    expect(f[1]!.suggestion).not.toHaveProperty('documentId');
+    // the same input always gives the same keys
+    expect(
+      detectPrefilingIssues('092025', [
+        { code: 'x', table: '4', severity: 'error', message: 'm' },
+      ])[0]!.key,
+    ).toBe(
+      detectPrefilingIssues('092025', [
+        { code: 'x', table: '4', severity: 'error', message: 'm' },
+      ])[0]!.key,
+    );
+  });
+
+  it('validates what it makes against the kind schema', () => {
+    const [f] = detectPrefilingIssues('092025', [
+      { code: 'x', table: '4', severity: 'warning', message: 'm' },
+    ]);
+    expect(schemaFor('prefiling_issue').safeParse(f!.suggestion).success).toBe(true);
   });
 });
