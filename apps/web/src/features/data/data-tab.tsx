@@ -55,6 +55,7 @@ import {
   type BackupEntry,
 } from './backup-store';
 import { CloudCard } from './cloud-card';
+import { takePendingRestore, usePendingRestore } from './pending-restore';
 
 import { useConfirm } from '@/app/components/confirm';
 import { useAppDb } from '@/app/db';
@@ -401,6 +402,9 @@ export function DataTab() {
   const [busy, setBusy] = useState<null | 'backup' | 'download' | 'json' | 'csv'>(null);
   const [progress, setProgress] = useState<BackupProgress | null>(null);
   const [restoring, setRestoring] = useState<Source | null>(null);
+  // a backup opened from the file manager shows up here; the dialog still asks before anything is restored
+  const waiting = usePendingRestore();
+  const shown = restoring ?? waiting;
   const [importText, setImportText] = useState<string | null>(null);
   const [schedule, setSchedule] = useState(readSchedule);
   const restoreInput = useRef<HTMLInputElement>(null);
@@ -776,10 +780,11 @@ export function DataTab() {
 
       <CloudCard />
 
-      {restoring && (
+      {shown && (
         <RestoreDialog
-          source={restoring}
+          source={shown}
           onClose={() => {
+            takePendingRestore();
             setRestoring(null);
             void refresh();
           }}

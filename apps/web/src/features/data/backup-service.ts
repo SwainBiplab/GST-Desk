@@ -45,7 +45,7 @@ import { uploadBackup, type CloudCredentials } from './cloud';
 
 import { getBlob, putBlob } from '@/app/blobs';
 import { removeLocationFiles, stagingLocation, switchTo } from '@/app/db-location';
-import { isTauri, openWorkerBackend } from '@/app/sqlite/backends';
+import { isTauri, openTauriBackend, openWorkerBackend } from '@/app/sqlite/backends';
 import { createDrizzle } from '@/app/sqlite/proxy';
 import { downloadBytes, fileSafe } from '@/features/reports/download';
 
@@ -343,7 +343,9 @@ export async function restoreInBrowser(
   onProgress?: (p: BackupProgress) => void,
 ): Promise<{ rows: number }> {
   const loc = stagingLocation();
-  const { backend, info } = await openWorkerBackend(loc.file, loc.dir);
+  const { backend, info } = isTauri()
+    ? await openTauriBackend(await (await import('@/app/db-impl')).desktopDbPath(loc), 'staging')
+    : await openWorkerBackend(loc.file, loc.dir);
   const staging: Database = {
     dialect: 'sqlite',
     db: createDrizzle(backend),

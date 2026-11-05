@@ -12,18 +12,21 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "GST Desk",
         "width": 1280,
-        "height": 800
+        "height": 800,
+        "minWidth": 1024,
+        "minHeight": 640
       }
     ],
     "security": {
-      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost https:"
+      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; worker-src 'self' blob:; connect-src 'self' ipc: http://ipc.localhost https:"
     }
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["nsis", "msi", "dmg", "app", "appimage", "deb"],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -31,12 +34,56 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "shortDescription": "GST billing and books"
+    "shortDescription": "GST billing and books",
+    "category": "Business",
+    "publisher": "Leader Group",
+    "longDescription": "GST billing and books that keep your data on your own computer.",
+    "copyright": "Leader Group",
+    "createUpdaterArtifacts": true,
+    "fileAssociations": [
+      {
+        "ext": ["gstbk"],
+        "name": "GST Desk backup",
+        "description": "GST Desk backup",
+        "mimeType": "application/x-gstdesk-backup",
+        "role": "Editor"
+      }
+    ],
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser",
+        "installerHooks": "installer-hooks.nsh",
+        "displayLanguageSelector": false,
+        "compression": "lzma"
+      },
+      "wix": {
+        "language": "en-US"
+      },
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper"
+      }
+    },
+    "macOS": {
+      "minimumSystemVersion": "10.15"
+    },
+    "linux": {
+      "deb": {
+        "depends": []
+      },
+      "appimage": {
+        "bundleMediaFramework": false
+      }
+    }
   },
   "plugins": {
     "updater": {
       "endpoints": [],
       "pubkey": ""
+    },
+    "deep-link": {
+      "desktop": {
+        "schemes": ["gstdesk"]
+      }
     }
   }
 }

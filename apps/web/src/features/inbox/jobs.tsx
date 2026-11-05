@@ -6,6 +6,8 @@ import { runChecks, type CheckInputs } from './hooks';
 import { useAppDb } from '@/app/db';
 import { useFeatureFlags } from '@/features/business/hooks';
 import { readStatus } from '@/features/data/backup-service';
+import { notifyInbox } from '@/features/desktop/notify';
+import i18n from '@/lib/i18n';
 
 const SIX_HOURS = 6 * 3_600_000;
 const TICK = 30 * 60_000;
@@ -54,8 +56,10 @@ export function InboxJobs() {
     const all = async () => {
       if (stopped) return;
       try {
-        await runChecks(database, ctx, checkInputs(inventory));
+        const r = await runChecks(database, ctx, checkInputs(inventory));
         markRun(businessId);
+        // desktop: tell the person, even if the window is behind others
+        void notifyInbox(r.created, r.byKind, (count) => i18n.t('desktop.notify.inbox', { count }));
       } catch (e) {
         console.warn('inbox checks failed', e);
       }

@@ -5,13 +5,15 @@
   "windows": ["main"],
   "permissions": [
     "core:default",
-    "sql:allow-load",
-    "sql:allow-execute",
-    "sql:allow-select",
-    "sql:allow-close",
     "dialog:allow-open",
     "dialog:allow-save",
-    "updater:default",
+    "dialog:allow-message",
+    "autostart:allow-enable",
+    "autostart:allow-disable",
+    "autostart:allow-is-enabled",
+    "notification:default",
+    "deep-link:default",
+    "window-state:default",
     "log:default"
   ]
 }

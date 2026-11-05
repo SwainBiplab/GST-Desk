@@ -7,6 +7,7 @@ import { queryRows } from '@gst/db';
 import { sql } from 'drizzle-orm';
 
 import {
+  DEFAULT_LOCATION,
   activeLocation,
   confirmSwitch,
   revertSwitch,
@@ -35,13 +36,24 @@ async function holdsData(database: Database): Promise<boolean> {
   }
 }
 
+/**
+ * Where a location's database file is on disk. The default is the one in the data folder; a restore's
+ * new copy sits in its own folder beside it, named like the browser's directory.
+ */
+export async function desktopDbPath(loc: DbLocation): Promise<string> {
+  const { dataPaths, dirname } = await import('@/features/desktop/bridge');
+  const live = (await dataPaths()).db;
+  if (loc.dir === DEFAULT_LOCATION.dir && loc.file === DEFAULT_LOCATION.file) return live;
+  return `${dirname(live)}/${loc.dir.replace(/^\//, '')}/${loc.file}`;
+}
+
 async function openAt(loc: DbLocation): Promise<OpenedDb> {
   const tauri = isTauri();
   const {
     backend,
     info,
   }: { backend: Awaited<ReturnType<typeof openWorkerBackend>>['backend']; info: OpenInfo } = tauri
-    ? await openTauriBackend(loc.file)
+    ? await openTauriBackend(await desktopDbPath(loc))
     : await openWorkerBackend(loc.file, loc.dir);
 
   const database: Database = {

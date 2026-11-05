@@ -12,6 +12,7 @@ import { AppDbProvider, DEMO_REQUESTED, useAppDb } from '@/app/db';
 import { registerDefaultActions } from '@/app/default-actions';
 import { lastShell } from '@/app/store';
 import { BackgroundJobs } from '@/features/data/background';
+import { DesktopJobs } from '@/features/desktop/desktop-jobs';
 import { InboxJobs } from '@/features/inbox/jobs';
 import i18n, { i18nReady } from '@/lib/i18n';
 
@@ -58,6 +59,7 @@ function Root() {
           <FirstRunGuard />
           <BackgroundJobs />
           <InboxJobs />
+          <DesktopJobs />
           <ErrorBoundary>
             <Outlet />
           </ErrorBoundary>

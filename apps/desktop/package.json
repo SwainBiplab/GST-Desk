@@ -6,9 +6,10 @@
   "scripts": {
     "tauri": "tauri",
     "build": "echo \"desktop: build via 'pnpm --filter desktop tauri build' (requires Rust)\"",
-    "typecheck": "echo \"desktop: nothing to typecheck\"",
+    "typecheck": "cargo check --manifest-path src-tauri/Cargo.toml",
     "lint": "echo \"desktop: nothing to lint\"",
-    "test": "echo \"desktop: no tests yet\""
+    "test": "cargo test --lib --manifest-path src-tauri/Cargo.toml",
+    "icons": "tauri icon app-icon.svg"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.12.4"

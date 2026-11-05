@@ -17,3 +17,6 @@ storybook-static
 updater.ci.json
 perf-results
 tools/hsn/.keys/
+
+# desktop test fixtures (throw-away keys)
+apps/desktop/e2e/.generated

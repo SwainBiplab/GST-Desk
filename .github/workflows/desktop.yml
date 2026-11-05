@@ -120,3 +120,47 @@ jobs:
             apps/desktop/src-tauri/target/**/release/bundle/**/*.sig
           if-no-files-found: error
           retention-days: 14
+
+  smoke:
+    # The real app, driven through WebDriver: it launches, loads the demo business through its Rust
+    # database, shows the data folder, and checks the updater accepts a valid signature and refuses a
+    # tampered one. Runs on Windows (WebView2 + Edge WebDriver); see docs/runbooks/desktop-testing.md.
+    name: smoke (windows)
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+      - uses: swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
+        with:
+          workspaces: apps/desktop/src-tauri -> target
+      - run: pnpm install --frozen-lockfile
+
+      - name: Rust unit tests
+        run: pnpm --filter desktop test
+
+      - name: Test key, signed fixtures and test config
+        run: node apps/desktop/e2e/make-fixtures.mjs
+
+      - name: Debug build with the test update key
+        run: pnpm --filter desktop tauri build --debug --no-bundle --config e2e/.generated/test-config.json
+
+      - name: Drivers (tauri-driver, and Edge WebDriver matching the installed WebView2)
+        shell: pwsh
+        run: |
+          cargo install tauri-driver --locked
+          $pv = (Get-ItemProperty 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}').pv
+          Invoke-WebRequest "https://msedgedriver.microsoft.com/$pv/edgedriver_win64.zip" -OutFile edgedriver.zip
+          Expand-Archive edgedriver.zip -DestinationPath edgedriver
+
+      - name: Smoke test
+        run: >-
+          node apps/desktop/e2e/smoke.mjs
+          --app apps/desktop/src-tauri/target/debug/gst-desk.exe
+          --native "${{ github.workspace }}/edgedriver/msedgedriver.exe"
+          --fixtures apps/desktop/e2e/.generated/fixtures

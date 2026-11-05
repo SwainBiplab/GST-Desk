@@ -108,6 +108,11 @@ export const stagingLocation = (now = Date.now()): DbLocation => ({
 /** Remove an OPFS directory and everything in it. Never throws: a stale directory is only wasted space. */
 export async function removeLocationFiles(l: DbLocation): Promise<void> {
   try {
+    if (typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window) {
+      const { removeRestoreDir } = await import('@/features/desktop/bridge');
+      await removeRestoreDir(l.dir.replace(/^\//, ''));
+      return;
+    }
     const root = await navigator.storage.getDirectory();
     await root.removeEntry(l.dir.replace(/^\//, ''), { recursive: true });
   } catch {

@@ -53,6 +53,8 @@ import { useAppStore } from '@/app/store';
 import { useUnsavedGuard } from '@/app/unsaved';
 import { DataTab } from '@/features/data/data-tab';
 import { TrashTab } from '@/features/data/trash-tab';
+import { isDesktop } from '@/features/desktop/bridge';
+import { DesktopTab } from '@/features/desktop/desktop-tab';
 import { InventoryTab } from '@/features/inventory/settings-tab';
 import { AuditViewer } from '@/features/numbering/audit-viewer';
 import { NumberingTab } from '@/features/numbering/numbering-tab';
@@ -455,6 +457,7 @@ const TABS = [
   'thermal',
   'backup',
   'trash',
+  'desktop',
 ] as const;
 
 /** Settings: business profile, images, features, document terms, businesses. Sections follow the feature flags. */
@@ -465,7 +468,13 @@ export function SettingsPage() {
   const { search } = useLocationInfo();
   const wanted = typeof search['tab'] === 'string' ? search['tab'] : 'profile';
   const visible = TABS.filter((k) =>
-    k === 'inventory' ? flags.inventory : k === 'thermal' ? flags.thermal : true,
+    k === 'inventory'
+      ? flags.inventory
+      : k === 'thermal'
+        ? flags.thermal
+        : k === 'desktop'
+          ? isDesktop()
+          : true,
   );
   const [tab, setTab] = useState<string>(visible.includes(wanted as never) ? wanted : 'profile');
 
@@ -529,6 +538,11 @@ export function SettingsPage() {
         <TabsContent value="trash">
           <TrashTab />
         </TabsContent>
+        {isDesktop() && (
+          <TabsContent value="desktop">
+            <DesktopTab />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );

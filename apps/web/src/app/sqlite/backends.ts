@@ -52,30 +52,34 @@ export async function openWorkerBackend(
 }
 
 /**
- * Desktop: Tauri SQL plugin. NOT YET VERIFIED: the plugin pools connections, so BEGIN/COMMIT issued as
- * separate calls may not share one connection. Prompt 23 (desktop packaging) replaces this with a
- * single-connection Rust command before the desktop app ships.
+ * Desktop: one SQLite connection owned by the Rust side (`apps/desktop/src-tauri/src/db.rs`). The
+ * Tauri SQL plugin pools connections, so the `BEGIN` and `COMMIT` of a transaction issued as separate
+ * calls could land on different ones; a single connection behind one command keeps the behaviour the
+ * browser's worker has. `path` is the full path of the database file.
  */
 export async function openTauriBackend(
-  file: string,
+  path: string,
+  /** `main` is the live database; a restore builds its new one as `staging`. */
+  id = 'main',
 ): Promise<{ backend: Backend; info: OpenInfo }> {
-  const { default: Database } = await import('@tauri-apps/plugin-sql');
-  const conn = await Database.load(`sqlite:${file}`);
-  await conn.execute('PRAGMA foreign_keys = ON');
+  const { invoke } = await import('@tauri-apps/api/core');
+  const { decode, encode } = await import('@/features/desktop/codec');
+  const version = await invoke<string>('db_open', { path, id });
   return {
-    info: { persistent: true, version: 'tauri-sql' },
+    info: { persistent: true, version },
     backend: {
       async run(sql, params, method) {
-        if (method === 'run') {
-          await conn.execute(sql, params);
-          return { rows: [], columns: [] };
-        }
-        const objs = await conn.select<Record<string, unknown>[]>(sql, params);
-        const columns = objs[0] ? Object.keys(objs[0]) : [];
-        const rows = objs.map((o) => columns.map((c) => o[c]));
-        return { rows: method === 'get' ? rows.slice(0, 1) : rows, columns };
+        const r = await invoke<{ rows: unknown[][]; columns: string[] }>('db_exec', {
+          sql,
+          params: params.map(encode),
+          method,
+          id,
+        });
+        return { rows: r.rows.map((row) => row.map(decode)), columns: r.columns };
       },
-      close: () => conn.close().then(() => undefined),
+      close: async () => {
+        await invoke<null>('db_close', { id });
+      },
     },
   };
 }
