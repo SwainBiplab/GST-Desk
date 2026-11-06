@@ -42,6 +42,7 @@ const ROUTES: Record<'shop' | 'books', string[]> = {
     'reports?report=sales_register',
     'gst',
     'directtax',
+    'migrate',
     'inbox',
     'settings',
     'settings?tab=features',

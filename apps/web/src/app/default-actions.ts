@@ -40,6 +40,7 @@ const KEYWORDS: Record<PageId, string[]> = {
     '194c',
     '194j',
   ],
+  migrate: ['import', 'export', 'tally', 'vyapar', 'excel', 'migrate', 'xml', 'move data'],
   inbox: ['review', 'scan', 'notifications'],
   settings: ['preferences', 'business', 'setup'],
 };

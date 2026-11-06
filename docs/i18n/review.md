@@ -30,3 +30,5 @@ A reviewer works through this and records the date and name in the table above.
 3. `pnpm i18n:draft` again drops it from the todo list; `pnpm i18n:check` must pass.
 
 Note (prompt 33): the TDS, TCS and income tax page and the party tax fields are machine drafts in every language, Hindi included (backlog B-131).
+
+Note (prompt 34): the migration page is a machine draft in every language, Hindi included (backlog B-141).

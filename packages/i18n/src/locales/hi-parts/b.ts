@@ -371,7 +371,6 @@ export const b: LocaleBundle['ui'] = {
     start: {
       label: 'आप शुरुआत कैसे करना चाहते हैं?',
       import: 'Tally, Vyapar या Excel से आयात करें',
-      importSoon: 'जल्द आ रहा है',
       sample: 'नमूना कारोबार से आज़माएँ',
       sampleHelp:
         'ऐप को 50 पार्टियों, 200 सामान और 500 दस्तावेज़ों से भर देता है ताकि आप घूमकर देख सकें।',

@@ -20,6 +20,7 @@ import { EinvoicePage } from '@/features/einvoice/einvoice-page';
 import { GstPage } from '@/features/gst/gst-page';
 import { InboxPage } from '@/features/inbox/inbox-page';
 import { ItemsPage } from '@/features/items/items-page';
+import { MigratePage } from '@/features/migrate/migrate-page';
 import { PartiesPage } from '@/features/parties/parties-page';
 import { PaymentsPage } from '@/features/payments/payments-page';
 import { DashboardCards } from '@/features/reports/dashboard';
@@ -168,6 +169,13 @@ export function PlaceholderPage({ page, shell }: { page: PageId; shell: Shell })
     return (
       <div data-shell={shell} className="h-full overflow-auto">
         <EinvoicePage shell={shell} />
+      </div>
+    );
+  }
+  if (page === 'migrate' && ctx) {
+    return (
+      <div data-shell={shell} className="h-full overflow-auto">
+        <MigratePage shell={shell} />
       </div>
     );
   }

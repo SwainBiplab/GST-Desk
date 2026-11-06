@@ -5,6 +5,7 @@ import {
   Boxes,
   FileText,
   Inbox,
+  ArrowRightLeft,
   Landmark,
   LayoutDashboard,
   Percent,
@@ -29,6 +30,7 @@ export type PageId =
   | 'gst'
   | 'einvoice'
   | 'directtax'
+  | 'migrate'
   | 'inbox'
   | 'settings';
 
@@ -43,6 +45,7 @@ export const PAGE_IDS: PageId[] = [
   'gst',
   'einvoice',
   'directtax',
+  'migrate',
   'inbox',
   'settings',
 ];
@@ -153,6 +156,6 @@ export const BOOKS_NAV: NavSection[] = [
   {
     id: 'settings',
     label: 'nav.sections.settings',
-    items: [item('settings', Settings, { hint: 'G S' })],
+    items: [item('settings', Settings, { hint: 'G S' }), item('migrate', ArrowRightLeft)],
   },
 ];

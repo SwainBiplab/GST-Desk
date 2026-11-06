@@ -19,7 +19,7 @@ import {
   type AccountKey,
   type DocumentType,
 } from '@gst/domain';
-import { and, desc, eq, gte, isNull, lte } from 'drizzle-orm';
+import { and, desc, eq, gte, isNull, lte, ne } from 'drizzle-orm';
 
 import type { Database } from '../database';
 import type { NewRow, Row } from '../schema';
@@ -569,6 +569,117 @@ export class DocumentFlowRepo extends BaseRepo {
       });
     // inside the caller's transaction the caller already holds the database
     return ctx.tx ? run() : serialised(this.d, run);
+  }
+
+  /**
+   * Issue a draft that came from another system under the number it already has. The number goes in a
+   * separate series named "Imported" (made on first use, never the default, never a counter that moves),
+   * the ledger is posted, and no stock moves: history does not change what is on the shelf now. Nothing
+   * else about issuing is relaxed: a locked period, a blank document or wrong totals still stop it.
+   */
+  async issueImported(
+    ctx: Ctx,
+    id: string,
+    expectedVersion: number,
+    opts: { number: string; lockOverride?: LockOverride },
+  ): Promise<IssueResult> {
+    const run = () =>
+      runInTx(this.d, ctx, async (tx) => {
+        const c: Ctx = { ...ctx, tx };
+        const current = await this.getIn(tx, c, id);
+        if (!current) throw new NotFoundError('documents', id);
+        if (current['status'] !== 'draft')
+          throw new RuleError('only draft documents can be issued');
+        const type = String(current['type']) as DocumentType;
+        await this.lock.assertOpen(
+          c,
+          String(current['date']),
+          { action: 'issue', documentId: id },
+          opts.lockOverride,
+        );
+        const business = await new BusinessRepo(this.d).get(c);
+        const scheme = business?.['scheme'] === 'composition' ? 'composition' : 'regular';
+        const check = canIssue(type, scheme);
+        if (!check.ok) throw new RuleError(check.reason);
+        const lines = await this.currentLinesIn(tx, c, id);
+        if (lines.length === 0) throw new RuleError('a blank document cannot be issued');
+        const errors = consistencyValidator(current, lines);
+        if (errors.length > 0)
+          throw new RuleError(`document totals rejected: ${errors.join('; ')}`);
+        const number = opts.number.trim();
+        if (!number) throw new RuleError('An imported document needs the number it already has.');
+        const docs = this.d.schema.documents;
+        const clash: Row[] = await tx
+          .select({ id: docs.id })
+          .from(docs)
+          .where(
+            and(
+              eq(docs.business_id, c.businessId),
+              eq(docs.type, type),
+              eq(docs.number, number),
+              ne(docs.status, 'draft'),
+              isNull(docs.deleted_at),
+            ),
+          )
+          .limit(1);
+        if (clash.length > 0) throw new RuleError(`${number} is already used by another ${type}.`);
+        const seriesId = await this.importedSeriesIn(tx, c, type);
+        const issued = await this.updateIn(
+          tx,
+          c,
+          id,
+          { status: 'issued', number, series_id: seriesId },
+          expectedVersion,
+        );
+        await this.postLedgerIn(tx, c, issued);
+        return { document: issued, selfInvoice: null };
+      });
+    return ctx.tx ? run() : serialised(this.d, run);
+  }
+
+  /** The "Imported" series of a document type, made when it is first needed. It is never the default. */
+  private async importedSeriesIn(tx: any, ctx: Ctx, type: string): Promise<string> {
+    const t = this.d.schema.number_series;
+    const all: Row[] = await tx
+      .select()
+      .from(t)
+      .where(
+        and(eq(t.business_id, ctx.businessId), eq(t.document_type, type), isNull(t.deleted_at)),
+      );
+    const have = all.find((r) => r['name'] === 'Imported');
+    if (have) return have['id'] as string;
+    // a type with no series yet gets its ordinary default first, so "Imported" can never be picked as one
+    if (!all.some((r) => r['is_default'])) {
+      await (this.series as any).createIn(tx, ctx, {
+        document_type: type,
+        series_key: newId(),
+        name: 'Default',
+        is_default: true,
+        shell_default: null,
+        start_number: 1,
+        prefix: DEFAULT_PREFIX[type] ?? `${type.slice(0, 3).toUpperCase()}/{FY}/`,
+        suffix: '',
+        padding: 4,
+        reset: 'fy',
+        fy: null,
+        next_number: 1,
+      });
+    }
+    const row: Row = await (this.series as any).createIn(tx, ctx, {
+      document_type: type,
+      series_key: newId(),
+      name: 'Imported',
+      is_default: false,
+      shell_default: null,
+      start_number: 1,
+      prefix: 'IMP/',
+      suffix: '',
+      padding: 4,
+      reset: 'never',
+      fy: null,
+      next_number: 1,
+    });
+    return row['id'] as string;
   }
 
   private async postLedgerIn(tx: any, ctx: Ctx, doc: Row): Promise<void> {

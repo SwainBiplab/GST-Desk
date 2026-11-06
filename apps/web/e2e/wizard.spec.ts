@@ -145,8 +145,8 @@ test.describe('first run', () => {
   test('the sample business fills the app and skips the questions', async ({ page }) => {
     await page.goto('/welcome');
     await page.getByTestId('wizard-next').click();
-    await expect(page.getByText('Coming soon')).toBeVisible();
-    await expect(page.getByLabel(/Import from Tally/)).toBeDisabled();
+    await expect(page.getByText('Coming soon')).toHaveCount(0);
+    await expect(page.getByLabel(/Import from Tally/)).toBeEnabled();
     await page.getByLabel(/Try it with a sample business/).click();
     await page.getByTestId('wizard-next').click();
     await expect(page.getByTestId('wizard')).toHaveAttribute('data-step', 'done', {

@@ -39,6 +39,7 @@
   "dependencies": {
     "@electric-sql/pglite": "^0.5.15",
     "@gst/domain": "workspace:*",
+    "@gst/interop": "workspace:*",
     "@libsql/client": "^0.18.0",
     "drizzle-orm": "^0.45.4",
     "fflate": "^0.8.3"

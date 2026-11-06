@@ -1,0 +1,4 @@
+Invoice No.,Date,Party Name,GSTIN,Item Name,HSN/SAC,Quantity,Unit,Price/Unit,Discount %,Tax %
+1001,10/04/2025,Sample Traders,27AAPFU0939F1ZV,Sample Cement,2523,10,Bag,350,5,18
+1001,10/04/2025,Sample Traders,27AAPFU0939F1ZV,Sample Rod,7214,25,Kgs,60,0,18
+1002,12/04/2025,Test Stores,,Sample Service,998313,1,,1000,0,18

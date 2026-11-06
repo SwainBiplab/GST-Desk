@@ -27,7 +27,7 @@ export interface BankDraft {
 export interface BusinessDraft {
   language: string;
   shell: Shell;
-  start: 'blank' | 'sample';
+  start: 'blank' | 'sample' | 'import';
   gstin: string;
   notRegistered: boolean;
   stateCode: string;

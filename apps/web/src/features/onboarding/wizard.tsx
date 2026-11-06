@@ -1,6 +1,5 @@
 import type { Language } from '@gst/i18n';
 import {
-  Badge,
   Button,
   Input,
   RadioGroup,
@@ -229,17 +228,18 @@ export function Wizard({ addMode = false }: { addMode?: boolean }) {
         {step === 'start' && (
           <RadioGroup
             value={draft.start}
-            onValueChange={(start) => change({ start: start as 'blank' | 'sample' })}
+            onValueChange={(start) => change({ start: start as 'blank' | 'sample' | 'import' })}
             aria-label={t('welcome.start.label')}
             className="flex flex-col gap-2"
           >
             <label
               htmlFor="start-import"
-              className="flex items-start gap-3 rounded-lg border border-border p-3 opacity-60"
+              className="flex items-start gap-3 rounded-lg border border-border p-3"
             >
-              <RadioGroupItem id="start-import" value="import" disabled />
+              <RadioGroupItem id="start-import" value="import" data-testid="start-import" />
               <span className="flex-1">
-                {t('welcome.start.import')} <Badge>{t('welcome.start.importSoon')}</Badge>
+                <span className="block font-medium">{t('welcome.start.import')}</span>
+                <span className="block text-sm text-fg-muted">{t('welcome.start.importHelp')}</span>
               </span>
             </label>
             <label
@@ -321,6 +321,16 @@ export function Wizard({ addMode = false }: { addMode?: boolean }) {
               >
                 {t('welcome.goDashboard')}
               </Button>
+              {draft.start === 'import' ? (
+                <Button
+                  type="button"
+                  className="ml-2"
+                  data-testid="go-migrate"
+                  onClick={() => void navigate({ to: '/books/$page', params: { page: 'migrate' } })}
+                >
+                  {t('welcome.done.import')}
+                </Button>
+              ) : null}
             </div>
           </div>
         )}
