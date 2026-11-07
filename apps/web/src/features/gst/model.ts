@@ -52,7 +52,7 @@ export function cardState(input: {
   );
   const status = filingStatus({
     filed: input.filing?.status === 'filed',
-    exported: input.filing?.status === 'exported',
+    exported: input.filing?.status === 'exported' || input.filing?.status === 'pushed',
     hasDocuments: input.review?.hasDocuments ?? false,
     blockers: input.review?.blockers ?? 0,
     today: input.today,

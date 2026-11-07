@@ -64,6 +64,8 @@ export function openTarget(r: InboxRow): OpenTarget | null {
       return r.status === 'accepted' ? { to: 'document', search: { id: s['documentId'] } } : null;
     case 'recurring_failed':
       return { to: 'document', search: { id: s['documentId'] } };
+    case 'filing_attention':
+      return { to: 'gst', search: {} };
     case 'payment_attention':
       return s['documentId'] ? { to: 'document', search: { id: s['documentId'] } } : null;
     case 'sync_conflict':
@@ -180,6 +182,8 @@ export function describeArgs(r: InboxRow): Record<string, unknown> {
     case 'approval_request':
       return { label: s['label'], reason: s['reason'] };
     case 'backup_failed':
+    case 'filing_attention':
+      return { period: s['period'], message: s['message'] };
     case 'prefiling_issue':
       return { message: s['message'] };
     case 'gsp_job_stopped':

@@ -18,7 +18,8 @@ export interface GspCredentials {
   ewbPassword?: string;
 }
 
-export type Portal = 'einvoice' | 'ewaybill';
+/** `gstn` is the return portal (GSTR-1, 2A, 2B), which logs in with an OTP the taxpayer receives, not a password. */
+export type Portal = 'einvoice' | 'ewaybill' | 'gstn';
 
 export interface GspSession {
   portal: Portal;
@@ -41,6 +42,48 @@ export interface EwbStatus extends EwbResult {
   status: 'active' | 'cancelled';
   vehicleNo: string | null;
 }
+
+/** Who is logging in to the return portal: the GSTIN and the API user name created there. No password is kept. */
+export interface GstnLogin {
+  gstin: string;
+  username: string;
+}
+
+/** The portal sent an OTP to the taxpayer's registered number; this names that request. */
+export interface OtpChallenge {
+  txnId: string;
+  /** Epoch milliseconds the OTP stops being accepted. */
+  expiresAt: number;
+}
+
+/** What the portal made of one table of a pushed return. */
+export interface PushTableResult {
+  table: string;
+  status: 'ok' | 'error';
+  /** Documents accepted (or refused, for an error). */
+  count: number;
+  errors: { code: string; message: string; ref?: string }[];
+}
+
+export interface PushResult {
+  /** The portal's reference for this upload, to ask about it later. */
+  reference: string;
+  tables: PushTableResult[];
+}
+
+export interface PushStatus extends PushResult {
+  state: 'processing' | 'processed' | 'error';
+}
+
+/** Whether a return has been filed on the portal, with the acknowledgement it gave. */
+export interface FilingState {
+  filed: boolean;
+  arn: string | null;
+  /** YYYY-MM-DD */
+  filedOn: string | null;
+}
+
+export type ReturnForm = 'gstr1' | 'iff';
 
 export interface GspAdapter {
   readonly name: string;
@@ -95,13 +138,25 @@ export interface GspAdapter {
   ): Promise<{ cancelledAt: string }>;
   getEwb(s: GspSession, ewbNo: string): Promise<EwbStatus>;
 
-  /** Used by prompt 46 (GSTR push and pull); adapters may leave them unimplemented until then. */
+  /**
+   * The return portal (prompt 46). The OTP goes to the taxpayer, who types it in: nothing here asks for it
+   * on their behalf, and no password is stored. A session lasts about six hours.
+   */
+  requestGstnOtp(login: GstnLogin): Promise<OtpChallenge>;
+  verifyGstnOtp(login: GstnLogin, txnId: string, otp: string): Promise<GspSession>;
+  /** Save a return's tables on the portal. Saving the same period again replaces it; nothing is filed. */
   pushGstr1(
     s: GspSession,
     period: string,
     payload: Record<string, unknown>,
-  ): Promise<{ reference: string }>;
+    opts?: { form?: ReturnForm; nil?: boolean },
+  ): Promise<PushResult>;
+  /** How the portal got on with an upload (it processes it after accepting it). */
+  getPushStatus(s: GspSession, period: string, reference: string): Promise<PushStatus>;
+  /** Whether the return was filed (by the taxpayer, on the portal), and its ARN. */
+  getFilingState(s: GspSession, period: string, form: 'gstr1' | 'gstr3b'): Promise<FilingState>;
   pullGstr2b(s: GspSession, period: string): Promise<Record<string, unknown>>;
+  pullGstr2a(s: GspSession, period: string): Promise<Record<string, unknown>>;
 }
 
 /** A failure the app can explain: the portal's or vendor's code, and its message. */

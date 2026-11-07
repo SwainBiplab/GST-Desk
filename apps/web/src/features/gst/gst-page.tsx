@@ -50,6 +50,7 @@ import {
   useReview,
 } from './hooks';
 import { cardState, gstr1Rows, periodLabel, recentPeriods, type CardState } from './model';
+import { PortalLogin, PortalTab } from './portal-tab';
 import { ReconcileTab } from './reconcile-tab';
 
 import { useAppNavigate } from '@/app/hooks';
@@ -118,6 +119,7 @@ export function GstPage({ shell }: { shell: Shell }) {
           {t('gst.composition')}
         </p>
       ) : null}
+      {biz?.gstin ? <PortalLogin /> : null}
       {biz && !biz.gstin ? (
         <EmptyState title={t('gst.noGstin')} />
       ) : (
@@ -242,6 +244,9 @@ function Detail({
         <TabsTrigger value="gstr1">{t('gst.tabs.gstr1')}</TabsTrigger>
         <TabsTrigger value="gstr3b">{t('gst.tabs.gstr3b')}</TabsTrigger>
         <TabsTrigger value="recon">{t('gst.tabs.recon')}</TabsTrigger>
+        <TabsTrigger value="portal" data-testid="tab-portal">
+          {t('gst.tabs.portal')}
+        </TabsTrigger>
         <TabsTrigger value="checks">
           {t('gst.tabs.checks')}
           {review.blockers > 0 ? ` (${review.blockers})` : ''}
@@ -255,6 +260,9 @@ function Detail({
       </TabsContent>
       <TabsContent value="recon">
         <ReconcileTab period={review.period} />
+      </TabsContent>
+      <TabsContent value="portal">
+        <PortalTab period={review.period} kind={review.period.kind} />
       </TabsContent>
       <TabsContent value="checks">
         <Checks issues={review.issues} fp={review.period.fp} blockers={review.blockers} />

@@ -214,6 +214,73 @@ export interface GatewayRefund {
   createdAt: number;
 }
 
+export type FilingJobStatus =
+  'queued' | 'running' | 'waiting_otp' | 'processing' | 'done' | 'partial' | 'failed';
+export interface FilingJob {
+  id: string;
+  businessId: string;
+  kind: 'push' | 'pull_2b' | 'pull_2a' | 'poll_filing';
+  form: string | null;
+  period: string;
+  status: FilingJobStatus;
+  reference: string | null;
+  result: Record<string, unknown> | null;
+  error: string | null;
+  createdAt: number;
+  updatedAt: number;
+}
+export interface PortalSession {
+  configured: boolean;
+  practice: boolean;
+  vendor: string | null;
+  connected: boolean;
+  expiresAt: number | null;
+  username: string | null;
+  gstin: string | null;
+  otpPending: boolean;
+}
+export interface FilingStatusView {
+  entitlement: { enabled: boolean; used: number; limit: number };
+  session: PortalSession;
+  jobs: FilingJob[];
+}
+export interface FilingDesk {
+  due: string;
+  nil: boolean;
+  filed: boolean;
+  lateFee: {
+    days: number;
+    perDayPaise: number;
+    capPaise: number;
+    feePaise: number;
+    capped: boolean;
+    version: string;
+  };
+}
+export type BoardCellStatus = 'filed' | 'pushed' | 'exported' | 'late' | 'open';
+export interface BoardCell {
+  fp: string;
+  ret: 'gstr1' | 'gstr3b';
+  status: BoardCellStatus;
+  due: string;
+  overdueDays: number;
+  lateFeePaise: number;
+}
+export interface BoardRow {
+  orgId: string;
+  orgName: string;
+  businessId: string;
+  businessName: string;
+  gstin: string;
+  cells: BoardCell[];
+  exceptions: { kind: 'overdue' | 'blockers' | 'itc'; message: string; amount: number }[];
+}
+export interface FilingBoard {
+  rows: BoardRow[];
+  today: string;
+  periods: string[];
+}
+
 export class CloudError extends Error {
   constructor(
     readonly status: number,
@@ -577,6 +644,53 @@ export class CloudClient {
     b: { partyId: string; channel: 'whatsapp' | 'email'; status: 'opted_in' | 'opted_out' },
   ): Promise<null> {
     return this.call(this.m(orgId, '/consent'), { method: 'PUT', body: JSON.stringify(b) });
+  }
+  private f(orgId: string, path: string) {
+    return `/v1/orgs/${orgId}/filing${path}`;
+  }
+  filingStatus(orgId: string, businessId: string): Promise<FilingStatusView> {
+    return this.call(this.f(orgId, `/status?businessId=${businessId}`));
+  }
+  requestPortalOtp(
+    orgId: string,
+    b: { businessId: string; username: string },
+  ): Promise<PortalSession> {
+    return this.call(this.f(orgId, '/otp'), { method: 'POST', body: JSON.stringify(b) });
+  }
+  verifyPortalOtp(orgId: string, b: { businessId: string; otp: string }): Promise<PortalSession> {
+    return this.call(this.f(orgId, '/otp/verify'), { method: 'POST', body: JSON.stringify(b) });
+  }
+  signOutPortal(orgId: string, businessId: string): Promise<null> {
+    return this.call(this.f(orgId, `/session?businessId=${businessId}`), { method: 'DELETE' });
+  }
+  startFilingJob(
+    orgId: string,
+    b: { businessId: string; kind: FilingJob['kind']; form?: string; period: string },
+  ): Promise<{ id: string; existing: boolean }> {
+    return this.call(this.f(orgId, '/jobs'), { method: 'POST', body: JSON.stringify(b) });
+  }
+  filingJobs(orgId: string, businessId: string): Promise<FilingJob[]> {
+    return this.call(this.f(orgId, `/jobs?businessId=${businessId}`));
+  }
+  filingDesk(
+    orgId: string,
+    businessId: string,
+    ret: 'gstr1' | 'gstr3b',
+    period: string,
+  ): Promise<FilingDesk> {
+    return this.call(this.f(orgId, `/desk?businessId=${businessId}&ret=${ret}&period=${period}`));
+  }
+  filingPack(
+    orgId: string,
+    businessId: string,
+    period: string,
+  ): Promise<{ files: { name: string; content: string }[] }> {
+    return this.call(this.f(orgId, `/pack?businessId=${businessId}&period=${period}`));
+  }
+  filingBoard(itcThresholdPaise?: number): Promise<FilingBoard> {
+    return this.call(
+      `/v1/me/filing-board${itcThresholdPaise === undefined ? '' : `?itcThresholdPaise=${itcThresholdPaise}`}`,
+    );
   }
   private p(orgId: string, path: string) {
     return `/v1/orgs/${orgId}/payments${path}`;

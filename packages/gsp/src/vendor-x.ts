@@ -12,10 +12,17 @@ import {
   GspError,
   type EwbResult,
   type EwbStatus,
+  type FilingState,
   type GspAdapter,
   type GspCredentials,
   type GspSession,
+  type GstnLogin,
+  type OtpChallenge,
   type Portal,
+  type PushResult,
+  type PushStatus,
+  type PushTableResult,
+  type ReturnForm,
 } from './types';
 
 export interface VendorXConfig {
@@ -213,11 +220,109 @@ export class VendorXAdapter implements GspAdapter {
     };
   }
 
-  async pushGstr1(): Promise<{ reference: string }> {
-    throw new GspError('GD-NOT-YET', 'Filing GSTR-1 through the GSP arrives with prompt 46.');
+  /* ---------------------------------------------------------------------------- return portal */
+
+  readonly canFile = false;
+
+  async requestGstnOtp(login: GstnLogin): Promise<OtpChallenge> {
+    // TODO(vendor): the path and field names of the OTP request
+    const d = await this.request('/gstn/otp', { gstin: login.gstin, username: login.username });
+    return {
+      txnId: String(d['txn'] ?? d['txnId']),
+      expiresAt: Date.now() + Number(d['expiresInSec'] ?? 600) * 1000,
+    };
   }
 
-  async pullGstr2b(): Promise<Record<string, unknown>> {
-    throw new GspError('GD-NOT-YET', 'Pulling GSTR-2B through the GSP arrives with prompt 46.');
+  async verifyGstnOtp(login: GstnLogin, txnId: string, otp: string): Promise<GspSession> {
+    const d = await this.request('/gstn/auth', {
+      gstin: login.gstin,
+      username: login.username,
+      txn: txnId,
+      otp,
+    });
+    return {
+      portal: 'gstn',
+      gstin: login.gstin,
+      token: String(d['token'] ?? d['auth_token']),
+      expiresAt: Date.parse(String(d['expiry'] ?? '')) || Date.now() + 6 * 3_600_000,
+    };
+  }
+
+  private tables(d: Json): PushTableResult[] {
+    // TODO(vendor): how per-table results and errors are reported
+    return ((d['tables'] ?? d['sections'] ?? []) as Json[]).map((t) => ({
+      table: String(t['table'] ?? t['name']),
+      status:
+        t['status'] === 'error' || (Array.isArray(t['errors']) && t['errors'].length > 0)
+          ? 'error'
+          : 'ok',
+      count: Number(t['count'] ?? 0),
+      errors: ((t['errors'] ?? []) as Json[]).map((e) => ({
+        code: String(e['code']),
+        message: String(e['message']),
+        ...(e['ref'] ? { ref: String(e['ref']) } : {}),
+      })),
+    }));
+  }
+
+  async pushGstr1(
+    s: GspSession,
+    period: string,
+    payload: Json,
+    o: { form?: ReturnForm; nil?: boolean } = {},
+  ): Promise<PushResult> {
+    const d = await this.request(
+      `/gstn/${o.form === 'iff' ? 'iff' : 'gstr1'}/save`,
+      { period, nil: !!o.nil, data: payload },
+      this.auth(s),
+    );
+    return { reference: String(d['reference'] ?? d['ref_id']), tables: this.tables(d) };
+  }
+
+  async getPushStatus(s: GspSession, period: string, reference: string): Promise<PushStatus> {
+    const d = await this.request(
+      `/gstn/gstr1/status?period=${period}&ref=${encodeURIComponent(reference)}`,
+      null,
+      this.auth(s),
+      'GET',
+    );
+    const st = String(d['status'] ?? '').toLowerCase();
+    return {
+      reference,
+      tables: this.tables(d),
+      state:
+        st.startsWith('p') && st !== 'processed'
+          ? 'processing'
+          : st === 'error'
+            ? 'error'
+            : 'processed',
+    };
+  }
+
+  async getFilingState(
+    s: GspSession,
+    period: string,
+    form: 'gstr1' | 'gstr3b',
+  ): Promise<FilingState> {
+    const d = await this.request(
+      `/gstn/${form}/filing?period=${period}`,
+      null,
+      this.auth(s),
+      'GET',
+    );
+    const filed = String(d['status'] ?? '').toLowerCase() === 'filed';
+    return {
+      filed,
+      arn: filed && d['arn'] ? String(d['arn']) : null,
+      filedOn: filed && d['filed_on'] ? String(d['filed_on']).slice(0, 10) : null,
+    };
+  }
+
+  async pullGstr2b(s: GspSession, period: string): Promise<Json> {
+    return this.request(`/gstn/gstr2b?period=${period}`, null, this.auth(s), 'GET');
+  }
+
+  async pullGstr2a(s: GspSession, period: string): Promise<Json> {
+    return this.request(`/gstn/gstr2a?period=${period}`, null, this.auth(s), 'GET');
   }
 }

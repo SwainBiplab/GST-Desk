@@ -590,7 +590,7 @@ Kind: belongs to a business. In a business export.
 | `period_fp` | text | yes |  |
 | `period_from` | date (`YYYY-MM-DD`) | yes |  |
 | `period_to` | date (`YYYY-MM-DD`) | yes |  |
-| `status` | text | yes | one of `open`, `exported`, `filed`; default "open" |
+| `status` | text | yes | one of `open`, `exported`, `pushed`, `filed`; default "open" |
 | `exported_at` | time (epoch milliseconds) |  |  |
 | `schema_version` | text |  |  |
 | `arn` | text |  |  |

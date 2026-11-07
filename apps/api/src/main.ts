@@ -1,4 +1,5 @@
 /** The process: configuration, telemetry, database, auth, queues, the app, the HTTP server. */
+import { MockGspAdapter, VendorXAdapter } from '@gst/gsp';
 import { serve } from '@hono/node-server';
 
 import { createApp } from './app';
@@ -9,6 +10,8 @@ import { loadConfig } from './config';
 import { migrateApi } from './db/migrate';
 import { openPostgres } from './db/pool';
 import { installErrorReporting } from './errors-reporting';
+import { FilingService } from './filing/service';
+import { filingEnqueuer, startFilingWorkers } from './filing/worker';
 import { makeJobs } from './jobs/queues';
 import { MemoryLimiter, RedisLimiter } from './limits';
 import { makeLogger } from './log';
@@ -106,6 +109,18 @@ const paymentsService = new PaymentsService({
       payments: [{ id: a.paymentId, businessId: a.businessId, documentId: a.documentId }],
     }),
 });
+const filingService = new FilingService({
+  db,
+  secretsKey: config.secretsKey,
+  log,
+  adapter: config.gsp
+    ? config.gsp.kind === 'vendor'
+      ? new VendorXAdapter({ baseUrl: config.gsp.baseUrl, sandbox: config.gsp.sandbox })
+      : new MockGspAdapter()
+    : null,
+  enqueue: filingEnqueuer(jobs),
+});
+if (jobs) await startFilingWorkers(jobs, filingService, log);
 mountRoutes(app, {
   db,
   auth,
@@ -116,6 +131,7 @@ mountRoutes(app, {
   notify,
   messaging: { service: messagingService, providers },
   payments: paymentsService,
+  filing: filingService,
 });
 
 const server = serve({ fetch: app.fetch, port: config.port, hostname: '0.0.0.0' }, (info) => {

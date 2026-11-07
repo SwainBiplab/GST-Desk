@@ -4,6 +4,7 @@ import type { Auth } from '../auth/auth';
 import type { OtpSender } from '../auth/auth';
 import type { Config } from '../config';
 import type { PgDatabase } from '../db/pool';
+import type { FilingService } from '../filing/service';
 import type { Jobs } from '../jobs/queues';
 import type { providersFrom } from '../messaging/providers';
 import type { MessagingService } from '../messaging/service';
@@ -15,6 +16,7 @@ import type { Storage } from '../storage/s3';
 import { adminRoutes } from './admin';
 import { devRoutes } from './dev';
 import { fileRoutes } from './files';
+import { filingRoutes } from './filing';
 import { meRoutes } from './me';
 import { messagingRoutes } from './messaging';
 import { orgRoutes } from './orgs';
@@ -37,6 +39,8 @@ export interface RouteDeps {
   messaging?: { service: MessagingService; providers: ReturnType<typeof providersFrom> };
   /** Payment links, UPI QR and reconciliation (prompt 45). */
   payments?: PaymentsService;
+  /** GST filing through the GSP: portal login, push, pull, the CA board (prompt 46). */
+  filing?: FilingService;
 }
 
 export function mountRoutes(app: App, deps: RouteDeps): void {
@@ -56,6 +60,7 @@ export function mountRoutes(app: App, deps: RouteDeps): void {
   pushRoutes(app, deps);
   messagingRoutes(app, deps);
   paymentsRoutes(app, deps);
+  filingRoutes(app, deps);
   webhookRoutes(app, deps);
   adminRoutes(app, deps);
   if (deps.config.env !== 'production') devRoutes(app, deps);

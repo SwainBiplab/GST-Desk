@@ -29,6 +29,7 @@ export type PageId =
   | 'reports'
   | 'gst'
   | 'einvoice'
+  | 'caboard'
   | 'directtax'
   | 'migrate'
   | 'inbox'
@@ -44,6 +45,7 @@ export const PAGE_IDS: PageId[] = [
   'reports',
   'gst',
   'einvoice',
+  'caboard',
   'directtax',
   'migrate',
   'inbox',
@@ -145,6 +147,7 @@ export const BOOKS_NAV: NavSection[] = [
     items: [
       item('gst', Percent, { id: 'gst', label: 'nav.gst' }),
       item('einvoice', ScanLine),
+      item('caboard', Users),
       item('directtax', Landmark),
     ],
   },

@@ -17,6 +17,7 @@ import { DirectTaxPage } from '@/features/direct-tax/direct-tax-page';
 import { DocumentsPage } from '@/features/documents/documents-page';
 import { EditorRoute } from '@/features/documents/editor-route';
 import { EinvoicePage } from '@/features/einvoice/einvoice-page';
+import { CaBoardPage } from '@/features/gst/ca-board';
 import { GstPage } from '@/features/gst/gst-page';
 import { InboxPage } from '@/features/inbox/inbox-page';
 import { ItemsPage } from '@/features/items/items-page';
@@ -162,6 +163,13 @@ export function PlaceholderPage({ page, shell }: { page: PageId; shell: Shell })
     return (
       <div data-shell={shell} className="h-full overflow-auto">
         <GstPage shell={shell} />
+      </div>
+    );
+  }
+  if (page === 'caboard') {
+    return (
+      <div data-shell={shell} className="h-full overflow-auto">
+        <CaBoardPage />
       </div>
     );
   }

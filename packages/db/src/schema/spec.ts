@@ -453,7 +453,7 @@ export const SPEC: TableSpec[] = [
       period_fp: c.text().nn,
       period_from: c.date().nn,
       period_to: c.date().nn,
-      status: c.text().nn.default('open').oneOf(['open', 'exported', 'filed']),
+      status: c.text().nn.default('open').oneOf(['open', 'exported', 'pushed', 'filed']),
       exported_at: c.ts(),
       /** The file layout version the last export used (`data/gstn-schemas`). */
       schema_version: c.text(),

@@ -82,6 +82,11 @@ Last refreshed at the close of Phase 1. Update it when a phase adds an asset, an
 - **Gateway secrets leak**: sealed with AES-256-GCM under a key that lives only in the environment and bound to the organisation (a copy in another organisation's row does not open); never returned by any route, never logged; the settings screen types them into password fields and clears them.
 - **A refund is used to take money out**: a refund needs `payments.approve`, a second person (the asker cannot approve), is capped by what was paid and by the credit note's unused balance, and carries the refund's own id as the gateway's idempotency key so a retry cannot pay twice.
 - **Card data**: never touched. The customer pays on the gateway's page or in their own UPI app; the app stores a link, a UPI payload, amounts and the provider's payment id.
+- **GSTN credentials leak** (prompt 46): no password is ever asked for or stored. The OTP the taxpayer types goes to the portal and is not kept; the session token it returns is sealed (AES-256-GCM under `SECRETS_KEY`, bound to the organisation), lives only as long as the portal's session (about six hours), is forgotten when it expires or the person signs out, and is never returned by any route or written to a log.
+- **A filing action nobody asked for**: every portal call starts from a person pressing a button or from the scheduler's read-only check of filing status; OTP login is never automated; the app saves a return on the portal but never files it (filing is the taxpayer's, on the portal). Jobs run as the person who asked, with the repositories' audit trail, and a refused or failed push leaves the local state exactly as it was.
+- **A double push**: one live job per business, kind, form and period (a unique index), and a file identical to the last successful push is not sent again; the portal's own save replaces a period rather than adding to it.
+- **Spend**: every call to the portal is a metered `gsp_call`; one past the plan's monthly limit is refused before it is made.
+- **The CA board shows another client's data**: the board reads only organisations the account is a member of, only where its role may view GST returns, and each under that organisation's own row-level security; a stranger gets an empty board.
 
 ## Out of scope for Phase 1 (to be added with the phases that introduce them)
 

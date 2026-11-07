@@ -27,6 +27,7 @@ import type { Row } from '../schema';
 
 import { SettingsRepo } from './aggregates';
 import { BaseRepo, RuleError, runInTx, type Ctx } from './base';
+import { PeriodLockRepo } from './period-lock';
 
 const n = (v: unknown): number => Number(v ?? 0);
 const s = (v: unknown): string => (v == null ? '' : String(v));
@@ -51,7 +52,8 @@ export interface BusinessGstInfo {
 export interface FilingRecord {
   returnType: Return;
   fp: string;
-  status: 'open' | 'exported' | 'filed';
+  /** `pushed`: saved on the GST portal through the GSP, not yet filed. */
+  status: 'open' | 'exported' | 'pushed' | 'filed';
   exportedAt: number | null;
   schemaVersion: string | null;
   arn: string | null;
@@ -467,6 +469,26 @@ export class GstrRepo {
     });
   }
 
+  /** The return was saved on the portal through the GSP (prompt 46). A filed return stays filed. */
+  async markPushed(
+    ctx: Ctx,
+    returnType: Return,
+    period: GstrPeriod,
+    reference: string,
+  ): Promise<FilingRecord> {
+    return runInTx(this.d, ctx, async (tx) => {
+      const c: Ctx = { ...ctx, tx };
+      const cur = await this.filings.find(c, returnType, period.fp);
+      const status = cur?.['status'] === 'filed' ? 'filed' : 'pushed';
+      return toFiling(
+        await this.filings.upsert(tx, c, period, returnType, {
+          status,
+          note: `Saved on the GST portal (reference ${reference})`,
+        }),
+      );
+    });
+  }
+
   async markFiled(
     ctx: Ctx,
     returnType: Return,
@@ -484,13 +506,26 @@ export class GstrRepo {
         throw new RuleError('Enter the date the return was filed.');
       if (input.filedOn <= period.to)
         throw new RuleError('A return cannot be filed before its period has ended.');
-      return toFiling(
+      const filed = toFiling(
         await this.filings.upsert(tx, c, period, returnType, {
           status: 'filed',
           arn,
           filed_on: input.filedOn,
         }),
       );
+      // both returns of the period are filed: the books for it are closed (an owner can still unlock, with a reason)
+      const other = await this.filings.find(
+        c,
+        returnType === 'gstr1' ? 'gstr3b' : 'gstr1',
+        period.fp,
+      );
+      if (other?.['status'] === 'filed') {
+        const lock = new PeriodLockRepo(this.d);
+        const current = await lock.get(c);
+        if (!current || current.until < period.to)
+          await lock.set(c, period.to, `GSTR-1 and GSTR-3B for ${period.fp} are filed`);
+      }
+      return filed;
     });
   }
 

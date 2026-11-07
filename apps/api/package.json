@@ -19,6 +19,7 @@
     "@aws-sdk/s3-request-presigner": "^3.1164.0",
     "@gst/db": "workspace:*",
     "@gst/domain": "workspace:*",
+    "@gst/gsp": "workspace:*",
     "@gst/i18n": "workspace:*",
     "@gst/messaging": "workspace:*",
     "@gst/payments": "workspace:*",

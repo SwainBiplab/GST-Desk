@@ -62,6 +62,10 @@ const schema = z.object({
   RESEND_API_KEY: z.string().optional(),
   /** Base64 of 32 bytes: seals each business's payment gateway secrets (prompt 45). */
   SECRETS_KEY: z.string().optional(),
+  /** The GSP for GST filing (prompt 46). Without a URL, `GSP_PRACTICE=true` uses the practice portal (never in production). */
+  GSP_BASE_URL: z.string().url().optional(),
+  GSP_SANDBOX: z.enum(['true', 'false']).default('true'),
+  GSP_PRACTICE: z.enum(['true', 'false']).default('false'),
   RESEND_FROM: z.string().optional(),
   RESEND_WEBHOOK_SECRET: z.string().optional(),
 });
@@ -115,6 +119,8 @@ export interface Config {
   resend: { apiKey: string; from: string; webhookSecret: string } | null;
   /** Seals each business's payment gateway secrets (prompt 45). */
   secretsKey: string | null;
+  /** The GSP for GST filing: a vendor's address, the practice portal, or none. */
+  gsp: { kind: 'vendor'; baseUrl: string; sandbox: boolean } | { kind: 'practice' } | null;
 }
 
 function parseServiceAccount(raw: string | undefined) {
@@ -224,6 +230,11 @@ export function loadConfig(raw: NodeJS.ProcessEnv): Config {
           }
         : null,
     secretsKey: e.SECRETS_KEY ?? null,
+    gsp: e.GSP_BASE_URL
+      ? { kind: 'vendor', baseUrl: e.GSP_BASE_URL, sandbox: e.GSP_SANDBOX === 'true' }
+      : e.GSP_PRACTICE === 'true' && e.NODE_ENV !== 'production'
+        ? { kind: 'practice' }
+        : null,
     resend:
       e.RESEND_API_KEY && e.RESEND_FROM && e.RESEND_WEBHOOK_SECRET
         ? { apiKey: e.RESEND_API_KEY, from: e.RESEND_FROM, webhookSecret: e.RESEND_WEBHOOK_SECRET }

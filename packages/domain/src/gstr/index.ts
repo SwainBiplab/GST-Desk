@@ -9,3 +9,4 @@ export { GSTN_V1, type GstnSchema } from '../../data/gstn-schemas/v1';
 export { DUE_DATE_RULES_V1, type DueDateRules } from '../../data/gstn-schemas/due-dates';
 export * from './review';
 export * from './checks';
+export * from './filing-rules';

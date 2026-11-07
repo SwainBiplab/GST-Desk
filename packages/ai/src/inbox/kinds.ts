@@ -15,6 +15,7 @@ export const INBOX_KINDS = [
   'approval_request',
   'recurring_failed',
   'payment_attention',
+  'filing_attention',
   'reminder_due',
   'low_stock',
   'draft_stale',
@@ -250,6 +251,19 @@ export const paymentAttentionItem = z.object({
 });
 export type PaymentAttentionItem = z.infer<typeof paymentAttentionItem>;
 
+/**
+ * Something the GST filing through the GSP needs a person for (prompt 46): the portal login ran out, a return
+ * has problems to fix first, the portal refused some invoices, or a return was filed on the portal.
+ */
+export const filingAttentionItem = z.object({
+  /** Return period, MMYYYY. */
+  period: z.string(),
+  form: z.string(),
+  reason: z.enum(['otp', 'blocked', 'push_partial', 'push_failed', 'pull_failed', 'filed']),
+  message: z.string(),
+});
+export type FilingAttentionItem = z.infer<typeof filingAttentionItem>;
+
 /** Kinds whose owner has not shipped yet: the card shows what it holds, Accept stays off. */
 export const genericItem = z.record(z.string(), z.unknown());
 
@@ -270,6 +284,7 @@ export const INBOX_SCHEMAS = {
   approval_request: approvalRequestItem,
   recurring_failed: recurringFailedItem,
   payment_attention: paymentAttentionItem,
+  filing_attention: filingAttentionItem,
 } as const satisfies Record<InboxKind, z.ZodType>;
 
 export function schemaFor(kind: string): z.ZodType<Record<string, unknown>> {
@@ -340,6 +355,12 @@ export const KIND_INFO: Record<InboxKind, KindInfo> = {
     informational: true,
     bulk: false,
     opens: 'document',
+  },
+  filing_attention: {
+    label: 'GST filing',
+    informational: true,
+    bulk: false,
+    opens: 'gst',
   },
   payment_attention: {
     label: 'Payment to check',

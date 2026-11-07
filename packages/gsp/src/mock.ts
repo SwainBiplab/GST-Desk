@@ -12,10 +12,17 @@ import {
   GspError,
   type EwbResult,
   type EwbStatus,
+  type FilingState,
   type GspAdapter,
   type GspCredentials,
   type GspSession,
+  type GstnLogin,
+  type OtpChallenge,
   type Portal,
+  type PushResult,
+  type PushStatus,
+  type PushTableResult,
+  type ReturnForm,
 } from './types';
 
 export interface MockOptions {
@@ -29,6 +36,12 @@ export interface MockOptions {
   failWith?: string[];
   /** What a previous practice portal remembered (from `state()`), so it survives a reload. */
   state?: MockState | null;
+  /** The OTP the practice return portal accepts. */
+  otp?: string;
+  /** Invoice and note numbers the practice return portal refuses on upload (to rehearse a partial failure). */
+  rejectNumbers?: string[];
+  /** How many times an upload is asked about before it shows as processed. */
+  pollsToProcess?: number;
 }
 
 /** Everything the practice portal remembers, as plain JSON. */
@@ -75,15 +88,33 @@ async function sha256Hex(text: string): Promise<string> {
 
 type Json = Record<string, any>;
 
+interface PushRecord {
+  reference: string;
+  hash: string;
+  tables: PushTableResult[];
+  polls: number;
+}
+
 export class MockGspAdapter implements GspAdapter {
   readonly name = 'practice';
   readonly sandbox = true;
+  /** Practice portal state for the return portal. */
+  private readonly otps = new Map<string, { login: GstnLogin; expiresAt: number }>();
+  private readonly pushes = new Map<string, PushRecord>();
+  private readonly gstr2b = new Map<string, Record<string, unknown>>();
+  private readonly gstr2a = new Map<string, Record<string, unknown>>();
+  private readonly filed = new Map<string, { arn: string; filedOn: string }>();
+  /** Calls made to the return portal, in order, for tests to count (metering). */
+  readonly gstnCalls: string[] = [];
   private readonly irns = new Map<string, IrnRecord>();
   private readonly byDoc = new Map<string, string>();
   private readonly ewbs = new Map<string, EwbRecord>();
   private readonly tokens = new Map<string, number>();
   private serial = 0;
-  private readonly opts: Required<Omit<MockOptions, 'failWith' | 'state'>> & { failWith: string[] };
+  private readonly opts: Required<Omit<MockOptions, 'failWith' | 'state' | 'rejectNumbers'>> & {
+    failWith: string[];
+    rejectNumbers: Set<string>;
+  };
 
   constructor(opts: MockOptions = {}) {
     this.opts = {
@@ -91,6 +122,9 @@ export class MockGspAdapter implements GspAdapter {
       tokenTtlMs: opts.tokenTtlMs ?? 6 * 3_600_000,
       now: opts.now ?? (() => new Date()),
       failWith: [...(opts.failWith ?? [])],
+      otp: opts.otp ?? '123456',
+      rejectNumbers: new Set(opts.rejectNumbers ?? []),
+      pollsToProcess: opts.pollsToProcess ?? 0,
     };
     const st = opts.state;
     if (st) {
@@ -297,11 +331,144 @@ export class MockGspAdapter implements GspAdapter {
     return { ...rest };
   }
 
-  async pushGstr1(): Promise<{ reference: string }> {
-    throw new GspError('GD-NOT-YET', 'Filing GSTR-1 through the GSP arrives with prompt 46.');
+  /* ---------------------------------------------------------------------------- return portal */
+
+  readonly canFile = false;
+
+  async requestGstnOtp(login: GstnLogin): Promise<OtpChallenge> {
+    await this.step();
+    this.gstnCalls.push('otp');
+    if (!login.username) throw new GspError('GD-NO-CREDENTIALS', 'No GST portal user name is set.');
+    const txnId = `txn-${++this.serial}`;
+    const expiresAt = this.opts.now().getTime() + 10 * 60_000;
+    this.otps.set(txnId, { login, expiresAt });
+    return { txnId, expiresAt };
   }
 
-  async pullGstr2b(): Promise<Record<string, unknown>> {
-    throw new GspError('GD-NOT-YET', 'Pulling GSTR-2B through the GSP arrives with prompt 46.');
+  async verifyGstnOtp(login: GstnLogin, txnId: string, otp: string): Promise<GspSession> {
+    await this.step();
+    this.gstnCalls.push('verify');
+    const t = this.otps.get(txnId);
+    if (!t || t.login.gstin !== login.gstin) throw new GspError('AUTH4033', 'Unknown OTP request.');
+    if (t.expiresAt < this.opts.now().getTime())
+      throw new GspError('AUTH4034', 'The OTP has expired.');
+    if (otp !== this.opts.otp) throw new GspError('AUTH4033', 'Invalid OTP.');
+    this.otps.delete(txnId);
+    const token = `practice-gstn-${++this.serial}`;
+    const expiresAt = this.opts.now().getTime() + this.opts.tokenTtlMs;
+    this.tokens.set(token, expiresAt);
+    return { portal: 'gstn', gstin: login.gstin, token, expiresAt };
+  }
+
+  async pushGstr1(
+    s: GspSession,
+    period: string,
+    payload: Json,
+    o: { form?: ReturnForm; nil?: boolean } = {},
+  ): Promise<PushResult> {
+    await this.step(s);
+    this.gstnCalls.push('push');
+    if (payload['gstin'] !== s.gstin)
+      throw new GspError('RET191106', 'The file is for a different GSTIN than the login.');
+    if (payload['fp'] !== period)
+      throw new GspError('RET191107', 'The file is for a different period.');
+    const key = `${s.gstin}|${period}|${o.form ?? 'gstr1'}`;
+    const hash = await sha256Hex(JSON.stringify(payload));
+    const had = this.pushes.get(key);
+    // the same file again is the same upload: the portal's reference does not change and nothing doubles
+    if (had && had.hash === hash) return { reference: had.reference, tables: had.tables };
+    const tables: PushTableResult[] = [];
+    if (o.nil || payload['nil_return'])
+      tables.push({ table: 'nil', status: 'ok', count: 0, errors: [] });
+    for (const [table, v] of Object.entries(payload)) {
+      if (['gstin', 'fp', 'nil_return'].includes(table) || !Array.isArray(v)) continue;
+      const docs: { ref: string }[] = [];
+      for (const p of v as Json[]) {
+        for (const i of (p['inv'] ?? p['nt'] ?? [p]) as Json[])
+          docs.push({ ref: String(i['inum'] ?? i['nt_num'] ?? i['doc_num'] ?? table) });
+      }
+      const bad = docs.filter((d) => this.opts.rejectNumbers.has(d.ref));
+      tables.push(
+        bad.length
+          ? {
+              table,
+              status: 'error',
+              count: bad.length,
+              errors: bad.map((d) => ({
+                code: 'RET13504',
+                message: 'The invoice failed a portal check.',
+                ref: d.ref,
+              })),
+            }
+          : { table, status: 'ok', count: docs.length, errors: [] },
+      );
+    }
+    const reference = `${had ? 'REF-R' : 'REF-'}${String(++this.serial).padStart(6, '0')}`;
+    this.pushes.set(key, { reference, hash, tables, polls: 0 });
+    return { reference, tables };
+  }
+
+  async getPushStatus(s: GspSession, period: string, reference: string): Promise<PushStatus> {
+    await this.step(s);
+    this.gstnCalls.push('status');
+    const rec = [...this.pushes.entries()].find(
+      ([k, v]) => k.startsWith(`${s.gstin}|${period}|`) && v.reference === reference,
+    )?.[1];
+    if (!rec) throw new GspError('RET13509', 'No such upload.');
+    if (rec.polls++ < this.opts.pollsToProcess)
+      return { reference, tables: [], state: 'processing' };
+    return {
+      reference,
+      tables: rec.tables,
+      state: rec.tables.some((t) => t.status === 'error') ? 'error' : 'processed',
+    };
+  }
+
+  /** Practice: say the taxpayer filed this return on the portal. */
+  setFiled(
+    gstin: string,
+    period: string,
+    form: 'gstr1' | 'gstr3b',
+    arn: string,
+    filedOn: string,
+  ): void {
+    this.filed.set(`${gstin}|${period}|${form}`, { arn, filedOn });
+  }
+
+  async getFilingState(
+    s: GspSession,
+    period: string,
+    form: 'gstr1' | 'gstr3b',
+  ): Promise<FilingState> {
+    await this.step(s);
+    this.gstnCalls.push('filing');
+    const f = this.filed.get(`${s.gstin}|${period}|${form}`);
+    return f
+      ? { filed: true, arn: f.arn, filedOn: f.filedOn }
+      : { filed: false, arn: null, filedOn: null };
+  }
+
+  /** Practice: what the portal will return as this period's GSTR-2B / 2A. */
+  setGstr2b(period: string, json: Record<string, unknown>): void {
+    this.gstr2b.set(period, json);
+  }
+  setGstr2a(period: string, json: Record<string, unknown>): void {
+    this.gstr2a.set(period, json);
+  }
+
+  async pullGstr2b(s: GspSession, period: string): Promise<Record<string, unknown>> {
+    await this.step(s);
+    this.gstnCalls.push('2b');
+    const j = this.gstr2b.get(period);
+    if (!j) throw new GspError('RTN00024', 'GSTR-2B for this period is not generated yet.');
+    return j;
+  }
+
+  async pullGstr2a(s: GspSession, period: string): Promise<Record<string, unknown>> {
+    await this.step(s);
+    this.gstnCalls.push('2a');
+    const j = this.gstr2a.get(period);
+    if (!j) throw new GspError('RTN00024', 'GSTR-2A for this period is not available yet.');
+    return j;
   }
 }
