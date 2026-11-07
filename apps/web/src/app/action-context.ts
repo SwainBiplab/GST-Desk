@@ -7,6 +7,7 @@ import { useAppNavigate, useLocationInfo } from './hooks';
 import { useAppStore, type Shell } from './store';
 
 import { useFeatureFlags } from '@/features/business/hooks';
+import { usePermissions } from '@/features/team/permissions';
 
 /** Toggle light/dark the same way `ThemeToggle` does, so both stay in sync and persist. */
 export function toggleTheme() {
@@ -30,12 +31,14 @@ export function useActionContext(): ActionContext {
   const setKeymapOpen = useAppStore((s) => s.setKeymapOpen);
   const setShell = useAppStore((s) => s.setShell);
   const stored = useAppStore((s) => s.shell);
+  const { perms } = usePermissions();
 
   return useMemo<ActionContext>(
     () => ({
       shell,
       businessId: ctx?.businessId ?? null,
       flags,
+      perms,
       navigate,
       ui: {
         openCommandBar: (prefill) => setCommandOpen(true, prefill ?? ''),
@@ -55,6 +58,7 @@ export function useActionContext(): ActionContext {
       stored,
       ctx?.businessId,
       flags,
+      perms,
       navigate,
       setCommandOpen,
       setKeymapOpen,

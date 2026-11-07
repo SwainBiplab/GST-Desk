@@ -57,6 +57,7 @@ import { ExtractionDetail, ExtractionEditDialog } from '@/features/ai/extraction
 import { ScanPanel } from '@/features/ai/scan-panel';
 import { useFeatureFlags } from '@/features/business/hooks';
 import { SyncConflictDetail } from '@/features/sync/conflict-detail';
+import { ApprovalDetail } from '@/features/team/approval-detail';
 import { track } from '@/features/telemetry/telemetry';
 import { dyn } from '@/lib/dyn-key';
 import { useTerm } from '@/lib/terms';
@@ -661,6 +662,7 @@ function Detail(props: {
 
       {row.kind === 'ai_extraction' && <ExtractionDetail row={row} />}
       {row.kind === 'sync_conflict' && <SyncConflictDetail row={row} />}
+      {row.kind === 'approval_request' && <ApprovalDetail row={row} />}
 
       {row.kind === 'reminder_due' && (
         <div className="py-2">
@@ -695,25 +697,29 @@ function Detail(props: {
 
       {view === 'open' && (
         <div className="flex flex-wrap gap-2 pt-3">
-          <Button
-            data-testid="detail-accept"
-            disabled={props.busy || !canAccept(row)}
-            onClick={props.onAccept}
-          >
-            {row.kind === 'sync_conflict'
-              ? t('sync.conflict.keepMine')
-              : t(info?.informational ? 'inbox.actions.acknowledge' : 'inbox.actions.accept')}
-          </Button>
+          {row.kind !== 'approval_request' && (
+            <Button
+              data-testid="detail-accept"
+              disabled={props.busy || !canAccept(row)}
+              onClick={props.onAccept}
+            >
+              {row.kind === 'sync_conflict'
+                ? t('sync.conflict.keepMine')
+                : t(info?.informational ? 'inbox.actions.acknowledge' : 'inbox.actions.accept')}
+            </Button>
+          )}
           {editableFields(row.kind).length > 0 && (
             <Button variant="secondary" data-testid="detail-edit" onClick={props.onEdit}>
               {t('inbox.actions.edit')}
             </Button>
           )}
-          <Button variant="ghost" data-testid="detail-reject" onClick={props.onReject}>
-            {row.kind === 'sync_conflict'
-              ? t('sync.conflict.keepTheirs')
-              : t('inbox.actions.reject')}
-          </Button>
+          {row.kind !== 'approval_request' && (
+            <Button variant="ghost" data-testid="detail-reject" onClick={props.onReject}>
+              {row.kind === 'sync_conflict'
+                ? t('sync.conflict.keepTheirs')
+                : t('inbox.actions.reject')}
+            </Button>
+          )}
           <DropdownMenu open={props.snoozeOpen} onOpenChange={props.onSnoozeOpen}>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" data-testid="detail-snooze">

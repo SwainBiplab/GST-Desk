@@ -34,12 +34,22 @@ import {
   type Ctx,
   type Row,
 } from '@gst/db';
+import {
+  can,
+  canWriteAnything,
+  changeAction,
+  documentModule,
+  MODULE_ACTIONS,
+  needsApproval,
+  tableAccess,
+  type ApprovalPolicy,
+  type Module,
+  type Permissions,
+} from '@gst/domain';
 import { isProvisional } from '@gst/domain';
 import { and, eq, ne, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
-import type { OrgRole } from '../auth/options';
-import { roles } from '../auth/options';
 import type { PgDatabase } from '../db/pool';
 
 export const crudOpSchema = z.object({
@@ -63,17 +73,34 @@ export type TxOutcome =
   | { txId: number; outcome: 'applied'; renumbered: { id: string; from: string; to: string }[] }
   | { txId: number; outcome: 'duplicate' }
   | { txId: number; outcome: 'conflict'; reviewItemId: string; reason: string }
+  | { txId: number; outcome: 'approval'; reviewItemId: string; reason: string }
   | { txId: number; outcome: 'rejected'; reason: string };
 
 export interface SyncCaller {
   orgId: string;
   userId: string;
   deviceId: string;
-  role: OrgRole;
+  perms: Permissions;
+  policy: ApprovalPolicy;
+  /** Set when an approver lets a held transaction through: the approval gate is passed. */
+  approvedBy?: string;
 }
 
-class Rejected extends Error {}
-class Conflict extends Error {
+export class Rejected extends Error {}
+/** A change the organisation wants an approver to see first (cancellation, revision of an issued document). */
+class NeedsApproval extends Error {
+  constructor(
+    readonly module: Module,
+    readonly change: 'cancel' | 'revise',
+    readonly rowId: string,
+    readonly businessId: string,
+    readonly theirs: Record<string, unknown>,
+    message: string,
+  ) {
+    super(message);
+  }
+}
+export class Conflict extends Error {
   constructor(
     readonly table: string,
     readonly rowId: string,
@@ -88,30 +115,6 @@ class Conflict extends Error {
 
 const BOOKKEEPING = new Set(['version', 'updated_at', 'updated_by']);
 const SPECS = new Map(SPEC.map((s) => [s.name, s]));
-
-/** Which permission a write to a table needs (prompt 42 refines this into per-feature permissions). */
-const RESOURCE: Record<string, ['business' | 'documents' | 'inventory', string]> = {
-  businesses: ['business', 'update'],
-  memberships: ['business', 'update'],
-  business_accounts: ['business', 'update'],
-  number_series: ['business', 'update'],
-  templates: ['business', 'update'],
-  settings: ['business', 'update'],
-  import_mappings: ['business', 'update'],
-  items: ['inventory', 'write'],
-  item_variants: ['inventory', 'write'],
-  units: ['inventory', 'write'],
-  godowns: ['inventory', 'write'],
-  batches: ['inventory', 'write'],
-  stock_movements: ['inventory', 'write'],
-};
-const resourceOf = (table: string): ['business' | 'documents' | 'inventory', string] =>
-  RESOURCE[table] ?? ['documents', 'write'];
-
-function allowed(role: OrgRole, resource: string, action: string): boolean {
-  const statements = roles[role]?.statements as Record<string, readonly string[]> | undefined;
-  return !!statements?.[resource]?.includes(action);
-}
 
 /** A value as SQLite (and so the device) holds it, made into what the Postgres column takes. */
 function coerce(table: string, column: string, value: unknown): unknown {
@@ -180,6 +183,12 @@ export async function applyClientTx(
     await record(d, caller, ctxTx.txId, 'applied');
     return { txId: ctxTx.txId, outcome: 'applied', renumbered };
   } catch (e) {
+    if (e instanceof NeedsApproval) {
+      const item = await raiseApproval(d, ctx, caller, ctxTx, e);
+      await resend(d, caller, ctxTx);
+      await record(d, caller, ctxTx.txId, 'approval');
+      return { txId: ctxTx.txId, outcome: 'approval', reviewItemId: item, reason: e.message };
+    }
     if (e instanceof Conflict) {
       const item = await raiseConflict(d, ctx, caller, ctxTx, e);
       await resend(d, caller, ctxTx);
@@ -206,7 +215,7 @@ export async function applyClientTx(
  * deleted and drop out of every list. A row the database will not take that way is left as it is; the
  * status sheet still shows the rejection.
  */
-async function resend(d: PgDatabase, caller: SyncCaller, ctxTx: ClientTx): Promise<void> {
+export async function resend(d: PgDatabase, caller: SyncCaller, ctxTx: ClientTx): Promise<void> {
   const seen = new Set<string>();
   for (const op of ctxTx.ops) {
     const key = `${op.table}:${op.id}`;
@@ -270,7 +279,7 @@ async function record(d: PgDatabase, caller: SyncCaller, txId: number, outcome: 
   });
 }
 
-async function applyOps(
+export async function applyOps(
   d: PgDatabase,
   tx: any,
   ctx: Ctx,
@@ -284,13 +293,12 @@ async function applyOps(
   const issuedNow = new Set<string>();
   const businessOf = new Map<string, string>();
 
+  await authorise(d, tx, caller, ctxTx);
+
   // documents first in the order the device wrote them, so a line can see its document's new state
   for (const op of ctxTx.ops) {
     const meta = syncTable(op.table);
     if (!meta || meta.direction !== 'both') throw new Rejected(`${op.table} does not sync up`);
-    const [resource, action] = resourceOf(op.table);
-    if (!allowed(caller.role, resource, action))
-      throw new Rejected(`the ${caller.role} role cannot change ${op.table}`);
 
     const t = d.schema[op.table as keyof typeof d.schema];
     const [current]: Row[] = await tx
@@ -449,18 +457,6 @@ async function applyOps(
         revisedNow.add(op.id);
       }
       if (status === 'draft' && data['status'] === 'issued') issuedNow.add(op.id);
-      if (
-        data['status'] === 'cancelled' &&
-        status === 'issued' &&
-        !allowed(caller.role, 'documents', 'cancel')
-      )
-        throw new Rejected(`the ${caller.role} role cannot cancel`);
-      if (
-        status === 'draft' &&
-        data['status'] === 'issued' &&
-        !allowed(caller.role, 'documents', 'issue')
-      )
-        throw new Rejected(`the ${caller.role} role cannot issue`);
     } else if (LINE_FINANCIAL_TABLES.has(op.table)) {
       await assertLineWritable(d, tx, String(current['document_id']), revisedDocs);
       if (concurrent && changed.length)
@@ -606,6 +602,125 @@ async function applyOps(
   return renumbered;
 }
 
+const roleName = (p: Permissions) => p.roleName ?? p.role;
+
+/**
+ * May this person make every change in the transaction (prompt 42)? Checked before anything is written, by
+ * the shared matrix: documents by their kind and what happens to them (create, edit, issue, cancel),
+ * payments likewise, other tables by their module. Rows that only follow from a document or payment
+ * (ledger postings, its stock movements, allocations) pass with it. With the organisation's approval
+ * policy on, a cancellation or a revision of an issued document by someone who cannot approve is held.
+ */
+async function authorise(d: PgDatabase, tx: any, caller: SyncCaller, ctxTx: ClientTx) {
+  const p = caller.perms;
+  if (!canWriteAnything(p)) throw new Rejected(`your role (${roleName(p)}) can only view`);
+  const need = (m: Module, a: Parameters<typeof can>[2]) => {
+    if (!can(p, m, a)) throw new Rejected(`your role (${roleName(p)}) cannot ${a} ${m}`);
+  };
+  const rowOf = async (table: string, id: string): Promise<Row | null> => {
+    const t = d.schema[table as keyof typeof d.schema];
+    const [r]: Row[] = await tx.select().from(t).where(eq(t.id, id)).limit(1);
+    return r ?? null;
+  };
+  const docs = new Map<string, Row | null>();
+  const docBefore = async (id: string) => {
+    if (!docs.has(id)) docs.set(id, await rowOf('documents', id));
+    return docs.get(id) ?? null;
+  };
+  const docKind = async (id: string): Promise<string | null> => {
+    const sent = ctxTx.ops.find((o) => o.table === 'documents' && o.id === id)?.data?.['type'];
+    if (typeof sent === 'string') return sent;
+    const r = await docBefore(id);
+    return r ? String(r['type']) : null;
+  };
+  let primary = false;
+  const following: CrudOp[] = [];
+
+  for (const op of ctxTx.ops) {
+    const access = tableAccess(op.table);
+    if (access.serverOnly) throw new Rejected(`${op.table} is kept by the server`);
+    if (op.table === 'review_items') {
+      // approval requests come from the server only: one made on a device could name anyone as the asker
+      const kind =
+        op.data?.['kind'] ??
+        (op.op === 'PUT' ? undefined : (await rowOf('review_items', op.id))?.['kind']);
+      const before = op.op === 'PUT' ? await rowOf('review_items', op.id) : null;
+      if (kind === 'approval_request' || before?.['kind'] === 'approval_request')
+        throw new Rejected('approval requests are kept by the server');
+    }
+    if (access.anyWriter) continue;
+    const data = op.data ?? {};
+
+    if (op.table === 'documents') {
+      const before = await docBefore(op.id);
+      const after = { ...(before ?? {}), ...data };
+      const kind = String(after['type'] ?? '');
+      if (before && data['type'] !== undefined && data['type'] !== before['type'])
+        throw new Rejected('a document cannot change its kind');
+      const m = documentModule(kind);
+      const action = op.op === 'DELETE' ? 'edit' : changeAction(op.op, before, after);
+      need(m, action);
+      if (action === 'issue' && !before) need(m, 'create');
+      if (!caller.approvedBy && before?.['status'] === 'issued') {
+        const revising = Number(after['revision'] ?? 1) === Number(before['revision'] ?? 1) + 1;
+        const change = action === 'cancel' ? 'cancel' : revising ? 'revise' : null;
+        if (change && needsApproval(p, caller.policy, m, change))
+          throw new NeedsApproval(
+            m,
+            change,
+            op.id,
+            String(before['business_id']),
+            before,
+            change === 'cancel'
+              ? `cancelling ${String(before['number'])} waits for an approver`
+              : `changing ${String(before['number'])} waits for an approver`,
+          );
+      }
+      primary = true;
+    } else if (op.table === 'document_lines') {
+      const line = op.op === 'PUT' ? null : await rowOf('document_lines', op.id);
+      const docId = String(data['document_id'] ?? line?.['document_id'] ?? '');
+      const kind = docId ? await docKind(docId) : null;
+      if (!kind) throw new Rejected('a line needs its document');
+      const m = documentModule(kind);
+      if (!can(p, m, 'create') && !can(p, m, 'edit'))
+        throw new Rejected(`your role (${roleName(p)}) cannot change ${m}`);
+      primary = true;
+    } else if (op.table === 'payments') {
+      const before = await rowOf('payments', op.id);
+      const cancelling = data['status'] === 'cancelled' && before?.['status'] !== 'cancelled';
+      const action = !before ? 'create' : cancelling ? 'cancel' : 'edit';
+      need('payments', action);
+      if (
+        cancelling &&
+        before &&
+        !caller.approvedBy &&
+        needsApproval(p, caller.policy, 'payments', 'cancel')
+      )
+        throw new NeedsApproval(
+          'payments',
+          'cancel',
+          op.id,
+          String(before['business_id']),
+          before,
+          'cancelling a payment waits for an approver',
+        );
+      primary = true;
+    } else if (access.follows) {
+      following.push(op);
+    } else {
+      const m = access.module as Module;
+      const exists = op.op === 'PUT' ? !!(await rowOf(op.table, op.id)) : true;
+      need(m, exists || !MODULE_ACTIONS[m].includes('create') ? 'edit' : 'create');
+    }
+  }
+  for (const op of following) {
+    const m = tableAccess(op.table).module as Module;
+    if (!primary && !can(p, m, 'create') && !can(p, m, 'edit'))
+      throw new Rejected(`your role (${roleName(p)}) cannot change ${op.table}`);
+  }
+}
+
 /** Lines of a draft are free; lines of an issued document only change with its revision in the same upload. */
 async function assertLineWritable(
   d: PgDatabase,
@@ -627,7 +742,7 @@ async function assertLineWritable(
     throw new Rejected('lines of an issued document change only with a revision');
 }
 
-async function raiseConflict(
+export async function raiseConflict(
   d: PgDatabase,
   ctx: Ctx,
   caller: SyncCaller,
@@ -665,6 +780,42 @@ async function raiseConflict(
 }
 
 /** For tests and the admin page: how many uploads a device has had applied, by outcome. */
+async function raiseApproval(
+  d: PgDatabase,
+  ctx: Ctx,
+  caller: SyncCaller,
+  ctxTx: ClientTx,
+  a: NeedsApproval,
+): Promise<string> {
+  const c2: Ctx = { ...ctx, businessId: a.businessId, actor: 'system:sync' };
+  const strip = (r: Record<string, unknown>) =>
+    Object.fromEntries(Object.entries(r).filter(([k]) => !['org_id', 'business_id'].includes(k)));
+  const label = String(a.theirs['number'] ?? a.theirs['reference'] ?? a.rowId.slice(0, 8));
+  const item = await new ReviewRepo(d).create(c2, {
+    kind: 'approval_request',
+    status: 'pending',
+    payload_json: { table: a.module === 'payments' ? 'payments' : 'documents', rowId: a.rowId },
+    suggestion_json: {
+      table: a.module === 'payments' ? 'payments' : 'documents',
+      rowId: a.rowId,
+      module: a.module,
+      change: a.change,
+      label,
+      reason: a.message,
+      theirs: strip(a.theirs),
+      ops: ctxTx.ops,
+      deviceId: caller.deviceId,
+      txId: ctxTx.txId,
+      byUser: caller.userId,
+    },
+    diff_json: null,
+    source: 'sync',
+    confidence: null,
+    dedupe_key: `approval:${caller.deviceId}:${ctxTx.txId}`,
+  });
+  return String(item['id']);
+}
+
 export async function appliedCounts(
   d: PgDatabase,
   orgId: string,

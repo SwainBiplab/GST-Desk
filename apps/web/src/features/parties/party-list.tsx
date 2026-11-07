@@ -45,6 +45,7 @@ import { MergeDialog } from './merge';
 import { useAppDb } from '@/app/db';
 import { useAppNavigate } from '@/app/hooks';
 import type { Shell } from '@/app/store';
+import { useCan } from '@/features/team/permissions';
 import { dyn } from '@/lib/dyn-key';
 
 export interface PartyRow {
@@ -511,6 +512,7 @@ function ShopCards({ rows, onOpen }: { rows: PartyRow[]; onOpen: (id: string) =>
 
 export function PartyList({ shell }: { shell: Shell }) {
   const { t } = useTranslation();
+  const mayCreate = useCan('parties', 'create');
   const navigate = useAppNavigate();
   const { data, isLoading } = usePartyList();
   const [q, setQ] = useState('');
@@ -598,21 +600,25 @@ export function PartyList({ shell }: { shell: Shell }) {
         description={t('parties.list.count', { count: filtered.length, total: all.length })}
         actions={
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => navigate(`/${shell}/parties`, { import: '1' })}
-              data-testid="import-parties"
-              className={shell === 'shop' ? 'min-h-11' : ''}
-            >
-              {t('parties.list.import')}
-            </Button>
-            <Button
-              onClick={() => navigate(`/${shell}/parties`, { new: '1' })}
-              data-testid="new-party"
-              className={shell === 'shop' ? 'min-h-11' : ''}
-            >
-              {t('parties.list.new')}
-            </Button>
+            {mayCreate && (
+              <Button
+                variant="outline"
+                onClick={() => navigate(`/${shell}/parties`, { import: '1' })}
+                data-testid="import-parties"
+                className={shell === 'shop' ? 'min-h-11' : ''}
+              >
+                {t('parties.list.import')}
+              </Button>
+            )}
+            {mayCreate && (
+              <Button
+                onClick={() => navigate(`/${shell}/parties`, { new: '1' })}
+                data-testid="new-party"
+                className={shell === 'shop' ? 'min-h-11' : ''}
+              >
+                {t('parties.list.new')}
+              </Button>
+            )}
           </div>
         }
       />

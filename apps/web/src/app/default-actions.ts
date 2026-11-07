@@ -6,6 +6,7 @@ import { registerAction, type ActionContext } from './actions';
 import { PAGE_IDS, type PageId } from './nav';
 import { GO_TO } from './shortcuts';
 
+import { pageAllowed } from '@/features/team/permissions';
 import { dyn } from '@/lib/dyn-key';
 
 const t = (key: string, opts?: Record<string, unknown>): string =>
@@ -61,6 +62,7 @@ export function registerDefaultActions(): void {
       section: t('act.section.goTo'),
       keywords: KEYWORDS[page],
       ...(HINT[page] ? { shortcut: HINT[page] } : {}),
+      allowed: (p) => pageAllowed(page, p),
       run: go(page),
     });
   }
@@ -68,6 +70,7 @@ export function registerDefaultActions(): void {
   const section = (k: string) => t(`act.section.${k}`);
   registerAction({
     id: 'new.invoice',
+    perm: ['sales', 'create'],
     title: t('act.newInvoice'),
     section: section('new'),
     keywords: ['sale', 'bill', 'sell'],
@@ -76,6 +79,7 @@ export function registerDefaultActions(): void {
   });
   registerAction({
     id: 'new.quotation',
+    perm: ['quotes', 'create'],
     title: t('act.newQuotation'),
     section: section('new'),
     keywords: ['quote', 'estimate'],
@@ -84,6 +88,7 @@ export function registerDefaultActions(): void {
   });
   registerAction({
     id: 'new.purchase',
+    perm: ['purchases', 'create'],
     title: t('act.newPurchase'),
     section: section('new'),
     keywords: ['buy', 'supplier bill'],
@@ -92,6 +97,7 @@ export function registerDefaultActions(): void {
   });
   registerAction({
     id: 'new.party',
+    perm: ['parties', 'create'],
     title: t('act.newParty'),
     section: section('new'),
     keywords: ['customer', 'supplier'],
@@ -99,6 +105,7 @@ export function registerDefaultActions(): void {
   });
   registerAction({
     id: 'new.item',
+    perm: ['items', 'create'],
     title: t('act.newItem'),
     section: section('new'),
     keywords: ['product', 'service'],
@@ -107,6 +114,7 @@ export function registerDefaultActions(): void {
 
   registerAction({
     id: 'import.items',
+    perm: ['items', 'create'],
     title: t('act.importItems'),
     section: section('data'),
     keywords: ['csv', 'upload', 'products', 'bulk'],
@@ -114,6 +122,7 @@ export function registerDefaultActions(): void {
   });
   registerAction({
     id: 'import.parties',
+    perm: ['parties', 'create'],
     title: t('act.importParties'),
     section: section('data'),
     keywords: ['csv', 'upload', 'customers', 'suppliers', 'bulk'],
@@ -122,6 +131,7 @@ export function registerDefaultActions(): void {
 
   registerAction({
     id: 'money.receive',
+    perm: ['payments', 'create'],
     title: t('act.receive'),
     section: section('money'),
     keywords: ['collect', 'customer paid'],
@@ -129,6 +139,7 @@ export function registerDefaultActions(): void {
   });
   registerAction({
     id: 'money.pay',
+    perm: ['payments', 'create'],
     title: t('act.pay'),
     section: section('money'),
     keywords: ['supplier', 'paid'],
@@ -136,6 +147,7 @@ export function registerDefaultActions(): void {
   });
   registerAction({
     id: 'stock.adjust',
+    perm: ['inventory', 'edit'],
     title: t('act.adjustStock'),
     section: section('data'),
     keywords: ['inventory', 'count', 'stocktake', 'quantity'],
@@ -151,11 +163,13 @@ export function registerDefaultActions(): void {
       section: section('reports'),
       keywords: ['report', def.section, id.replace(/_/g, ' ')],
       ...(def.flag ? { when: (c: ActionContext) => c.flags[def.flag!] } : {}),
+      perm: ['reports', 'view'],
       run: go('reports', { report: id }),
     });
   }
   registerAction({
     id: 'inbox.scan',
+    perm: ['purchases', 'create'],
     title: t('act.scan'),
     section: section('new'),
     keywords: ['purchase bill', 'ocr', 'upload'],
@@ -197,6 +211,7 @@ export function registerDefaultActions(): void {
   });
   registerAction({
     id: 'data.demo',
+    perm: ['settings', 'edit'],
     title: t('act.demo'),
     section: section('data'),
     keywords: ['sample', 'seed', 'example'],

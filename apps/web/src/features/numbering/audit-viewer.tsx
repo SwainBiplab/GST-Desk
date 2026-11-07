@@ -11,11 +11,15 @@ import {
 import { Fragment, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { auditCsv, type AuditEntry } from './audit';
+import { actorName, auditCsv, type AuditEntry } from './audit';
 import { AuditDiff } from './audit-diff';
 
-import { useLiveQuery } from '@/app/db';
+import { useAppDb, useLiveQuery } from '@/app/db';
+import { CloudClient, readSession, type SignIn } from '@/features/cloud/client';
 import { downloadText } from '@/features/parties/csv';
+import { useTeamNames } from '@/features/team/names';
+import { useCan } from '@/features/team/permissions';
+import { browserStore } from '@/features/team/source';
 import { EXAMPLE } from '@/lib/terms';
 
 const TABLES = [
@@ -44,6 +48,35 @@ export function AuditViewer() {
   const [to, setTo] = useState('');
   const [number, setNumber] = useState('');
   const [open, setOpen] = useState<ReadonlySet<string>>(new Set());
+  const { ctx } = useAppDb();
+  const team = useTeamNames(ctx?.orgId);
+  const mayExport = useCan('audit', 'export');
+  const [signIns, setSignIns] = useState<{ name: string; rows: SignIn[] } | null>(null);
+  const nameOf = (a: string) =>
+    actorName(a, {
+      me: ctx?.actor ?? null,
+      members: team.names,
+      you: t('audit.you'),
+      system: t('audit.system'),
+    });
+
+  // who has been changing the books, in the chosen dates (prompt 42)
+  const people = useLiveQuery({
+    tables: LIVE,
+    key: ['audit-people', from, to],
+    fn: (d, c) =>
+      new AuditRepo(d).activity(c, {
+        ...(from ? { from: dayStart(from) } : {}),
+        ...(to ? { to: dayEnd(to) } : {}),
+      }),
+  });
+  const showSignIns = async (actor: string) => {
+    const session = readSession(browserStore.get);
+    const memberId = team.members.get(actor);
+    if (!session || !ctx?.orgId || !memberId) return;
+    const rows = await new CloudClient(session.baseUrl, session.token).signIns(ctx.orgId, memberId);
+    setSignIns({ name: nameOf(actor), rows });
+  };
 
   const { data } = useLiveQuery<{ entries: AuditEntry[]; unknownNumber: boolean }>({
     tables: LIVE,
@@ -133,12 +166,73 @@ export function AuditViewer() {
           />
         </label>
       </div>
+      {(people.data?.length ?? 0) > 0 && (
+        <div data-testid="audit-people">
+          <h3 className="pb-1 text-sm font-medium">{t('audit.people')}</h3>
+          <ul className="flex flex-wrap gap-2 text-sm">
+            {people.data!.map((p) => (
+              <li
+                key={p.actor}
+                className="flex items-center gap-1 rounded-md border border-border px-2 py-1"
+                data-testid="audit-person"
+                data-actor={p.actor}
+              >
+                <button
+                  type="button"
+                  className="underline-offset-2 hover:underline"
+                  aria-pressed={actor === p.actor}
+                  onClick={() => setActor(actor === p.actor ? '' : p.actor)}
+                >
+                  {nameOf(p.actor)}
+                </button>
+                <span className="text-xs text-fg-muted">
+                  {t('audit.changes', {
+                    count: p.changes,
+                    when: new Date(p.lastAt).toLocaleDateString('en-IN'),
+                  })}
+                </span>
+                {team.members.has(p.actor) && (
+                  <Button
+                    variant="ghost"
+                    data-testid="audit-sign-ins"
+                    onClick={() => void showSignIns(p.actor).catch(() => undefined)}
+                  >
+                    {t('team.signIns')}
+                  </Button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {signIns && (
+        <div
+          className="rounded-md border border-border p-2 text-sm"
+          data-testid="audit-sign-in-list"
+        >
+          <div className="flex items-center pb-1">
+            <span className="grow font-medium">{t('team.signInsOf', { name: signIns.name })}</span>
+            <Button variant="ghost" onClick={() => setSignIns(null)}>
+              {t('audit.hideChanges')}
+            </Button>
+          </div>
+          <ul>
+            {signIns.rows.map((r) => (
+              <li key={r.at}>
+                {new Date(r.at).toLocaleString('en-IN')}
+                {r.ip ? ` · ${r.ip}` : ''}
+                {r.userAgent ? ` · ${r.userAgent}` : ''}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <div className="flex items-center gap-2">
         <Button
           variant="outline"
           data-testid="audit-export"
-          disabled={entries.length === 0}
-          onClick={() => downloadText('audit-trail.csv', auditCsv(entries))}
+          disabled={entries.length === 0 || !mayExport}
+          onClick={() => downloadText('audit-trail.csv', auditCsv(entries, nameOf))}
         >
           {t('audit.exportCsv')}
         </Button>
@@ -182,7 +276,9 @@ export function AuditViewer() {
                     <td className="whitespace-nowrap py-1 pr-2 tabular">
                       {new Date(e.at).toLocaleString('en-IN')}
                     </td>
-                    <td className="pr-2">{e.actor}</td>
+                    <td className="pr-2" title={e.actor}>
+                      {nameOf(e.actor)}
+                    </td>
                     <td className="pr-2">{e.table_name.replace(/_/g, ' ')}</td>
                     <td className="pr-2">{label}</td>
                     <td className="pr-2">{t(`audit.${e.action}`)}</td>

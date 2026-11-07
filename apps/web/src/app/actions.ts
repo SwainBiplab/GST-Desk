@@ -2,7 +2,13 @@
  * Action registry for the command bar. Features register actions; the command bar filters and runs them.
  * This file is pure (no React, no DOM) so the filtering rules are unit-testable.
  */
-import type { FeatureFlags } from '@gst/domain';
+import {
+  can,
+  type Action as Do,
+  type FeatureFlags,
+  type Module,
+  type Permissions,
+} from '@gst/domain';
 
 import type { Shell } from './store';
 
@@ -11,6 +17,8 @@ export interface ActionContext {
   businessId: string | null;
   /** Feature flags of the current business: actions for switched-off features are hidden. */
   flags: FeatureFlags;
+  /** What the person may do: actions they cannot take are hidden (the server refuses them anyway). */
+  perms: Permissions;
   navigate: (to: string, search?: Record<string, unknown>) => void;
   /** Open another UI surface (command bar prefilled, shortcut sheet, ...). */
   ui: {
@@ -35,7 +43,15 @@ export interface Action {
   run: (ctx: ActionContext) => void | Promise<void>;
   /** Hide the action when this returns false. */
   when?: (ctx: ActionContext) => boolean;
+  /** The permission the action needs (prompt 42). */
+  perm?: readonly [Module, Do];
+  /** Or a test on the whole permission set (pages that several modules open). */
+  allowed?: (p: Permissions) => boolean;
 }
+
+/** Does the person's role allow this action? */
+export const permitted = (a: Action, p: Permissions): boolean =>
+  (!a.perm || can(p, a.perm[0], a.perm[1])) && (!a.allowed || a.allowed(p));
 
 const registry = new Map<string, Action>();
 const listeners = new Set<() => void>();
@@ -52,7 +68,7 @@ export function registerAction(action: Action): () => void {
 
 export function getActions(ctx?: ActionContext): Action[] {
   const all = [...registry.values()];
-  return ctx ? all.filter((a) => !a.when || a.when(ctx)) : all;
+  return ctx ? all.filter((a) => (!a.when || a.when(ctx)) && permitted(a, ctx.perms)) : all;
 }
 
 export function getAction(id: string): Action | undefined {

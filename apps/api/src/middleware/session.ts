@@ -4,15 +4,15 @@
  * `app.org_id` and row-level security. The organisation limiter counts here too.
  */
 import type { Ctx } from '@gst/db';
+import { can as allows, canWriteAnything, type Action, type Module } from '@gst/domain';
 import type { Context, MiddlewareHandler } from 'hono';
 
 import { type Vars } from '../app';
-import { orgsOf, type OrgMembership } from '../auth/mirror';
-import { roles, type OrgRole } from '../auth/options';
+import { membershipOf, type Membership } from '../auth/permissions';
 import { ApiError, forbidden, notFound, unauthorized } from '../errors';
 
 export interface OrgVars extends Vars {
-  org: OrgMembership;
+  org: Membership;
   ctx: Ctx;
 }
 
@@ -46,8 +46,7 @@ export const requireOrg: MiddlewareHandler<{ Variables: OrgVars }> = async (c, n
   const orgId = c.req.param('orgId');
   if (!orgId || !/^[0-9a-f-]{36}$/.test(orgId)) throw notFound('That organisation');
   const deps = c.get('deps');
-  const memberships = await orgsOf(deps.db, session.userId);
-  const org = memberships.find((m) => m.id === orgId);
+  const org = await membershipOf(deps.db, session.userId, orgId);
   if (!org) throw notFound('That organisation');
   const r = await deps.orgLimiter.take(`org:${orgId}`);
   if (!r.ok)
@@ -61,25 +60,30 @@ export const requireOrg: MiddlewareHandler<{ Variables: OrgVars }> = async (c, n
   await next();
 };
 
-/** Does the caller's role allow this, by the access-control statements. */
-export function can(
-  c: Context<{ Variables: OrgVars }>,
-  resource: keyof typeof roles.owner.statements,
-  action: string,
-): boolean {
-  const role = roles[c.get('org').role as OrgRole];
-  if (!role) return false;
-  const allowed = (role.statements as Record<string, readonly string[]>)[resource] ?? [];
-  return allowed.includes(action);
+/** Does the caller's role allow this, by the shared permission matrix (`@gst/domain`). */
+export function can(c: Context<{ Variables: OrgVars }>, module: Module, action: Action): boolean {
+  return allows(c.get('org').perms, module, action);
 }
 
+const roleLabel = (c: Context<{ Variables: OrgVars }>) => {
+  const p = c.get('org').perms;
+  return p.roleName ?? p.role;
+};
+
 export function requirePermission(
-  resource: keyof typeof roles.owner.statements,
-  action: string,
+  module: Module,
+  action: Action,
 ): MiddlewareHandler<{ Variables: OrgVars }> {
   return async (c, next) => {
-    if (!can(c, resource, action))
-      throw forbidden(`Your role (${c.get('org').role}) cannot ${action} ${resource}.`);
+    if (!can(c, module, action))
+      throw forbidden(`Your role (${roleLabel(c)}) cannot ${action} ${module}.`);
     await next();
   };
 }
+
+/** Anything that writes: everyone but a role that only views. */
+export const requireWriter: MiddlewareHandler<{ Variables: OrgVars }> = async (c, next) => {
+  if (!canWriteAnything(c.get('org').perms))
+    throw forbidden(`Your role (${roleLabel(c)}) can only view.`);
+  await next();
+};

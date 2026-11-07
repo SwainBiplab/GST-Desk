@@ -6,7 +6,7 @@ import { createRoute, z } from '@hono/zod-openapi';
 
 import { subApp, type App } from '../app';
 import { ApiError, errorSchema, notFound } from '../errors';
-import { requireOrg, requirePermission, type OrgVars } from '../middleware/session';
+import { requireOrg, requireWriter, type OrgVars } from '../middleware/session';
 import { ALLOWED_MIME, MAX_OBJECT_BYTES, StorageError } from '../storage/s3';
 
 import type { RouteDeps } from './index';
@@ -44,7 +44,7 @@ export function fileRoutes(app: App, deps: RouteDeps): void {
       tags: ['files'],
       summary: 'A signed URL to upload one file (PUT the bytes there within ten minutes)',
       security,
-      middleware: [requirePermission('documents', 'write')] as const,
+      middleware: [requireWriter] as const,
       request: {
         params: orgParam,
         body: {
@@ -108,7 +108,6 @@ export function fileRoutes(app: App, deps: RouteDeps): void {
       tags: ['files'],
       summary: 'A signed URL to download one of the organisation’s files',
       security,
-      middleware: [requirePermission('documents', 'read')] as const,
       request: {
         params: orgParam,
         query: z.object({

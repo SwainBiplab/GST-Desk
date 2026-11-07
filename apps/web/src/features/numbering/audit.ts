@@ -67,18 +67,37 @@ export interface AuditEntry {
   at: number;
 }
 
-/** The audit trail as a spreadsheet: one row per changed field, so a filter in Excel finds a value. */
-export function auditCsv(entries: readonly AuditEntry[]): string {
+/**
+ * The audit trail as a spreadsheet: one row per changed field, so a filter in Excel finds a value. `nameOf`
+ * turns a person's id into their name (team members, prompt 42); the id stays in its own column.
+ */
+export function auditCsv(
+  entries: readonly AuditEntry[],
+  nameOf: (actor: string) => string = (a) => a,
+): string {
   const rows: CsvValue[][] = [
-    ['When', 'Who', 'Record type', 'Record id', 'Action', 'Field', 'Before', 'After'],
+    ['When', 'Who', 'Who (id)', 'Record type', 'Record id', 'Action', 'Field', 'Before', 'After'],
   ];
   for (const e of entries) {
     const when = new Date(e.at).toISOString();
+    const who = nameOf(e.actor);
     const changes = diffRows(e.before_json, e.after_json);
     if (changes.length === 0)
-      rows.push([when, e.actor, e.table_name, e.row_id, e.action, '', '', '']);
+      rows.push([when, who, e.actor, e.table_name, e.row_id, e.action, '', '', '']);
     for (const c of changes)
-      rows.push([when, e.actor, e.table_name, e.row_id, e.action, c.field, c.before, c.after]);
+      rows.push([when, who, e.actor, e.table_name, e.row_id, e.action, c.field, c.before, c.after]);
   }
   return toCsv(rows);
+}
+
+/** A person's id as words: a team member's name, "you", or the system process that wrote it. */
+export function actorName(
+  actor: string,
+  o: { me?: string | null; members: ReadonlyMap<string, string>; you: string; system: string },
+): string {
+  if (o.me && actor === o.me) return o.you;
+  const known = o.members.get(actor);
+  if (known) return known;
+  if (actor.startsWith('system')) return `${o.system} (${actor.replace(/^system:?/, '') || 'app'})`;
+  return actor;
 }

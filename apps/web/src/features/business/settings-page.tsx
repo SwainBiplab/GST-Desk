@@ -3,6 +3,7 @@ import {
   FLAG_KEYS,
   PRESETS,
   RULE_46A_DECLARATION,
+  can,
   deriveFlags,
   diffOverrides,
   type DocumentType,
@@ -65,6 +66,8 @@ import { NumberingTab } from '@/features/numbering/numbering-tab';
 import { Field } from '@/features/onboarding/field';
 import { AccountsTab } from '@/features/payments/accounts-tab';
 import { PrintTab } from '@/features/print/designer';
+import { usePermissions } from '@/features/team/permissions';
+import { TeamTab } from '@/features/team/team-tab';
 import { PrivacyTab } from '@/features/telemetry/privacy-tab';
 
 const MONTHS = [
@@ -468,6 +471,7 @@ const TABS = [
   'lan',
   'ai',
   'cloud',
+  'team',
 ] as const;
 
 /** Settings: business profile, images, features, document terms, businesses. Sections follow the feature flags. */
@@ -475,6 +479,7 @@ export function SettingsPage() {
   const { t } = useTranslation();
   const { business } = useAppDb();
   const flags = useFeatureFlags();
+  const { perms } = usePermissions();
   const { search } = useLocationInfo();
   const wanted = typeof search['tab'] === 'string' ? search['tab'] : 'profile';
   const visible = TABS.filter((k) =>
@@ -484,7 +489,9 @@ export function SettingsPage() {
         ? flags.thermal
         : k === 'desktop' || k === 'lan'
           ? isDesktop()
-          : true,
+          : k === 'audit'
+            ? can(perms, 'audit', 'view')
+            : true,
   );
   const [tab, setTab] = useState<string>(visible.includes(wanted as never) ? wanted : 'profile');
 
@@ -526,9 +533,11 @@ export function SettingsPage() {
         <TabsContent value="accounts">
           <AccountsTab />
         </TabsContent>
-        <TabsContent value="audit">
-          <AuditViewer />
-        </TabsContent>
+        {can(perms, 'audit', 'view') && (
+          <TabsContent value="audit">
+            <AuditViewer />
+          </TabsContent>
+        )}
         <TabsContent value="businesses">
           <BusinessesTab />
         </TabsContent>
@@ -559,6 +568,9 @@ export function SettingsPage() {
         </TabsContent>
         <TabsContent value="cloud">
           <CloudTab />
+        </TabsContent>
+        <TabsContent value="team">
+          <TeamTab />
         </TabsContent>
         {isDesktop() && (
           <TabsContent value="lan">

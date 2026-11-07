@@ -3,10 +3,11 @@
  * asks for number ranges. Downloads never come through here: the PowerSync service streams them.
  */
 import { DocumentFlowRepo, NumberingRepo, newId, type Ctx } from '@gst/db';
+import { canWriteAnything } from '@gst/domain';
 import { createRoute, z } from '@hono/zod-openapi';
 
 import type { App } from '../app';
-import { orgsOf } from '../auth/mirror';
+import { membershipOf } from '../auth/permissions';
 import { ApiError, errorSchema, forbidden, notFound, unauthorized } from '../errors';
 import { requireSession } from '../middleware/session';
 import { applyClientTx, clientTxSchema, type TxOutcome } from '../sync/apply';
@@ -35,7 +36,7 @@ function inTurn<T>(orgId: string, fn: () => Promise<T>): Promise<T> {
 
 export function syncRoutes(app: App, deps: RouteDeps): void {
   const member = async (userId: string, orgId: string) => {
-    const m = (await orgsOf(deps.db, userId)).find((o) => o.id === orgId);
+    const m = await membershipOf(deps.db, userId, orgId);
     if (!m) throw notFound('That organisation');
     return m;
   };
@@ -117,7 +118,7 @@ export function syncRoutes(app: App, deps: RouteDeps): void {
                  ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, platform = EXCLUDED.platform, last_seen_at = ${now}`;
       });
       const t = signSyncToken(
-        { sub: s.userId, org_id: b.orgId, device_id: deviceId, role: m.role },
+        { sub: s.userId, org_id: b.orgId, device_id: deviceId, role: m.perms.role },
         deps.config.sync.jwtSecret,
       );
       return c.json(
@@ -134,7 +135,7 @@ export function syncRoutes(app: App, deps: RouteDeps): void {
 
   const outcome = z.object({
     txId: z.number(),
-    outcome: z.enum(['applied', 'duplicate', 'conflict', 'rejected']),
+    outcome: z.enum(['applied', 'duplicate', 'conflict', 'approval', 'rejected']),
     reason: z.string().optional(),
     reviewItemId: z.string().optional(),
     renumbered: z.array(z.object({ id: z.string(), from: z.string(), to: z.string() })).optional(),
@@ -182,7 +183,13 @@ export function syncRoutes(app: App, deps: RouteDeps): void {
       const b = c.req.valid('json');
       const m = await member(s.userId, b.orgId);
       await device(b.orgId, s.userId, b.deviceId);
-      const caller = { orgId: b.orgId, userId: s.userId, deviceId: b.deviceId, role: m.role };
+      const caller = {
+        orgId: b.orgId,
+        userId: s.userId,
+        deviceId: b.deviceId,
+        perms: m.perms,
+        policy: m.policy,
+      };
       const ctx: Ctx = { orgId: b.orgId, businessId: '', actor: s.userId, deviceId: b.deviceId };
       const results: TxOutcome[] = await inTurn(b.orgId, async () => {
         const out: TxOutcome[] = [];
@@ -241,7 +248,7 @@ export function syncRoutes(app: App, deps: RouteDeps): void {
       if (!s) throw unauthorized();
       const b = c.req.valid('json');
       const m = await member(s.userId, b.orgId);
-      if (m.role === 'viewer') throw forbidden('A viewer cannot issue documents.');
+      if (!canWriteAnything(m.perms)) throw forbidden('Your role can only view.');
       await device(b.orgId, s.userId, b.deviceId);
       const ctx: Ctx = {
         orgId: b.orgId,

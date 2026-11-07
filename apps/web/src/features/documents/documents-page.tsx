@@ -1,5 +1,5 @@
 import { DocumentFlowRepo, DocumentRepo, type Row } from '@gst/db';
-import type { DocumentType } from '@gst/domain';
+import { can, documentModule, type DocumentType } from '@gst/domain';
 import {
   Badge,
   Button,
@@ -31,6 +31,7 @@ import { useFeatureFlags } from '@/features/business/hooks';
 import { usePositions } from '@/features/payments/hooks';
 import { PayStatusBadge } from '@/features/payments/status-badge';
 import { BulkExportDialog } from '@/features/print/bulk-export';
+import { usePermissions } from '@/features/team/permissions';
 import { dyn } from '@/lib/dyn-key';
 
 const ALL_TYPES: DocumentType[] = [
@@ -74,8 +75,10 @@ export function DocumentsPage({ shell }: { shell: Shell }) {
   });
 
   const composition = business?.['scheme'] === 'composition';
+  const { perms } = usePermissions();
   const creatable = ALL_TYPES.filter(
     (x) =>
+      can(perms, documentModule(x), 'create') &&
       !(composition && (x === 'tax_invoice' || x === 'credit_note' || x === 'debit_note')) &&
       !(x === 'quotation' && !flags.quotations) &&
       !(x === 'delivery_challan' && !flags.challans) &&
@@ -121,7 +124,9 @@ export function DocumentsPage({ shell }: { shell: Shell }) {
             )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button data-testid="doc-new">{t('docs.list.new')}</Button>
+                <Button data-testid="doc-new" disabled={creatable.length === 0}>
+                  {t('docs.list.new')}
+                </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {creatable

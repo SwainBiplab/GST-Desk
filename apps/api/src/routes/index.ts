@@ -14,6 +14,7 @@ import { fileRoutes } from './files';
 import { meRoutes } from './me';
 import { orgRoutes } from './orgs';
 import { syncRoutes } from './sync';
+import { teamRoutes } from './team';
 
 export interface RouteDeps {
   db: PgDatabase;
@@ -26,12 +27,18 @@ export interface RouteDeps {
 
 export function mountRoutes(app: App, deps: RouteDeps): void {
   // better-auth: /v1/auth/* (sign-in by email or phone code, sessions, organisations, two-factor)
+  // better-auth's organisation endpoints are closed: membership, roles and invitations go through the
+  // team routes, which check the shared permission matrix (an admin cannot make an owner there)
+  app.all('/v1/auth/organization/*', (c) =>
+    c.json({ error: { code: 'not_found', message: 'Use the team routes under /v1/orgs.' } }, 404),
+  );
   app.on(['GET', 'POST'], '/v1/auth/*', (c) => deps.auth.handler(c.req.raw));
   app.use('/v1/*', readSession);
   meRoutes(app, deps);
   orgRoutes(app, deps);
   fileRoutes(app, deps);
   syncRoutes(app, deps);
+  teamRoutes(app, deps);
   adminRoutes(app, deps);
   if (deps.config.env !== 'production') devRoutes(app, deps);
 }

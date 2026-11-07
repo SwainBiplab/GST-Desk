@@ -18,7 +18,7 @@ Context: prompt 41, PRD FR-130, FR-044, UX-10, NFR-08; CGST Rules 46 and 48, GST
   driver). The local guards (no hard delete, append-only audit) stand aside only while PowerSync itself writes,
   because putting the server's state back can mean removing a row the server refused.
 - **The token decides what a device sees.** The API signs an HS256 token (organisation, user, device, role,
-  one hour) only after checking membership; the sync rules read the organisation from it. Logical replication
+  five minutes) only after checking membership; the sync rules read the organisation from it. Logical replication
   does not pass through row-level security, so the rules, not RLS, keep organisations apart on the way down;
   every upload still goes through RLS on the way up.
 - **What syncs.** Every business table both ways, except: people and organisations (server-side), LAN tablets

@@ -5,7 +5,8 @@
  */
 import { createHmac } from 'node:crypto';
 
-export const SYNC_TOKEN_SECONDS = 60 * 60;
+/** Short, so a removed member's device stops downloading within minutes (uploads are checked per request). */
+export const SYNC_TOKEN_SECONDS = 5 * 60;
 export const SYNC_KID = 'gst-sync';
 
 const b64url = (s: string | Buffer) => Buffer.from(s).toString('base64url');

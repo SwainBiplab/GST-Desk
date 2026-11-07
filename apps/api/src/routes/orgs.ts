@@ -248,7 +248,7 @@ export function orgRoutes(app: App, deps: RouteDeps): void {
       tags: ['businesses'],
       summary: 'Create a business in the organisation',
       security,
-      middleware: [requirePermission('business', 'create')] as const,
+      middleware: [requirePermission('settings', 'edit')] as const,
       request: {
         params: orgParam,
         body: { content: { 'application/json': { schema: businessInput } } },
@@ -312,7 +312,7 @@ export function orgRoutes(app: App, deps: RouteDeps): void {
       tags: ['businesses'],
       summary: 'Change a business (optimistic: send the version you saw)',
       security,
-      middleware: [requirePermission('business', 'update')] as const,
+      middleware: [requirePermission('settings', 'edit')] as const,
       request: {
         params: businessParam,
         body: {

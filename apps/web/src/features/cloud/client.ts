@@ -4,6 +4,8 @@
  * every error its envelope. Nothing is sent unless the person has set an API address and signed in.
  */
 
+import type { CloudPermissions as CloudPermissionsAnswer } from '@/features/team/permissions';
+
 export interface CloudSession {
   baseUrl: string;
   token: string;
@@ -27,6 +29,71 @@ export interface CloudBusiness {
   fyStartMonth: number;
   version: number;
 }
+
+/** Team (prompt 42): the API's shapes for members, invitations, roles and approvals. */
+export interface TeamDevice {
+  id: string;
+  name: string;
+  platform: string | null;
+  lastSeenAt: number | null;
+  revokedAt: number | null;
+}
+export interface TeamMember {
+  memberId: string;
+  userId: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  role: string;
+  roleId: string | null;
+  roleName: string;
+  createdAt: number;
+  devices: TeamDevice[];
+}
+export interface TeamInvite {
+  id: string;
+  email: string | null;
+  phone: string | null;
+  role: string;
+  roleId: string | null;
+  roleName: string;
+  status: string;
+  expiresAt: number;
+  createdAt: number;
+}
+export interface CustomRole {
+  id: string;
+  name: string;
+  grants: Record<string, string[]>;
+  members: number;
+}
+export interface Team {
+  members: TeamMember[];
+  invites: TeamInvite[];
+  roles: CustomRole[];
+  policy: { approvals: boolean };
+}
+export interface MyInvite {
+  id: string;
+  orgId: string;
+  orgName: string;
+  roleName: string;
+  invitedBy: string;
+  expiresAt: number;
+}
+export interface SignIn {
+  at: number;
+  expiresAt: number;
+  ip: string | null;
+  userAgent: string | null;
+  current: boolean;
+}
+export type RoleChoice = { role: string } | { roleId: string };
+export type ApprovalOutcome = {
+  outcome: 'approved' | 'declined' | 'conflict' | 'refused';
+  reason?: string;
+  reviewItemId?: string;
+};
 
 export class CloudError extends Error {
   constructor(
@@ -183,6 +250,100 @@ export class CloudClient {
     b: { legalName: string; stateCode: string; gstin?: string; scheme?: 'regular' | 'composition' },
   ): Promise<CloudBusiness> {
     return this.call(`/v1/orgs/${orgId}/businesses`, { method: 'POST', body: JSON.stringify(b) });
+  }
+
+  permissions(orgId: string): Promise<CloudPermissionsAnswer> {
+    return this.call(`/v1/orgs/${orgId}/permissions`);
+  }
+
+  team(orgId: string): Promise<Team> {
+    return this.call(`/v1/orgs/${orgId}/team`);
+  }
+
+  invite(
+    orgId: string,
+    to: { email: string } | { phone: string },
+    role: RoleChoice,
+  ): Promise<TeamInvite> {
+    return this.call(`/v1/orgs/${orgId}/invites`, {
+      method: 'POST',
+      body: JSON.stringify({ ...to, ...role }),
+    });
+  }
+
+  withdrawInvite(orgId: string, id: string): Promise<null> {
+    return this.call(`/v1/orgs/${orgId}/invites/${id}`, { method: 'DELETE' });
+  }
+
+  changeRole(orgId: string, memberId: string, role: RoleChoice): Promise<null> {
+    return this.call(`/v1/orgs/${orgId}/members/${memberId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(role),
+    });
+  }
+
+  removeMember(orgId: string, memberId: string): Promise<null> {
+    return this.call(`/v1/orgs/${orgId}/members/${memberId}`, { method: 'DELETE' });
+  }
+
+  revokeDevice(orgId: string, deviceId: string): Promise<null> {
+    return this.call(`/v1/orgs/${orgId}/devices/${deviceId}/revoke`, {
+      method: 'POST',
+      body: '{}',
+    });
+  }
+
+  signIns(orgId: string, memberId: string): Promise<SignIn[]> {
+    return this.call(`/v1/orgs/${orgId}/members/${memberId}/sign-ins`);
+  }
+
+  saveRole(
+    orgId: string,
+    role: { id?: string; name: string; grants: Record<string, string[]> },
+  ): Promise<CustomRole | null> {
+    return role.id
+      ? this.call(`/v1/orgs/${orgId}/roles/${role.id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ name: role.name, grants: role.grants }),
+        })
+      : this.call(`/v1/orgs/${orgId}/roles`, {
+          method: 'POST',
+          body: JSON.stringify({ name: role.name, grants: role.grants }),
+        });
+  }
+
+  deleteRole(orgId: string, id: string): Promise<null> {
+    return this.call(`/v1/orgs/${orgId}/roles/${id}`, { method: 'DELETE' });
+  }
+
+  setPolicy(orgId: string, approvals: boolean): Promise<{ approvals: boolean }> {
+    return this.call(`/v1/orgs/${orgId}/policy`, {
+      method: 'PUT',
+      body: JSON.stringify({ approvals }),
+    });
+  }
+
+  decideApproval(
+    orgId: string,
+    itemId: string,
+    decision: 'approve' | 'decline',
+    note?: string,
+  ): Promise<ApprovalOutcome> {
+    return this.call(`/v1/orgs/${orgId}/approvals/${itemId}`, {
+      method: 'POST',
+      body: JSON.stringify({ decision, ...(note ? { note } : {}) }),
+    });
+  }
+
+  myInvites(): Promise<MyInvite[]> {
+    return this.call('/v1/me/invites');
+  }
+
+  answerInvite(id: string, accept: boolean): Promise<{ orgId: string }> {
+    return this.call(`/v1/invites/${id}/${accept ? 'accept' : 'decline'}`, {
+      method: 'POST',
+      body: '{}',
+    });
   }
 
   health(): Promise<{ ok: boolean; version: string }> {

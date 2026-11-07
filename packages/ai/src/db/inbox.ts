@@ -355,6 +355,9 @@ async function applyValue(db: Database, ctx: Ctx, kind: string, value: any): Pro
       await keepMine(db, ctx, value as SyncConflictItem);
       return;
     }
+    case 'approval_request':
+      // decided on the server, which holds the change: the inbox calls the cloud API for it
+      throw new RuleError('an approval is decided with Approve or Decline, through the cloud');
     case 'low_stock':
     case 'draft_stale':
     case 'backup_failed':

@@ -1,3 +1,4 @@
+import { can } from '@gst/domain';
 import { Button, formatPaise } from '@gst/ui';
 import { Link, Outlet } from '@tanstack/react-router';
 import { useEffect } from 'react';
@@ -13,6 +14,7 @@ import { NavEntry } from './nav';
 import { RightPanel, RightPanelProvider } from './panel';
 
 import { useFeatureFlags } from '@/features/business/hooks';
+import { pageAllowed, usePermissions } from '@/features/team/permissions';
 import { dyn } from '@/lib/dyn-key';
 
 function useShell(shell: Shell) {
@@ -63,6 +65,7 @@ export function ShopLayout() {
   const { t } = useTranslation();
   useShell('shop');
   const { business } = useAppDb();
+  const { perms } = usePermissions();
   return (
     <div className="flex h-screen flex-col" data-shell="shop">
       <SkipLink />
@@ -95,7 +98,7 @@ export function ShopLayout() {
           aria-label={t('nav.label')}
           className="flex w-16 shrink-0 flex-col items-center gap-1 overflow-auto border-r border-border p-1"
         >
-          {SHOP_NAV.map((item) => (
+          {SHOP_NAV.filter((item) => pageAllowed(item.page, perms)).map((item) => (
             <NavEntry key={item.id} shell="shop" item={item} compact />
           ))}
         </nav>
@@ -141,9 +144,16 @@ export function BooksLayout() {
   const { t } = useTranslation();
   useShell('books');
   const flags = useFeatureFlags();
+  const { perms } = usePermissions();
   const sections = BOOKS_NAV.map((s) => ({
     ...s,
-    items: s.items.filter((i) => !i.flag || flags[i.flag]),
+    items: s.items.filter(
+      (i) =>
+        (!i.flag || flags[i.flag]) &&
+        pageAllowed(i.page, perms) &&
+        // purchases have their own entry: it needs purchases, not just any document
+        (i.id !== 'purchases' || can(perms, 'purchases', 'view')),
+    ),
   })).filter((s) => s.items.length > 0);
   return (
     <RightPanelProvider>

@@ -12,6 +12,7 @@ export const INBOX_KINDS = [
   'prefiling_issue',
   'reconciliation_mismatch',
   'sync_conflict',
+  'approval_request',
   'reminder_due',
   'low_stock',
   'draft_stale',
@@ -203,6 +204,26 @@ export const syncConflictItem = z.object({
 });
 export type SyncConflictItem = z.infer<typeof syncConflictItem>;
 
+/**
+ * A cancellation or a revision of an issued document (or a cancelled payment) that the organisation's
+ * approval policy holds for an approver (prompt 42). The server keeps the whole transaction; approving
+ * applies it there as the person who asked, declining closes it. Decided through the cloud API only.
+ */
+export const approvalRequestItem = z.object({
+  table: z.string(),
+  rowId: z.string(),
+  module: z.string(),
+  change: z.enum(['cancel', 'revise']),
+  label: z.string(),
+  reason: z.string(),
+  theirs: z.record(z.string(), z.unknown()),
+  ops: syncConflictItem.shape.ops,
+  deviceId: z.string(),
+  txId: z.number(),
+  byUser: z.string(),
+});
+export type ApprovalRequestItem = z.infer<typeof approvalRequestItem>;
+
 /** Kinds whose owner has not shipped yet: the card shows what it holds, Accept stays off. */
 export const genericItem = z.record(z.string(), z.unknown());
 
@@ -220,6 +241,7 @@ export const INBOX_SCHEMAS = {
   gsp_job_stopped: gspJobStoppedItem,
   reconciliation_mismatch: genericItem,
   sync_conflict: syncConflictItem,
+  approval_request: approvalRequestItem,
 } as const satisfies Record<InboxKind, z.ZodType>;
 
 export function schemaFor(kind: string): z.ZodType<Record<string, unknown>> {
@@ -275,6 +297,12 @@ export const KIND_INFO: Record<InboxKind, KindInfo> = {
   },
   sync_conflict: {
     label: 'Sync conflict',
+    informational: false,
+    bulk: false,
+    opens: 'document',
+  },
+  approval_request: {
+    label: 'Waiting for approval',
     informational: false,
     bulk: false,
     opens: 'document',

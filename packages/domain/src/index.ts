@@ -33,3 +33,4 @@ export * from './direct-tax';
 export * from './gstr';
 export * from './reconcile';
 export * from './einvoice';
+export * from './permissions';

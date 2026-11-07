@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { auditCsv, diffRows, showValue, type AuditEntry } from './audit';
+import { actorName, auditCsv, diffRows, showValue, type AuditEntry } from './audit';
 
 const entry = (over: Partial<AuditEntry>): AuditEntry => ({
   id: 'a1',
@@ -53,7 +53,7 @@ describe('audit CSV', () => {
     ]);
     expect(csv.charCodeAt(0)).toBe(0xfeff);
     const lines = csv.slice(1).trim().split('\r\n');
-    expect(lines[0]).toBe('When,Who,Record type,Record id,Action,Field,Before,After');
+    expect(lines[0]).toBe('When,Who,Who (id),Record type,Record id,Action,Field,Before,After');
     expect(lines).toHaveLength(2);
     expect(lines[1]).toContain('notes,a,b');
   });
@@ -63,5 +63,18 @@ describe('audit CSV', () => {
       entry({ before_json: { notes: 'x' }, after_json: { notes: '=HYPERLINK("http://evil")' } }),
     ]);
     expect(csv).toContain("'=HYPERLINK");
+  });
+
+  it('names people: team members by name, the system by what it is', () => {
+    const csv = auditCsv(
+      [entry({ actor: 'u-bala', before_json: { notes: 'a' }, after_json: { notes: 'b' } })],
+      (a) => (a === 'u-bala' ? 'Bala' : a),
+    );
+    expect(csv).toContain(',Bala,u-bala,');
+    const o = { me: 'u-asha', members: new Map([['u-bala', 'Bala']]), you: 'You', system: 'App' };
+    expect(actorName('u-asha', o)).toBe('You');
+    expect(actorName('u-bala', o)).toBe('Bala');
+    expect(actorName('system:sync', o)).toBe('App (sync)');
+    expect(actorName('someone', o)).toBe('someone');
   });
 });

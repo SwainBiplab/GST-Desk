@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { deriveFlags } from '@gst/domain';
+import { LOCAL_OWNER, deriveFlags } from '@gst/domain';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import {
@@ -30,6 +30,7 @@ const ctx = (shell: 'shop' | 'books' | null = 'books'): ActionContext => ({
   shell,
   businessId: 'b1',
   flags: deriveFlags(null),
+  perms: LOCAL_OWNER,
   navigate: () => {},
   ui: {
     openCommandBar: () => {},

@@ -765,6 +765,39 @@ export class AuditRepo {
     });
   }
 
+  /**
+   * Who has been changing this business (prompt 42): each person (or system process) with how many changes
+   * they made and when they last did, in a date range, busiest last-seen first.
+   */
+  activity(
+    ctx: Ctx,
+    f: { from?: number; to?: number } = {},
+  ): Promise<{ actor: string; changes: number; lastAt: number; firstAt: number }[]> {
+    return runInTx(this.d, ctx, async (tx) => {
+      const t = this.d.schema.audit_log;
+      const where = [eq(t.business_id, ctx.businessId)];
+      if (f.from !== undefined) where.push(gte(t.at, f.from));
+      if (f.to !== undefined) where.push(lte(t.at, f.to));
+      const rows: Row[] = await tx
+        .select({
+          actor: t.actor,
+          changes: sql<number>`count(*)`,
+          lastAt: sql<number>`max(${t.at})`,
+          firstAt: sql<number>`min(${t.at})`,
+        })
+        .from(t)
+        .where(and(...where))
+        .groupBy(t.actor)
+        .orderBy(desc(sql`max(${t.at})`));
+      return rows.map((r) => ({
+        actor: String(r['actor']),
+        changes: Number(r['changes']),
+        lastAt: Number(r['lastAt']),
+        firstAt: Number(r['firstAt']),
+      }));
+    });
+  }
+
   /** Who changed what on one document: its own rows, its lines and any period-lock override. */
   documentHistory(ctx: Ctx, documentId: string): Promise<Row[]> {
     return runInTx(this.d, ctx, async (tx) => {

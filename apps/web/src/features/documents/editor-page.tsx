@@ -1,7 +1,10 @@
 import { DocumentFlowRepo, NumberingRepo, SettingsRepo, type Row, type SeriesView } from '@gst/db';
 import {
   CONVERSIONS,
+  can,
   convertDraft,
+  documentModule,
+  needsApproval,
   draftToRows,
   duplicateDraft,
   isBlankLine,
@@ -88,6 +91,7 @@ import {
   useTemplates,
   withPartyLanguage,
 } from '@/features/print/use-templates';
+import { usePermissions } from '@/features/team/permissions';
 import { track } from '@/features/telemetry/telemetry';
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
@@ -145,6 +149,15 @@ export function EditorPage({
   const editor = useDocumentEditor({ type, id, shell });
   const { draft, built, meta, readOnly } = editor;
   const isDraft = meta.status === 'draft';
+  // what this person may do with this kind of document (prompt 42); the server checks it again
+  const { perms, policy } = usePermissions();
+  const docModule = documentModule(draft.type);
+  const mayIssue = can(perms, docModule, 'issue');
+  const mayEdit = can(perms, docModule, 'edit') || (!meta.id && can(perms, docModule, 'create'));
+  const mayCancel = can(perms, docModule, 'cancel');
+  const denied = t('team.denied');
+  const heldNote = (change: 'cancel' | 'revise') =>
+    needsApproval(perms, policy, docModule, change) ? t('docs.approval.held') : undefined;
   const { ask: askOverride, dialog: overrideDialog } = useLockOverride();
   const confirm = useConfirm();
   const [cancelOpen, setCancelOpen] = useState(false);
@@ -633,8 +646,14 @@ export function EditorPage({
               <Button
                 variant="outline"
                 data-testid="doc-edit"
-                disabled={meta.hasIrn}
-                title={meta.hasIrn ? t('docs.revision.einvoiced') : undefined}
+                disabled={meta.hasIrn || !mayEdit}
+                title={
+                  meta.hasIrn
+                    ? t('docs.revision.einvoiced')
+                    : !mayEdit
+                      ? denied
+                      : heldNote('revise')
+                }
                 onClick={editor.startRevision}
               >
                 {t('docs.revision.edit')}
@@ -660,12 +679,19 @@ export function EditorPage({
             )}
             {isDraft && (
               <>
-                <Button variant="outline" data-testid="doc-save" onClick={() => void saveNow()}>
+                <Button
+                  variant="outline"
+                  data-testid="doc-save"
+                  disabled={!mayEdit}
+                  title={mayEdit ? undefined : denied}
+                  onClick={() => void saveNow()}
+                >
                   {t('docs.actions.save')}
                 </Button>
                 <Button
                   data-testid="doc-issue"
-                  disabled={busy}
+                  disabled={busy || !mayIssue}
+                  title={mayIssue ? undefined : denied}
                   onClick={() => void doIssue(simple ? 'print' : undefined)}
                 >
                   {simple ? t('docs.actions.issuePrint') : t('docs.actions.issue')}
@@ -683,12 +709,14 @@ export function EditorPage({
                   <>
                     <DropdownMenuItem
                       data-testid="doc-issue-print"
+                      disabled={!mayIssue}
                       onSelect={() => void doIssue('print')}
                     >
                       {t('docs.actions.issuePrint')}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       data-testid="doc-issue-share"
+                      disabled={!mayIssue}
                       onSelect={() => void doIssue('share')}
                     >
                       {t('docs.actions.issueShare')}
@@ -728,10 +756,11 @@ export function EditorPage({
                 {meta.status === 'issued' && (
                   <DropdownMenuItem
                     data-testid="doc-cancel"
-                    disabled={meta.hasIrn}
+                    disabled={meta.hasIrn || !mayCancel}
+                    data-held={heldNote('cancel') ? 'true' : undefined}
                     onSelect={() => setCancelOpen(true)}
                   >
-                    {t('docs.cancel.action')}
+                    {heldNote('cancel') ? t('docs.approval.cancelAsk') : t('docs.cancel.action')}
                   </DropdownMenuItem>
                 )}
                 {isDraft && meta.id && (
