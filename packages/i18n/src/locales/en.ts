@@ -189,6 +189,7 @@ export const en = {
       sheetsHelp: 'The first row with column headings is used as the heading row.',
       reading: 'Reading {{name}}',
       empty: 'That file has no rows to read.',
+      tooBig: '{{name}} is larger than {{limit}}.',
       template: 'Download an example file',
     },
     map: {

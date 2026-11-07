@@ -70,8 +70,8 @@ export const aiWriteText = (file: string, text: string) =>
 export const aiFreeBytes = () => invoke<number | null>('ai_free_bytes');
 export const aiListDir = (dir: string) =>
   invoke<{ name: string; size: number; modified: number }[]>('ai_list_dir', { dir });
-export const aiReadFile = async (path: string): Promise<Uint8Array> =>
-  new Uint8Array(await invoke<ArrayBuffer>('ai_read_file', { path }));
+export const aiReadFile = async (dir: string, name: string): Promise<Uint8Array> =>
+  new Uint8Array(await invoke<ArrayBuffer>('ai_read_file', { dir, name }));
 export const aiHardware = () =>
   invoke<{ ramGb: number; cores: number; gpu: string; os: string; arch: string }>('ai_hardware');
 export const sidecarStart = (kind: string, modelFile: string, threads?: number) =>

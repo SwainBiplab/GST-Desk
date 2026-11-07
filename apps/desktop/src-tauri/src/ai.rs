@@ -240,9 +240,13 @@ mod real {
         Ok(out)
     }
 
+    /// One file out of the watched folder, by name: the page never names a path of its own.
     #[tauri::command]
-    pub fn ai_read_file(path: String) -> Result<tauri::ipc::Response, String> {
-        let p = PathBuf::from(&path);
+    pub fn ai_read_file(dir: String, name: String) -> Result<tauri::ipc::Response, String> {
+        if name.is_empty() || name.contains('/') || name.contains('\\') || name.contains("..") {
+            return Err("bad file name".into());
+        }
+        let p = PathBuf::from(&dir).join(&name);
         if !matches!(
             p.extension()
                 .and_then(|e| e.to_str())
@@ -517,7 +521,7 @@ mod real {
         Err(OFF.into())
     }
     #[tauri::command]
-    pub fn ai_read_file(_path: String) -> Result<Vec<u8>, String> {
+    pub fn ai_read_file(_dir: String, _name: String) -> Result<Vec<u8>, String> {
         Err(OFF.into())
     }
     #[tauri::command]

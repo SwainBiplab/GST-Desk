@@ -47,6 +47,9 @@ type Step = 'source' | 'file' | 'map' | 'review' | 'done';
 const errText = (e: unknown): string => (e instanceof Error ? e.message : String(e));
 const NO_SHEET = '__none__';
 const MAX_ROWS = 300;
+/** Largest files accepted: a Tally export of this size holds well over a million vouchers. */
+const MAX_TALLY_MB = 300;
+const MAX_SHEET_MB = 50;
 const money = (p: bigint | null): string => (p === null ? '' : toDecimalString(p, 2));
 
 /** Bring data in: pick where it comes from, pick the file, set up the columns, look at a dry run, import. */
@@ -93,6 +96,13 @@ export function ImportFlow({ shell }: { shell: Shell }) {
     setFileName(file.name);
     setBusy(true);
     setProgress(0);
+    // bounded on purpose: the Tally reader streams, but a plan over a file this size would still take minutes
+    const limitMb = source === 'tally' ? MAX_TALLY_MB : MAX_SHEET_MB;
+    if (file.size > limitMb * 1024 * 1024) {
+      toast.error(t('migrate.file.tooBig', { name: file.name, limit: `${limitMb} MB` }));
+      setBusy(false);
+      return;
+    }
     try {
       if (source === 'tally') {
         const b = await readTallyFile(file, setProgress);

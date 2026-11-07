@@ -56,7 +56,7 @@ export function AiJobs() {
           seen.add(key);
           writeSeen(seen);
           try {
-            const bytes = await aiReadFile(`${folder}/${f.name}`);
+            const bytes = await aiReadFile(folder, f.name);
             await scanFile(
               { name: f.name, bytes },
               {

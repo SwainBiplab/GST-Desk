@@ -108,6 +108,7 @@
     "migrate.file.sheetsHelp": {"en":"The first row with column headings is used as the heading row.","draft":"The first row with column headings is used as the heading row.","status":"todo"},
     "migrate.file.reading": {"en":"Reading {{name}}","draft":"Reading {{name}}","status":"todo"},
     "migrate.file.empty": {"en":"That file has no rows to read.","draft":"That file has no rows to read.","status":"todo"},
+    "migrate.file.tooBig": {"en":"{{name}} is larger than {{limit}}.","draft":"{{name}} is larger than {{limit}}.","status":"todo"},
     "migrate.file.template": {"en":"Download an example file","draft":"Download an example file","status":"todo"},
     "migrate.map.hint": {"en":"Check what each sheet holds and which column feeds each field. Starred fields are needed.","draft":"Check what each sheet holds and which column feeds each field. Starred fields are needed.","status":"todo"},
     "migrate.map.sheet": {"en":"Sheet {{label}}","draft":"Sheet {{label}}","status":"todo"},
