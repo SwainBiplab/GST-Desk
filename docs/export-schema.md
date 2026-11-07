@@ -936,6 +936,59 @@ Kind: belongs to a business. In a business export.
 | `type` | text | yes | one of `asset`, `liability`, `income`, `expense`, `equity` |
 | `parent_id` | id (text) |  | refers to `ledger_accounts` |
 | `is_system` | true or false | yes | default false |
+| `sub_group` | text |  |  |
+| `tally_name` | text |  |  |
+| `business_account_id` | id (text) |  | refers to `business_accounts` |
+
+### `recurring_journals`
+
+Kind: belongs to a business. In a business export.
+
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `name` | text | yes |  |
+| `every` | text | yes | one of `monthly`, `quarterly`, `yearly`; default "monthly" |
+| `day` | integer | yes | default 1 |
+| `next_date` | date (`YYYY-MM-DD`) | yes |  |
+| `end_date` | date (`YYYY-MM-DD`) |  |  |
+| `lines_json` | JSON |  |  |
+| `narration` | text |  |  |
+| `active` | true or false | yes | default true |
+| `last_posted_date` | date (`YYYY-MM-DD`) |  |  |
+
+### `journal_vouchers`
+
+Kind: belongs to a business. In a business export.
+
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `number` | text | yes |  |
+| `date` | date (`YYYY-MM-DD`) | yes |  |
+| `kind` | text | yes | one of `journal`, `contra`, `opening`, `closing`, `reversal`, `recurring`, `reclass`; default "journal" |
+| `narration` | text |  |  |
+| `status` | text | yes | one of `posted`, `reversed`; default "posted" |
+| `reversed_by` | id (text) |  | refers to `journal_vouchers` |
+| `reverses` | id (text) |  | refers to `journal_vouchers` |
+| `recurring_id` | id (text) |  | refers to `recurring_journals` |
+| `total_paise` | integer (paise, micro-units or a count) | yes | default 0 |
 
 ### `ledger_entries`
 
@@ -954,12 +1007,38 @@ Kind: belongs to a business. In a business export.
 | `updated_by` | text |  |  |
 | `document_id` | id (text) |  | refers to `documents` |
 | `payment_id` | id (text) |  | refers to `payments` |
+| `voucher_id` | id (text) |  | refers to `journal_vouchers` |
 | `party_id` | id (text) |  | refers to `parties` |
 | `account_id` | id (text) | yes | refers to `ledger_accounts` |
 | `debit_paise` | integer (paise, micro-units or a count) | yes | default 0 |
 | `credit_paise` | integer (paise, micro-units or a count) | yes | default 0 |
 | `date` | date (`YYYY-MM-DD`) | yes |  |
 | `narration` | text |  |  |
+
+### `fiscal_years`
+
+Kind: belongs to a business. In a business export.
+
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `fy_start` | date (`YYYY-MM-DD`) | yes |  |
+| `fy_end` | date (`YYYY-MM-DD`) | yes |  |
+| `status` | text | yes | one of `open`, `closed`; default "open" |
+| `closing_voucher_id` | id (text) |  | refers to `journal_vouchers` |
+| `closed_at` | time (epoch milliseconds) |  |  |
+| `closed_by` | text |  |  |
+| `reopened_at` | time (epoch milliseconds) |  |  |
+| `reopened_by` | text |  |  |
+| `reopen_reason` | text |  |  |
 
 ### `reminders`
 

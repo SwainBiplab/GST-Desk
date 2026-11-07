@@ -739,8 +739,58 @@ export const SPEC: TableSpec[] = [
       type: c.text().nn.oneOf(['asset', 'liability', 'income', 'expense', 'equity']),
       parent_id: c.uuid().ref('ledger_accounts'),
       is_system: c.bool().nn.default(false),
+      /** A group under the type, as the balance sheet and P&L show them (prompt 50). */
+      sub_group: c.text(),
+      /** The ledger name in the Tally company this business exports to. */
+      tally_name: c.text(),
+      /** For a bank or cash ledger made from a business account: which one. */
+      business_account_id: c.uuid().ref('business_accounts'),
     },
     indexes: [{ cols: ['business_id', 'code'], unique: true, where: 'deleted_at IS NULL' }],
+  },
+  {
+    /** A journal template posted on a schedule (prompt 50): rent, salary, depreciation. */
+    name: 'recurring_journals',
+    kind: 'tenant',
+    cols: {
+      name: c.text().nn,
+      every: c.text().nn.default('monthly').oneOf(['monthly', 'quarterly', 'yearly']),
+      /** The day of the month the entry is dated. */
+      day: c.int().nn.default(1),
+      next_date: c.date().nn,
+      end_date: c.date(),
+      /** `[{ accountId, debitPaise, creditPaise, partyId? }]`, balanced. */
+      lines_json: c.json(),
+      narration: c.text(),
+      active: c.bool().nn.default(true),
+      last_posted_date: c.date(),
+    },
+    indexes: [{ cols: ['business_id', 'next_date'] }],
+  },
+  {
+    /** A hand-made ledger entry (prompt 50): a journal, a contra, opening balances, a year-end close. */
+    name: 'journal_vouchers',
+    kind: 'tenant',
+    cols: {
+      number: c.text().nn,
+      date: c.date().nn,
+      kind: c
+        .text()
+        .nn.default('journal')
+        .oneOf(['journal', 'contra', 'opening', 'closing', 'reversal', 'recurring', 'reclass']),
+      narration: c.text(),
+      status: c.text().nn.default('posted').oneOf(['posted', 'reversed']),
+      /** The voucher that reversed this one, and the one this reverses. */
+      reversed_by: c.uuid().ref('journal_vouchers'),
+      reverses: c.uuid().ref('journal_vouchers'),
+      recurring_id: c.uuid().ref('recurring_journals'),
+      /** The debit side's total, for lists. */
+      total_paise: money(),
+    },
+    indexes: [
+      { cols: ['business_id', 'number'], unique: true, where: 'deleted_at IS NULL' },
+      { cols: ['business_id', 'date'] },
+    ],
   },
   {
     name: 'ledger_entries',
@@ -748,6 +798,7 @@ export const SPEC: TableSpec[] = [
     cols: {
       document_id: c.uuid().ref('documents'),
       payment_id: c.uuid().ref('payments'),
+      voucher_id: c.uuid().ref('journal_vouchers'),
       party_id: c.uuid().ref('parties'),
       account_id: c.uuid().nn.ref('ledger_accounts'),
       debit_paise: money(),
@@ -755,7 +806,28 @@ export const SPEC: TableSpec[] = [
       date: c.date().nn,
       narration: c.text(),
     },
-    indexes: [{ cols: ['account_id', 'date'] }, { cols: ['document_id'] }],
+    indexes: [
+      { cols: ['account_id', 'date'] },
+      { cols: ['document_id'] },
+      { cols: ['voucher_id'] },
+    ],
+  },
+  {
+    /** A financial year's close (prompt 50): the closing voucher, who closed it, who reopened it and why. */
+    name: 'fiscal_years',
+    kind: 'tenant',
+    cols: {
+      fy_start: c.date().nn,
+      fy_end: c.date().nn,
+      status: c.text().nn.default('open').oneOf(['open', 'closed']),
+      closing_voucher_id: c.uuid().ref('journal_vouchers'),
+      closed_at: c.ts(),
+      closed_by: c.text(),
+      reopened_at: c.ts(),
+      reopened_by: c.text(),
+      reopen_reason: c.text(),
+    },
+    indexes: [{ cols: ['business_id', 'fy_start'], unique: true, where: 'deleted_at IS NULL' }],
   },
   {
     name: 'reminders',

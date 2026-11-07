@@ -15,6 +15,7 @@ import {
   writeAudit,
   type Ctx,
 } from './base';
+import { ACCOUNTS, SYSTEM_SUB_GROUPS } from './chart';
 import { arithmeticValidator, type LineValidator } from './line-math';
 
 /* ------------------------------------------------------------------ organisations & users */
@@ -70,22 +71,11 @@ export async function listBusinesses(d: Database, orgId?: string): Promise<Row[]
 
 /* ------------------------------------------------------------------ business */
 
-const CHART = [
-  ['1000', 'Cash', 'asset'],
-  ['1100', 'Bank', 'asset'],
-  ['1200', 'Accounts Receivable', 'asset'],
-  ['1300', 'Input GST', 'asset'],
-  ['2000', 'Accounts Payable', 'liability'],
-  ['2100', 'Output GST', 'liability'],
-  ['2200', 'TCS Payable', 'liability'],
-  ['3000', 'Owner Equity', 'equity'],
-  ['3100', 'Opening Balance Equity', 'equity'],
-  ['4000', 'Sales', 'income'],
-  ['5000', 'Purchases', 'expense'],
-  ['5100', 'Expenses', 'expense'],
-  ['5200', 'Round-off', 'expense'],
-  ['5300', 'Adjustments', 'expense'],
-] as const;
+/** Every system ledger, by code, with its statement group; one row each for a new business. */
+const CHART = Object.values(ACCOUNTS)
+  .filter(([code], i, all) => all.findIndex(([c]) => c === code) === i)
+  .map(([code, name, type]) => [code, name, type, SYSTEM_SUB_GROUPS[code] ?? null] as const)
+  .sort((a, b) => a[0].localeCompare(b[0]));
 
 export class BusinessRepo {
   constructor(private readonly d: Database) {}
@@ -198,7 +188,11 @@ export class BusinessRepo {
       .values(DEFAULT_UNIT_CODES.map((code) => base({ code, name: uqcName(code)!, uqc: code })));
     await tx
       .insert(s.ledger_accounts)
-      .values(CHART.map(([code, name, type]) => base({ code, name, type, is_system: true })));
+      .values(
+        CHART.map(([code, name, type, sub_group]) =>
+          base({ code, name, type, sub_group, is_system: true }),
+        ),
+      );
     await tx.insert(s.godowns).values(base({ name: 'Main', is_default: true }));
   }
 

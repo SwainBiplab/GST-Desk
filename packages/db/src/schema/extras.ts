@@ -26,8 +26,11 @@ export const TABLES_GSP = ['einvoices', 'ewaybills', 'gsp_jobs', 'gsp_log'] as c
 export const TABLES_TAX = ['tax_challans', 'tax_deductions', 'tds_receivable'] as const;
 /** The local AI tables (reference data, no org): their guard is in `9007_extras_ai`. */
 export const TABLES_AI = ['hsn_embeddings'] as const;
+/** The journal, recurring journal and year-end tables (prompt 50): their guards are in `9009_extras_ledger`. */
+export const TABLES_LEDGER = ['recurring_journals', 'journal_vouchers', 'fiscal_years'] as const;
 const later = (t: string) =>
   (TABLES_AFTER_V1 as readonly string[]).includes(t) ||
+  (TABLES_LEDGER as readonly string[]).includes(t) ||
   (TABLES_AI as readonly string[]).includes(t) ||
   (TABLES_TAX as readonly string[]).includes(t) ||
   (TABLES_RECON as readonly string[]).includes(t) ||
@@ -246,6 +249,7 @@ export const aiExtrasSql = (dialect: Dialect): string =>
 
 /** The same guards for the TDS and TCS tables. */
 export const taxExtrasSql = (dialect: Dialect): string => guardsSql(dialect, TABLES_TAX);
+export const ledgerExtrasSql = (dialect: Dialect): string => guardsSql(dialect, TABLES_LEDGER);
 
 /**
  * SQLite drops a table's triggers when a migration rebuilds it (0011 rebuilt `number_reservations` to drop a

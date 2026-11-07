@@ -18,6 +18,7 @@ import { GspJobs } from '@/features/einvoice/jobs';
 import { HelpDialog } from '@/features/help/help-dialog';
 import { InboxJobs } from '@/features/inbox/jobs';
 import { LanJobs } from '@/features/lan/lan-jobs';
+import { LedgerJobs } from '@/features/ledger/jobs';
 import { SyncDevHooks } from '@/features/sync/dev-hooks';
 import { SyncJobs } from '@/features/sync/sync-jobs';
 import { PermissionsSource } from '@/features/team/source';
@@ -92,6 +93,7 @@ function Root() {
           <GspJobs />
           <DesktopJobs />
           <LanJobs />
+          <LedgerJobs />
           <AiJobs />
           <SyncDevHooks />
           <SyncJobs />

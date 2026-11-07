@@ -21,6 +21,14 @@ export type AccountKey =
   | 'tcsPayable'
   | 'adjustments'
   | 'gatewayFees'
+  /** The owner's money in and out, and what the years have left behind (prompt 50). */
+  | 'capital'
+  | 'drawings'
+  | 'retainedEarnings'
+  /** Tax deducted by customers at source: an asset until the return claims it. */
+  | 'tdsReceivable'
+  | 'discountAllowed'
+  | 'discountReceived'
   | `output${TaxHead}`
   | `input${TaxHead}`;
 

@@ -35,6 +35,7 @@ These work on the Inbox page, in both Shop and Books, and are ignored while you 
 | G then P | Go to Parties          |
 | G then I | Go to Items            |
 | G then R | Go to Reports          |
+| G then L | Go to Ledger           |
 | G then M | Go to Money (payments) |
 | G then B | Go to Inbox            |
 | G then S | Go to Settings         |

@@ -15,6 +15,7 @@ export const GO_TO: Record<string, { page: string; label: string }> = {
   p: { page: 'parties', label: 'Parties' },
   i: { page: 'items', label: 'Items' },
   r: { page: 'reports', label: 'Reports' },
+  l: { page: 'ledger', label: 'Ledger' },
   m: { page: 'payments', label: 'Money (payments)' },
   b: { page: 'inbox', label: 'Inbox' },
   s: { page: 'settings', label: 'Settings' },

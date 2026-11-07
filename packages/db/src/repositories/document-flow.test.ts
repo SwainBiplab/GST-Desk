@@ -306,7 +306,7 @@ describe.each(DIALECTS)('document flow (%s)', (dialect) => {
       expect(receivable).toMatchObject({ debit_paise: document['total_paise'], party_id: partyId });
       expect(
         e
-          .filter((x) => byId.get(x['account_id']) === '2100')
+          .filter((x) => byId.get(x['account_id']) === '2140')
           .reduce((s, x) => s + Number(x['credit_paise']), 0),
       ).toBe(Number(document['total_igst_paise']));
     });

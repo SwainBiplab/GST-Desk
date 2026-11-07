@@ -34,6 +34,7 @@ import {
   runInTx,
   type Ctx,
 } from './base';
+import { ACCOUNTS } from './chart';
 import { InsufficientStockError, checkIssueIn } from './inventory';
 import { consistencyValidator } from './line-math';
 import { NumberingRepo, type ShellName } from './numbering';
@@ -54,31 +55,7 @@ const DEFAULT_PREFIX: Record<string, string> = {
   rcm_self_invoice: 'RCM/{FY}/',
 };
 
-/** Ledger account for each posting key: [code, name, type]. Created on demand for older businesses. */
-export const ACCOUNTS: Record<AccountKey, [string, string, string]> = {
-  cash: ['1000', 'Cash', 'asset'],
-  bank: ['1100', 'Bank', 'asset'],
-  receivables: ['1200', 'Accounts Receivable', 'asset'],
-  payables: ['2000', 'Accounts Payable', 'liability'],
-  sales: ['4000', 'Sales', 'income'],
-  purchases: ['5000', 'Purchases', 'expense'],
-  expenses: ['5100', 'Expenses', 'expense'],
-  roundOff: ['5200', 'Round-off', 'expense'],
-  adjustments: ['5300', 'Adjustments', 'expense'],
-  gatewayFees: ['5400', 'Payment gateway fees', 'expense'],
-  openingEquity: ['3100', 'Opening Balance Equity', 'equity'],
-  tcsPayable: ['2200', 'TCS Payable', 'liability'],
-  outputCgst: ['2100', 'Output GST', 'liability'],
-  outputSgst: ['2100', 'Output GST', 'liability'],
-  outputUtgst: ['2100', 'Output GST', 'liability'],
-  outputIgst: ['2100', 'Output GST', 'liability'],
-  outputCess: ['2100', 'Output GST', 'liability'],
-  inputCgst: ['1300', 'Input GST', 'asset'],
-  inputSgst: ['1300', 'Input GST', 'asset'],
-  inputUtgst: ['1300', 'Input GST', 'asset'],
-  inputIgst: ['1300', 'Input GST', 'asset'],
-  inputCess: ['1300', 'Input GST', 'asset'],
-};
+export { ACCOUNTS, LEGACY_TAX_ACCOUNTS, SYSTEM_SUB_GROUPS } from './chart';
 
 export interface SaveDraftInput {
   /** Omit to create a new draft. */

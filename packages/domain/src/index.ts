@@ -11,6 +11,7 @@ export * from './payments';
 export * from './turnover';
 export * from './tax';
 export * from './ledger/posting';
+export * from './ledger/statements';
 export * from './schemas';
 export * from './presets';
 export * from './composition';

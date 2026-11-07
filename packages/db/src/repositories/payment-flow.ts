@@ -31,6 +31,7 @@ import type { NewRow, Row } from '../schema';
 
 import { BusinessRepo } from './aggregates';
 import { BaseRepo, NotFoundError, RuleError, runInTx, type Ctx } from './base';
+import { ChartRepo } from './chart';
 import { DocumentFlowRepo, serialised } from './document-flow';
 import { PeriodLockRepo, type LockOverride } from './period-lock';
 
@@ -150,6 +151,7 @@ export interface PaymentListRow {
 export class PaymentFlowRepo extends BaseRepo {
   private readonly allocations: BaseRepo;
   private readonly ledger: BaseRepo;
+  private readonly chart: ChartRepo;
   private readonly flow: DocumentFlowRepo;
   private readonly lock: PeriodLockRepo;
 
@@ -157,6 +159,7 @@ export class PaymentFlowRepo extends BaseRepo {
     super(d, 'payments');
     this.allocations = new BaseRepo(d, 'payment_allocations');
     this.ledger = new BaseRepo(d, 'ledger_entries');
+    this.chart = new ChartRepo(d);
     this.flow = new DocumentFlowRepo(d);
     this.lock = new PeriodLockRepo(d);
   }
@@ -444,7 +447,11 @@ export class PaymentFlowRepo extends BaseRepo {
         payment_id: payment['id'],
         party_id:
           l.account === 'receivables' || l.account === 'payables' ? payment['party_id'] : null,
-        account_id: await this.flow.accountIdIn(tx, ctx, l.account),
+        // money in a bank, UPI, wallet or cash account posts to that account's own ledger (prompt 50)
+        account_id:
+          l.account === 'bank' && payment['account_id']
+            ? await this.chart.bankLedgerIdIn(tx, ctx, String(payment['account_id']))
+            : await this.flow.accountIdIn(tx, ctx, l.account),
         debit_paise: num(l.debitPaise),
         credit_paise: num(l.creditPaise),
         date: payment['date'],

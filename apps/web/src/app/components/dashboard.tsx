@@ -22,6 +22,7 @@ import { CaBoardPage } from '@/features/gst/ca-board';
 import { GstPage } from '@/features/gst/gst-page';
 import { InboxPage } from '@/features/inbox/inbox-page';
 import { ItemsPage } from '@/features/items/items-page';
+import { LedgerPage } from '@/features/ledger/ledger-page';
 import { MigratePage } from '@/features/migrate/migrate-page';
 import { PartiesPage } from '@/features/parties/parties-page';
 import { PaymentsPage } from '@/features/payments/payments-page';
@@ -157,6 +158,13 @@ export function PlaceholderPage({ page, shell }: { page: PageId; shell: Shell })
     return (
       <div data-shell={shell} className="h-full">
         <ReportsPage shell={shell} />
+      </div>
+    );
+  }
+  if (page === 'ledger' && ctx) {
+    return (
+      <div data-shell={shell} className="h-full overflow-auto">
+        <LedgerPage shell={shell} />
       </div>
     );
   }

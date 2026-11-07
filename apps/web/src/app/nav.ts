@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   Percent,
   Receipt,
+  Scale,
   ScanLine,
   Settings,
   ShoppingCart,
@@ -28,6 +29,7 @@ export type PageId =
   | 'documents'
   | 'payments'
   | 'reports'
+  | 'ledger'
   | 'gst'
   | 'einvoice'
   | 'caboard'
@@ -45,6 +47,7 @@ export const PAGE_IDS: PageId[] = [
   'documents',
   'payments',
   'reports',
+  'ledger',
   'gst',
   'einvoice',
   'caboard',
@@ -142,7 +145,7 @@ export const BOOKS_NAV: NavSection[] = [
   {
     id: 'reports',
     label: 'nav.sections.reports',
-    items: [item('reports', BookOpen, { hint: 'G R' })],
+    items: [item('reports', BookOpen, { hint: 'G R' }), item('ledger', Scale, { hint: 'G L' })],
   },
   {
     id: 'gst',
