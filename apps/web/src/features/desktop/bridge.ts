@@ -44,6 +44,16 @@ export const readBackupFile = async (path: string): Promise<Uint8Array> =>
 export const setTrayLabels = (labels: Record<string, string>) =>
   invoke<null>('set_tray_labels', { labels });
 
+export interface LanStarted {
+  port: number;
+  fingerprint: string;
+  addresses: string[];
+}
+export const lanStart = (port: number) => invoke<LanStarted>('lan_start', { args: { port } });
+export const lanStop = () => invoke<null>('lan_stop');
+export const lanReply = (id: number, status: number, body: string) =>
+  invoke<boolean>('lan_reply', { id, status, body });
+
 export function on<T = unknown>(event: string, handler: (payload: T) => void): Promise<UnlistenFn> {
   return listen<T>(event, (e) => handler(e.payload));
 }

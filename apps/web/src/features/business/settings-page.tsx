@@ -57,6 +57,7 @@ import { isDesktop } from '@/features/desktop/bridge';
 import { DesktopTab } from '@/features/desktop/desktop-tab';
 import { PortalTab } from '@/features/einvoice/portal-tab';
 import { InventoryTab } from '@/features/inventory/settings-tab';
+import { LanTab } from '@/features/lan/lan-tab';
 import { AuditViewer } from '@/features/numbering/audit-viewer';
 import { NumberingTab } from '@/features/numbering/numbering-tab';
 import { Field } from '@/features/onboarding/field';
@@ -462,6 +463,7 @@ const TABS = [
   'privacy',
   'portal',
   'desktop',
+  'lan',
 ] as const;
 
 /** Settings: business profile, images, features, document terms, businesses. Sections follow the feature flags. */
@@ -476,7 +478,7 @@ export function SettingsPage() {
       ? flags.inventory
       : k === 'thermal'
         ? flags.thermal
-        : k === 'desktop'
+        : k === 'desktop' || k === 'lan'
           ? isDesktop()
           : true,
   );
@@ -548,6 +550,11 @@ export function SettingsPage() {
         <TabsContent value="privacy">
           <PrivacyTab />
         </TabsContent>
+        {isDesktop() && (
+          <TabsContent value="lan">
+            <LanTab />
+          </TabsContent>
+        )}
         {isDesktop() && (
           <TabsContent value="desktop">
             <DesktopTab />

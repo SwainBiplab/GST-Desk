@@ -1,6 +1,7 @@
 mod db;
 mod diag;
 mod launch;
+mod lan;
 mod paths;
 mod printers;
 mod tray;
@@ -41,6 +42,7 @@ pub fn run() {
         .manage(db::DbState::default())
         .manage(launch::Queue::default())
         .manage(update::Pending::default())
+        .manage(lan::LanState::default())
         .invoke_handler(tauri::generate_handler![
             db::db_open,
             db::db_exec,
@@ -57,6 +59,9 @@ pub fn run() {
             launch::take_launch_requests,
             launch::read_backup_file,
             tray::set_tray_labels,
+            lan::lan_start,
+            lan::lan_stop,
+            lan::lan_reply,
         ])
         .setup(move |app| {
             let handle = app.handle().clone();

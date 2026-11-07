@@ -20,6 +20,7 @@
     "@gst/gsp": "workspace:*",
     "@gst/i18n": "workspace:*",
     "@gst/interop": "workspace:*",
+    "@gst/lan": "workspace:*",
     "@gst/print": "workspace:*",
     "@gst/ui": "workspace:*",
     "@sqlite.org/sqlite-wasm": "3.54.1-build1",

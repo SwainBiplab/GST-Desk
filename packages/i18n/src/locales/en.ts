@@ -2026,6 +2026,7 @@ export const en = {
       accounts: 'Bank and UPI',
       print: 'Print',
       desktop: 'Desktop',
+      lan: 'Tablets and phones',
       privacy: 'Privacy',
       portal: 'GST portal',
     },
@@ -2908,6 +2909,42 @@ export const en = {
     composition:
       'This business is under the composition scheme. Sales are issued as a Bill of Supply and tax invoices are blocked.',
     declaration: 'Printed declaration:',
+  },
+  lan: {
+    title: 'Tablets and phones',
+    intro:
+      'Let a tablet or phone on your shop network make bills on this computer. Nothing goes to the internet; this computer keeps the books.',
+    notBuilt: 'This build of GST Desk does not include tablet access yet.',
+    failed: 'Could not start: {{message}}',
+    port: 'Port',
+    address: 'Open this on the tablet',
+    fingerprint: 'Certificate fingerprint',
+    firewall:
+      'If a tablet cannot connect, allow GST Desk through the computer firewall for private networks. The tablet will show a certificate warning the first time; check that the fingerprint matches the one above.',
+    roles: {
+      full: 'Full: bills, payments, cancel and settings',
+      counter: 'Counter: bills and payments only',
+      view: 'View only',
+    },
+    pair: {
+      title: 'Add a tablet or phone',
+      role: 'What it can do',
+      show: 'Show pairing code',
+      qr: 'QR code to pair a device',
+      code: 'Pairing code',
+      expires: 'Valid for {{seconds}} more seconds',
+      expired: 'That code has expired. Show a new one.',
+      help: 'Scan the QR code on the tablet, or open the address above and type the code. A code works once.',
+    },
+    devices: {
+      title: 'Paired devices',
+      none: 'No device is paired yet.',
+      name: 'Device name',
+      seen: 'Last seen {{when}}',
+      never: 'Not used yet',
+      removed: 'Removed',
+      remove: 'Remove',
+    },
   },
   desktop: {
     tab: 'Desktop',

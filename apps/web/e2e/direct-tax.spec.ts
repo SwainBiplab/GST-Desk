@@ -113,7 +113,7 @@ test('works out a deduction by hand, records it, matches a challan and writes th
   ]);
   expect(csv.suggestedFilename()).toBe('26Q_2025-26_Q4.csv');
   const lines = readFileSync((await csv.path())!, 'utf8')
-    .replace(/^﻿/, '')
+    .replace(new RegExp('^\\uFEFF'), '')
     .trimEnd()
     .split('\r\n');
   expect(lines[0]).toContain('PAN of Deductee');

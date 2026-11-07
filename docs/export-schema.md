@@ -140,6 +140,13 @@ Kind: belongs to a business. In a backup only.
 | `name` | text | yes |  |
 | `platform` | text |  |  |
 | `last_seen_at` | time (epoch milliseconds) |  |  |
+| `kind` | text | yes | one of `sync`, `lan`; default "sync" |
+| `role` | text |  | one of `full`, `counter`, `view` |
+| `token_hash` | text |  |  |
+| `token_issued_at` | time (epoch milliseconds) |  |  |
+| `prev_token_hash` | text |  |  |
+| `prev_valid_until` | time (epoch milliseconds) |  |  |
+| `revoked_at` | time (epoch milliseconds) |  |  |
 
 ### `business_accounts`
 

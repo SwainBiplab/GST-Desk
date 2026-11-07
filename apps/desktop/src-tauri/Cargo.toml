@@ -28,3 +28,9 @@ zip = { version = "9", default-features = false, features = ["deflate"] }
 log = "0.4"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+gst-lan-server = { path = "../lan-server", optional = true }
+tokio = { version = "1", features = ["sync"], optional = true }
+
+[features]
+# tablets and phones on the shop network; off by default until it has been tried on a real machine
+lan = ["dep:gst-lan-server", "dep:tokio"]

@@ -16,6 +16,7 @@ import { DesktopJobs } from '@/features/desktop/desktop-jobs';
 import { GspJobs } from '@/features/einvoice/jobs';
 import { HelpDialog } from '@/features/help/help-dialog';
 import { InboxJobs } from '@/features/inbox/jobs';
+import { LanJobs } from '@/features/lan/lan-jobs';
 import { TelemetryJobs } from '@/features/telemetry/jobs';
 import i18n, { i18nReady } from '@/lib/i18n';
 
@@ -64,6 +65,7 @@ function Root() {
           <InboxJobs />
           <GspJobs />
           <DesktopJobs />
+          <LanJobs />
           <TelemetryJobs />
           <ErrorBoundary>
             <Outlet />

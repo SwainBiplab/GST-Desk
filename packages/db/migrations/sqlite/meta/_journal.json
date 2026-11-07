@@ -64,6 +64,13 @@
       "when": 1793893221324,
       "tag": "0008_foamy_sugar_man",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1794020757170,
+      "tag": "0009_nosy_human_fly",
+      "breakpoints": true
     }
   ]
 }

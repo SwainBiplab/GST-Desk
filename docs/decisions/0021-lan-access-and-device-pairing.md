@@ -1,0 +1,21 @@
+# 0021 — Tablets and phones on the shop network
+
+Status: accepted. Context: prompt 35, PRD FR-LAN, Principle 2 (your data stays on your device).
+
+## Decision
+
+- **The desktop stays the only place the books live.** A tablet or phone is a remote screen: it asks the desktop to do things and never holds a copy of the data. There is no second database to reconcile, so two tablets billing at once is the same as two windows on one computer. A test has two tablets issue twenty invoices at once and finds numbers 1 to 20 with no gap, and stock at 80.
+- **A thin Rust server, a TypeScript brain.** The Rust crate (`apps/desktop/lan-server`, axum with rustls) does only what must happen outside the window: listen, terminate TLS, serve the web files, advertise `gstdesk.local`, and pass three routes (`/ping`, `/pair`, `/rpc`) to the window as events. Every rule (roles, rate limits, locks, pairing, what a method may do) is in `@gst/lan` and `apps/web/src/features/lan`, pure TypeScript with the repositories the app already uses, so it is tested here without a window and a rule is written once.
+- **HTTPS with a self-made certificate, pinned.** The first start makes a certificate valid for `gstdesk.local`, `localhost` and the computer's addresses; it is kept beside the data (key readable only by the user) and made again when the addresses change. A tablet shows a warning once. The pairing QR carries the certificate's SHA-256 fingerprint and the settings page prints it, so a person can check it is the right computer. A certificate from a public authority is not possible for a private address.
+- **Pair with a code, then a token.** The desktop shows an 8-digit code (and a QR with the address, code and fingerprint) for a chosen role. The code works once, for 5 minutes; five wrong guesses burn it and the source address waits 60 seconds. A good code gives the device a random token. Only its SHA-256 hash is stored (the `devices` table), so reading the database does not give anyone access. Tokens rotate after 30 days, the old one working for 10 more minutes so a request in flight is not lost. Removing a device revokes it at once.
+- **Roles.** Full (bills, payments, cancel, settings), Counter (bills and payments, no cancel, no settings), View (read only). The role is checked in the bridge by method, not by screen, so a modified tablet app gains nothing. The method table is a whitelist: a tablet cannot run a query, export the books, change settings or read the audit trail.
+- **Limits and locks.** An authenticated device has its own request budget; unknown tokens and pairing attempts are limited by address. A document being edited on one device is locked for it (2 minutes, kept alive while the editor is open, let go when issued or cancelled); another device can read it and can take over only if allowed, and the first is told.
+- **Off by default, on the person's say-so.** The server does not exist until the switch in Settings, Tablets and phones is turned on, and stops when it is turned off. The choice is remembered per computer and the server returns after a restart.
+- **The Tauri glue is behind a cargo feature (`lan`).** `src-tauri/src/lan.rs` is a thin hand-off (start, stop, reply, and the `lan-request` event). Without the feature the commands exist and answer "not built", and the settings page says so. It is off by default because it could not be compiled on the machine where it was written (no webkit2gtk); the server crate it wraps is tested on its own (12 tests over real TLS).
+
+## Consequences
+
+- The tablet screen itself (the page a tablet opens) is not in this change: the server serves the web app and `RemoteClient` is the tested client, but a tablet-shaped billing screen that uses it is backlog B-142.
+- Traffic is encrypted but the tablet must trust the certificate on first use. A person who approves the warning without checking the fingerprint could pair with an impostor on the same network; the code is still needed, and shown only on the real desktop. See the threat model.
+- mDNS (`gstdesk.local`) is unreliable on some routers and on Android; the address by number always works.
+- The Tauri glue and mDNS on a real network need a human check (backlog B-143, B-144).

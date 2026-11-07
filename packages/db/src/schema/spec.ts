@@ -71,7 +71,19 @@ export const SPEC: TableSpec[] = [
       name: c.text().nn,
       platform: c.text(),
       last_seen_at: c.ts(),
+      /** `sync` is a device of a synced business (numbering ranges); `lan` is a tablet paired to this computer. */
+      kind: c.text().nn.default('sync').oneOf(['sync', 'lan']),
+      /** What a paired device may do: `full`, `counter` or `view`. */
+      role: c.text().oneOf(['full', 'counter', 'view']),
+      /** SHA-256 of the device's token. The token itself is never stored. */
+      token_hash: c.text(),
+      token_issued_at: c.ts(),
+      /** The token before the last rotation, accepted for a short grace. */
+      prev_token_hash: c.text(),
+      prev_valid_until: c.ts(),
+      revoked_at: c.ts(),
     },
+    indexes: [{ cols: ['token_hash'] }],
   },
   {
     name: 'business_accounts',

@@ -23,6 +23,7 @@ export * from './repositories/gstr2b';
 export * from './repositories/einvoice';
 export * from './repositories/direct-tax';
 export * from './repositories/interop';
+export * from './repositories/lan-devices';
 export * from './repositories/inventory';
 export * from './backup';
 export * from './repositories/trash';
