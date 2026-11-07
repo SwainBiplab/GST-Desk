@@ -18,9 +18,32 @@
     "gzip": true
   },
   {
-    "name": "all JS and CSS (gzip)",
-    "path": ["dist/**/*.js", "dist/**/*.css"],
-    "limit": "2 MB",
+    "name": "all JS and CSS except the on-demand AI libraries (gzip)",
+    "path": [
+      "dist/**/*.js",
+      "dist/**/*.css",
+      "!dist/assets/webllm-*.js",
+      "!dist/assets/tesseract-*.js",
+      "!dist/assets/pdfjs-*.js",
+      "!dist/assets/pdf.worker.min-*.mjs"
+    ],
+    "limit": "2.1 MB",
+    "gzip": true
+  },
+  {
+    "name": "browser model runtime (WebLLM), fetched only when switched on in Settings, AI (gzip)",
+    "path": "dist/assets/webllm-*.js",
+    "limit": "2.5 MB",
+    "gzip": true
+  },
+  {
+    "name": "OCR in the page (Tesseract) and PDF reading (pdf.js), loaded only when a bill is scanned (gzip)",
+    "path": [
+      "dist/assets/tesseract-*.js",
+      "dist/assets/pdfjs-*.js",
+      "dist/assets/pdf.worker.min-*.mjs"
+    ],
+    "limit": "800 kB",
     "gzip": true
   }
 ]

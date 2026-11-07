@@ -1,0 +1,42 @@
+{
+  "name": "bill-056",
+  "input": {
+    "kind": "text",
+    "text": "Bharat Steel Industries Pvt Ltd  Nashik\ngstin 27aabcb7788m1zy\nbill no B85681  date 2026-06-09\nItem                      Qty  Rate      Amt\nWire 1.5 sqmm 90m         33   1250.00   41250.00\nFloor Cleaner 5L          7    310.00    2170.00\nPaint Brush 2 inch        13   25.00     325.00\ncgst 9%                                        3937.05\nsgst 9%                                        3937.05\nnet amount 51619.00\nthank you visit again"
+  },
+  "expected": {
+    "supplierName": "Bharat Steel Industries Pvt Ltd",
+    "supplierGstin": "27AABCB7788M1ZY",
+    "invoiceNumber": "B85681",
+    "date": "2026-06-09",
+    "lines": [
+      {
+        "description": "Wire 1.5 sqmm 90m",
+        "hsn": null,
+        "qty": 33,
+        "ratePaise": 125000,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Floor Cleaner 5L",
+        "hsn": null,
+        "qty": 7,
+        "ratePaise": 31000,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Paint Brush 2 inch",
+        "hsn": null,
+        "qty": 13,
+        "ratePaise": 2500,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 5161900
+  },
+  "meta": {
+    "layout": "lowercase-retail",
+    "interState": false,
+    "lines": 3
+  }
+}

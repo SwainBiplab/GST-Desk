@@ -1,0 +1,35 @@
+{
+  "name": "bill-036",
+  "input": {
+    "kind": "text",
+    "text": "Roy Paper Products  Kolkata\ngstin 19aabpr3344c1zx\nbill no B14160  date 2026-09-01\nItem                      Qty  Rate      Amt\nWire 1.5 sqmm 90m         3    1250.00   3750.00\nPaint Brush 2 inch        51   25.00     1275.00\nigst 18%                                        904.50\nnet amount 5930.00\nthank you visit again"
+  },
+  "expected": {
+    "supplierName": "Roy Paper Products",
+    "supplierGstin": "19AABPR3344C1ZX",
+    "invoiceNumber": "B14160",
+    "date": "2026-09-01",
+    "lines": [
+      {
+        "description": "Wire 1.5 sqmm 90m",
+        "hsn": null,
+        "qty": 3,
+        "ratePaise": 125000,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Paint Brush 2 inch",
+        "hsn": null,
+        "qty": 51,
+        "ratePaise": 2500,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 593000
+  },
+  "meta": {
+    "layout": "lowercase-retail",
+    "interState": true,
+    "lines": 2
+  }
+}

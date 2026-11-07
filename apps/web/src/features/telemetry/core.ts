@@ -23,6 +23,8 @@ export const FEATURES = [
   'pdf_saved',
   'language_changed',
   'help_opened',
+  'ai_scan',
+  'ai_voice',
 ] as const;
 export type Feature = (typeof FEATURES)[number];
 

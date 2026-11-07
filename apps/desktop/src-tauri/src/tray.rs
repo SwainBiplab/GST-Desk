@@ -47,7 +47,9 @@ pub fn build(app: &tauri::AppHandle) -> tauri::Result<()> {
             "quit" => app.exit(0),
             "show" => show_main(app),
             "open-data" => {
-                let _ = crate::paths::current(app).and_then(|p| crate::paths::open_in_file_manager(std::path::Path::new(&p.root)));
+                let _ = crate::paths::current(app).and_then(|p| {
+                    crate::paths::open_in_file_manager(std::path::Path::new(&p.root))
+                });
             }
             id @ ("new-bill" | "backup-now") => {
                 show_main(app);
@@ -56,7 +58,12 @@ pub fn build(app: &tauri::AppHandle) -> tauri::Result<()> {
             _ => {}
         })
         .on_tray_icon_event(|tray, event| {
-            if let TrayIconEvent::Click { button: MouseButton::Left, button_state: MouseButtonState::Up, .. } = event {
+            if let TrayIconEvent::Click {
+                button: MouseButton::Left,
+                button_state: MouseButtonState::Up,
+                ..
+            } = event
+            {
                 show_main(tray.app_handle());
             }
         });
@@ -69,7 +76,10 @@ pub fn build(app: &tauri::AppHandle) -> tauri::Result<()> {
 
 /// The page tells the tray what to say, in its language. Unknown ids are ignored.
 #[tauri::command]
-pub fn set_tray_labels(items: tauri::State<'_, TrayItems>, labels: HashMap<String, String>) -> Result<(), String> {
+pub fn set_tray_labels(
+    items: tauri::State<'_, TrayItems>,
+    labels: HashMap<String, String>,
+) -> Result<(), String> {
     let map = items.0.lock().map_err(|_| "lock")?;
     for (id, label) in labels {
         if let Some(item) = map.get(&id) {

@@ -348,6 +348,22 @@ Kind: shared data. In a backup only.
 | `sha256` | text |  |  |
 | `imported_at` | time (epoch milliseconds) |  |  |
 
+### `hsn_embeddings`
+
+Kind: shared data. In a backup only.
+
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `code` | text | yes |  |
+| `model` | text | yes |  |
+| `dims` | integer | yes |  |
+| `vector_json` | JSON | yes |  |
+
 ### `number_series`
 
 Kind: belongs to a business. In a business export.

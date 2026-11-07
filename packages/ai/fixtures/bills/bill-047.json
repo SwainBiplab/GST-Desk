@@ -1,0 +1,28 @@
+{
+  "name": "bill-047",
+  "input": {
+    "kind": "text",
+    "text": "TAX INVOICE  (Original for Recipient)\nM/s Lakshmi Agencies\nBengaluru\nGSTIN/UIN: 29AADFL9087D1ZZ\nBuyer: Our Shop (27AABCU9603R1ZN)\nInvoice No.: 651\nDated: 2026-10-19\nSl  Particulars                 HSN/SAC  GST Rate  Quantity  Rate      Amount\n1   LED Bulb 9W                 8539     12%       38 Nos    85.00     3230.00\n                                                  Taxable Value  3230.00\n          IGST 12%                                        387.60\n                                                  Total Amount   3618.00\nAmount Chargeable (in words): Rupees 3618 Only\nDeclaration: Goods once sold will not be taken back.\nfor Lakshmi Agencies\nAuthorised Signatory"
+  },
+  "expected": {
+    "supplierName": "M/s Lakshmi Agencies",
+    "supplierGstin": "29AADFL9087D1ZZ",
+    "invoiceNumber": "651",
+    "date": "2026-10-19",
+    "lines": [
+      {
+        "description": "LED Bulb 9W",
+        "hsn": "8539",
+        "qty": 38,
+        "ratePaise": 8500,
+        "gstRateBp": 1200
+      }
+    ],
+    "totalPaise": 361800
+  },
+  "meta": {
+    "layout": "tally-style",
+    "interState": true,
+    "lines": 1
+  }
+}

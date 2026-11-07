@@ -1,0 +1,35 @@
+{
+  "name": "bill-042",
+  "input": {
+    "kind": "text",
+    "text": "Sri Murugan Stores\nInvoice No. B63617 dt 09-08-2026\nGST No 33AAFPS1122E1ZA\nState: 33\nBall Pen Blue           40   5.00   200.00\nCement OPC 53 50kg      16   380.00   6080.00\nIGST 18%                                        36.00\nIGST 28%                                        1702.40\nTotal 8018.00"
+  },
+  "expected": {
+    "supplierName": "Sri Murugan Stores",
+    "supplierGstin": "33AAFPS1122E1ZA",
+    "invoiceNumber": "B63617",
+    "date": "2026-08-09",
+    "lines": [
+      {
+        "description": "Ball Pen Blue",
+        "hsn": null,
+        "qty": 40,
+        "ratePaise": 500,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Cement OPC 53 50kg",
+        "hsn": null,
+        "qty": 16,
+        "ratePaise": 38000,
+        "gstRateBp": 2800
+      }
+    ],
+    "totalPaise": 801800
+  },
+  "meta": {
+    "layout": "plain",
+    "interState": true,
+    "lines": 2
+  }
+}

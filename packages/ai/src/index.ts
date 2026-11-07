@@ -11,3 +11,4 @@ export * from './rules/provider';
 export * from './eval/harness';
 export * from './diff';
 export * from './inbox';
+export * from './local';

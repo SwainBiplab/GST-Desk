@@ -257,6 +257,19 @@ export const SPEC: TableSpec[] = [
     },
   },
   {
+    /** Vectors over hsn_master for semantic search (prompt 36). One row per code and embedding model. */
+    name: 'hsn_embeddings',
+    kind: 'plain',
+    cols: {
+      code: c.text().nn,
+      model: c.text().nn,
+      dims: c.int().nn,
+      /** The vector as a JSON array of numbers. */
+      vector_json: c.json().nn,
+    },
+    indexes: [{ cols: ['code', 'model'], unique: true }],
+  },
+  {
     name: 'number_series',
     kind: 'tenant',
     cols: {

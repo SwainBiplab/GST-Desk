@@ -36,7 +36,11 @@ pub fn channel_url(endpoint: &str, channel: &str) -> String {
 
 fn configured_endpoint(app: &tauri::AppHandle) -> Option<String> {
     let conf = app.config().plugins.0.get("updater")?;
-    conf.get("endpoints")?.as_array()?.first()?.as_str().map(str::to_string)
+    conf.get("endpoints")?
+        .as_array()?
+        .first()?
+        .as_str()
+        .map(str::to_string)
 }
 
 /// Check for an update. A debug build may point at a local mock server with `base_url`; a release
@@ -48,12 +52,18 @@ pub async fn update_check(
     channel: String,
     base_url: Option<String>,
 ) -> Result<Option<UpdateInfo>, String> {
-    let endpoint = if cfg!(debug_assertions) { base_url.or_else(|| configured_endpoint(&app)) } else { configured_endpoint(&app) };
+    let endpoint = if cfg!(debug_assertions) {
+        base_url.or_else(|| configured_endpoint(&app))
+    } else {
+        configured_endpoint(&app)
+    };
     let endpoint = endpoint.ok_or("no update address is set")?;
     let url = channel_url(&endpoint, &channel);
     let updater = app
         .updater_builder()
-        .endpoints(vec![url.parse().map_err(|e| format!("bad update address: {e}"))?])
+        .endpoints(vec![url
+            .parse()
+            .map_err(|e| format!("bad update address: {e}"))?])
         .map_err(|e| e.to_string())?
         .build()
         .map_err(|e| e.to_string())?;
@@ -80,15 +90,26 @@ pub async fn update_check(
 /// Download the update that was found, in the background, telling the page how far it is. The
 /// signature is checked by the plugin when it installs.
 #[tauri::command(async)]
-pub async fn update_download(app: tauri::AppHandle, pending: tauri::State<'_, Pending>) -> Result<(), String> {
-    let update = pending.update.lock().map_err(|_| "lock")?.clone().ok_or("there is no update to download")?;
+pub async fn update_download(
+    app: tauri::AppHandle,
+    pending: tauri::State<'_, Pending>,
+) -> Result<(), String> {
+    let update = pending
+        .update
+        .lock()
+        .map_err(|_| "lock")?
+        .clone()
+        .ok_or("there is no update to download")?;
     let mut done: u64 = 0;
     let handle = app.clone();
     let bytes = update
         .download(
             move |chunk, total| {
                 done += chunk as u64;
-                let _ = handle.emit("update:progress", serde_json::json!({ "done": done, "total": total }));
+                let _ = handle.emit(
+                    "update:progress",
+                    serde_json::json!({ "done": done, "total": total }),
+                );
             },
             || {},
         )
@@ -103,13 +124,19 @@ pub async fn update_download(app: tauri::AppHandle, pending: tauri::State<'_, Pe
 fn keep_previous(app: &tauri::AppHandle) -> Result<(), String> {
     let exe = std::env::current_exe().map_err(|e| e.to_string())?;
     let root = crate::paths::current(app)?.root;
-    let dir = std::path::Path::new(&root).join("previous").join(app.package_info().version.to_string());
+    let dir = std::path::Path::new(&root)
+        .join("previous")
+        .join(app.package_info().version.to_string());
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
     let name = exe.file_name().ok_or("no executable name")?;
     std::fs::copy(&exe, dir.join(name)).map_err(|e| e.to_string())?;
     // only the last two versions are kept
     let parent = dir.parent().ok_or("no folder")?;
-    let mut versions: Vec<_> = std::fs::read_dir(parent).map_err(|e| e.to_string())?.flatten().filter(|e| e.path().is_dir()).collect();
+    let mut versions: Vec<_> = std::fs::read_dir(parent)
+        .map_err(|e| e.to_string())?
+        .flatten()
+        .filter(|e| e.path().is_dir())
+        .collect();
     versions.sort_by_key(|e| e.metadata().and_then(|m| m.modified()).ok());
     while versions.len() > 2 {
         let old = versions.remove(0);
@@ -120,9 +147,23 @@ fn keep_previous(app: &tauri::AppHandle) -> Result<(), String> {
 
 /// Install the downloaded update and restart into it. Called when the person presses "Restart to update".
 #[tauri::command(async)]
-pub fn update_install(app: tauri::AppHandle, pending: tauri::State<'_, Pending>, db: tauri::State<'_, crate::db::DbState>) -> Result<(), String> {
-    let update = pending.update.lock().map_err(|_| "lock")?.clone().ok_or("there is no update")?;
-    let bytes = pending.bytes.lock().map_err(|_| "lock")?.take().ok_or("the update has not finished downloading")?;
+pub fn update_install(
+    app: tauri::AppHandle,
+    pending: tauri::State<'_, Pending>,
+    db: tauri::State<'_, crate::db::DbState>,
+) -> Result<(), String> {
+    let update = pending
+        .update
+        .lock()
+        .map_err(|_| "lock")?
+        .clone()
+        .ok_or("there is no update")?;
+    let bytes = pending
+        .bytes
+        .lock()
+        .map_err(|_| "lock")?
+        .take()
+        .ok_or("the update has not finished downloading")?;
     // best effort: a failed copy must not stop an update
     if let Err(e) = keep_previous(&app) {
         log::warn!("could not keep the previous version: {e}");
@@ -142,7 +183,10 @@ mod tests {
         let e = "https://updates.example.com/gstdesk/latest.json";
         assert_eq!(channel_url(e, "stable"), e);
         assert_eq!(channel_url(e, "anything-else"), e);
-        assert_eq!(channel_url(e, "beta"), "https://updates.example.com/gstdesk/beta/latest.json");
+        assert_eq!(
+            channel_url(e, "beta"),
+            "https://updates.example.com/gstdesk/beta/latest.json"
+        );
         assert_eq!(channel_url("latest.json", "beta"), "latest.json");
     }
 }

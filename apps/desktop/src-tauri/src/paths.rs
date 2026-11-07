@@ -143,7 +143,9 @@ pub fn refuse_target(current: &Path, target: &Path) -> Option<&'static str> {
         return Some("the new folder cannot be inside the old one, or hold it");
     }
     if target.exists() {
-        let empty = fs::read_dir(target).map(|mut d| d.next().is_none()).unwrap_or(false);
+        let empty = fs::read_dir(target)
+            .map(|mut d| d.next().is_none())
+            .unwrap_or(false);
         if !empty {
             return Some("the new folder must be empty");
         }
@@ -165,12 +167,17 @@ pub fn move_root(current: &Path, default: &Path, target: &Path) -> Result<(), St
             let a = tally(&from).map_err(|e| e.to_string())?;
             let b = tally(&target.join(sub)).map_err(|e| e.to_string())?;
             if a != b {
-                return Err(format!("the copy of {sub} is not complete ({a:?} against {b:?}); nothing was changed"));
+                return Err(format!(
+                    "the copy of {sub} is not complete ({a:?} against {b:?}); nothing was changed"
+                ));
             }
         }
     }
     fs::create_dir_all(default).map_err(|e| e.to_string())?;
-    let ptr = serde_json::to_string(&Pointer { root: Some(target.display().to_string()) }).map_err(|e| e.to_string())?;
+    let ptr = serde_json::to_string(&Pointer {
+        root: Some(target.display().to_string()),
+    })
+    .map_err(|e| e.to_string())?;
     // write beside, then rename: the pointer is either the old one or the new one, never half of one
     let tmp = pointer_path(default).with_extension("tmp");
     fs::write(&tmp, ptr).map_err(|e| e.to_string())?;
@@ -186,7 +193,8 @@ pub fn data_paths(app: tauri::AppHandle) -> Result<DataPaths, String> {
 /// A restore builds its new database in a folder of this shape beside the live one (see the web app's
 /// `db-location.ts`); only such folders may be removed from outside.
 pub fn is_restore_dir(name: &str) -> bool {
-    name.strip_prefix("gst-desk-restore-").is_some_and(|rest| !rest.is_empty() && rest.chars().all(|c| c.is_ascii_digit()))
+    name.strip_prefix("gst-desk-restore-")
+        .is_some_and(|rest| !rest.is_empty() && rest.chars().all(|c| c.is_ascii_digit()))
 }
 
 /// Remove an old restore folder (kept for a week as the way back, then cleaned up).
@@ -217,7 +225,11 @@ pub fn open_in_file_manager(path: &Path) -> Result<(), String> {
         _ => ("xdg-open", vec![path.display().to_string()]),
     };
     // explorer reports a nonzero code even when it worked, so only a failure to start is an error
-    std::process::Command::new(cmd).args(args).spawn().map(|_| ()).map_err(|e| format!("cannot open the folder: {e}"))
+    std::process::Command::new(cmd)
+        .args(args)
+        .spawn()
+        .map(|_| ())
+        .map_err(|e| format!("cannot open the folder: {e}"))
 }
 
 /// Move the data folder. The database is closed first; the page reloads afterwards and opens it again
@@ -248,9 +260,18 @@ mod tests {
 
     #[test]
     fn default_folders_follow_each_systems_convention() {
-        assert_eq!(default_root("windows", Path::new("C:/Users/a/AppData/Roaming")), Path::new("C:/Users/a/AppData/Roaming/GST Desk"));
-        assert_eq!(default_root("macos", Path::new("/Users/a/Library/Application Support")), Path::new("/Users/a/Library/Application Support/GST Desk"));
-        assert_eq!(default_root("linux", Path::new("/home/a/.local/share")), Path::new("/home/a/.local/share/gst-desk"));
+        assert_eq!(
+            default_root("windows", Path::new("C:/Users/a/AppData/Roaming")),
+            Path::new("C:/Users/a/AppData/Roaming/GST Desk")
+        );
+        assert_eq!(
+            default_root("macos", Path::new("/Users/a/Library/Application Support")),
+            Path::new("/Users/a/Library/Application Support/GST Desk")
+        );
+        assert_eq!(
+            default_root("linux", Path::new("/home/a/.local/share")),
+            Path::new("/home/a/.local/share/gst-desk")
+        );
     }
 
     #[test]
@@ -264,8 +285,16 @@ mod tests {
 
     #[test]
     fn the_database_sits_in_data_and_documents_under_documents() {
-        let p = paths_for(Path::new("/r"), Path::new("/r"), Path::new("/docs"), Path::new("/logs"));
-        assert!(p.db.replace('\\', "/").ends_with("/r/data/gst-desk.sqlite3"));
+        let p = paths_for(
+            Path::new("/r"),
+            Path::new("/r"),
+            Path::new("/docs"),
+            Path::new("/logs"),
+        );
+        assert!(p
+            .db
+            .replace('\\', "/")
+            .ends_with("/r/data/gst-desk.sqlite3"));
         assert!(p.documents.replace('\\', "/").ends_with("/docs/GST Desk"));
         assert!(p.is_default);
     }
@@ -311,7 +340,11 @@ mod tests {
         let base = tmp("gone");
         let default = base.join("d");
         fs::create_dir_all(&default).unwrap();
-        fs::write(pointer_path(&default), r#"{"root":"/no/such/place/anywhere"}"#).unwrap();
+        fs::write(
+            pointer_path(&default),
+            r#"{"root":"/no/such/place/anywhere"}"#,
+        )
+        .unwrap();
         assert_eq!(resolve_root(&default), default);
         fs::write(pointer_path(&default), "not json").unwrap();
         assert_eq!(resolve_root(&default), default);

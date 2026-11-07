@@ -1,0 +1,28 @@
+{
+  "name": "bill-019",
+  "input": {
+    "kind": "text",
+    "text": "INVOICE\nM/s Mehta & Sons\nDelhi\nGSTIN/UIN: 07AAEFM2211R1Z6\nBuyer: Our Shop (27AABCU9603R1ZN)\nInvoice No.: MEH/26-27/0204\nDated: 28.06.2026\nSl  Particulars                 HSN/SAC  GST Rate  Quantity  Rate      Amount\n1   Cement OPC 53 50kg          2523     28%       55 Nos    380.00    20900.00\n                                                  Taxable Value  20900.00\n          IGST 28%                                        5852.00\n                                                  Total Amount   26752.00\nAmount Chargeable (in words): Rupees 26752 Only\nDeclaration: Goods once sold will not be taken back.\nfor Mehta & Sons\nAuthorised Signatory"
+  },
+  "expected": {
+    "supplierName": "M/s Mehta & Sons",
+    "supplierGstin": "07AAEFM2211R1Z6",
+    "invoiceNumber": "MEH/26-27/0204",
+    "date": "2026-06-28",
+    "lines": [
+      {
+        "description": "Cement OPC 53 50kg",
+        "hsn": "2523",
+        "qty": 55,
+        "ratePaise": 38000,
+        "gstRateBp": 2800
+      }
+    ],
+    "totalPaise": 2675200
+  },
+  "meta": {
+    "layout": "tally-style",
+    "interState": true,
+    "lines": 1
+  }
+}

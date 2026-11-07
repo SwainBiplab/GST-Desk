@@ -1,0 +1,56 @@
+{
+  "name": "bill-008",
+  "input": {
+    "kind": "text",
+    "text": "Bharat Steel Industries Pvt Ltd  Nashik\ngstin 27aabcb7788m1zy\nbill no 874  date 04.08.2026\nItem                      Qty  Rate      Amt\nTMT Bar 12mm              20   62.50     1250.00\nPaint Brush 2 inch        7    25.00     175.00\nWire 1.5 sqmm 90m         8    1250.00   10000.00\nPlastic Bucket 20L        30   140.00    4200.00\nPacking Tape 48mm         2    38.00     76.00\ncgst 9%                                        1413.09\nsgst 9%                                        1413.09\nnet amount 18527.00\nthank you visit again"
+  },
+  "expected": {
+    "supplierName": "Bharat Steel Industries Pvt Ltd",
+    "supplierGstin": "27AABCB7788M1ZY",
+    "invoiceNumber": "874",
+    "date": "2026-08-04",
+    "lines": [
+      {
+        "description": "TMT Bar 12mm",
+        "hsn": null,
+        "qty": 20,
+        "ratePaise": 6250,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Paint Brush 2 inch",
+        "hsn": null,
+        "qty": 7,
+        "ratePaise": 2500,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Wire 1.5 sqmm 90m",
+        "hsn": null,
+        "qty": 8,
+        "ratePaise": 125000,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Plastic Bucket 20L",
+        "hsn": null,
+        "qty": 30,
+        "ratePaise": 14000,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Packing Tape 48mm",
+        "hsn": null,
+        "qty": 2,
+        "ratePaise": 3800,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 1852700
+  },
+  "meta": {
+    "layout": "lowercase-retail",
+    "interState": false,
+    "lines": 5
+  }
+}

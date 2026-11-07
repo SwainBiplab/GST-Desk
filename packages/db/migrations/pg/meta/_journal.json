@@ -71,6 +71,13 @@
       "when": 1794020758246,
       "tag": "0009_lumpy_scream",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794023831304,
+      "tag": "0010_sparkling_retro_girl",
+      "breakpoints": true
     }
   ]
 }

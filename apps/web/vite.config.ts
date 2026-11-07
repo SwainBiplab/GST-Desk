@@ -39,6 +39,8 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,wasm}'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: '/index.html',
+        // the browser model runtime is fetched only when a person switches it on, never precached
+        globIgnores: ['**/webllm-*.js'],
         // the landing page is static files, not part of the app's routes
         navigateFallbackDenylist: [/^\/landing(\/|$)/],
         // the print fonts load on first use and are kept, so printing works offline afterwards
@@ -75,6 +77,20 @@ export default defineConfig({
       { find: /^@gst\/db\/seed$/, replacement: root('db/src/seed.ts') },
       { find: /^@gst\/(domain|db|ui|ai|i18n|print)$/, replacement: root('$1/src/index.ts') },
     ],
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        // the optional AI libraries load on demand and must not sit in the shared chunk (web-llm alone is 6 MB)
+        advancedChunks: {
+          groups: [
+            { name: 'webllm', test: /@mlc-ai[\\/]web-llm/ },
+            { name: 'tesseract', test: /tesseract\.js/ },
+            { name: 'pdfjs', test: /pdfjs-dist/ },
+          ],
+        },
+      },
+    },
   },
   worker: { format: 'es' },
   optimizeDeps: { exclude: ['@sqlite.org/sqlite-wasm'] },

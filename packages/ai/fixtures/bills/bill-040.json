@@ -1,0 +1,42 @@
+{
+  "name": "bill-040",
+  "input": {
+    "kind": "text",
+    "text": "Mehta & Sons  Delhi\ngstin 07aaefm2211r1z6\nbill no INV-2113  date 28-02-2026\nItem                      Qty  Rate      Amt\nSugar 50kg                19   2050.00   38950.00\nWire 1.5 sqmm 90m         56   1250.00   70000.00\nPaint Brush 2 inch        12   25.00     300.00\nigst 5%                                        1947.50\nigst 18%                                        12654.00\nnet amount 123852.00\nthank you visit again"
+  },
+  "expected": {
+    "supplierName": "Mehta & Sons",
+    "supplierGstin": "07AAEFM2211R1Z6",
+    "invoiceNumber": "INV-2113",
+    "date": "2026-02-28",
+    "lines": [
+      {
+        "description": "Sugar 50kg",
+        "hsn": null,
+        "qty": 19,
+        "ratePaise": 205000,
+        "gstRateBp": 500
+      },
+      {
+        "description": "Wire 1.5 sqmm 90m",
+        "hsn": null,
+        "qty": 56,
+        "ratePaise": 125000,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Paint Brush 2 inch",
+        "hsn": null,
+        "qty": 12,
+        "ratePaise": 2500,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 12385200
+  },
+  "meta": {
+    "layout": "lowercase-retail",
+    "interState": true,
+    "lines": 3
+  }
+}

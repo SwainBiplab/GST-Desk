@@ -1,0 +1,35 @@
+{
+  "name": "bill-032",
+  "input": {
+    "kind": "text",
+    "text": "Kumar Electricals  Chennai\ngstin 33aaack1234k1zw\nbill no KUM/26-27/0800  date 07.03.2026\nItem                      Qty  Rate      Amt\nFloor Cleaner 5L          52   310.00    16120.00\nSugar 50kg                20   2050.00   41000.00\nigst 5%                                        2050.00\nigst 18%                                        2901.60\nnet amount 62072.00\nthank you visit again"
+  },
+  "expected": {
+    "supplierName": "Kumar Electricals",
+    "supplierGstin": "33AAACK1234K1ZW",
+    "invoiceNumber": "KUM/26-27/0800",
+    "date": "2026-03-07",
+    "lines": [
+      {
+        "description": "Floor Cleaner 5L",
+        "hsn": null,
+        "qty": 52,
+        "ratePaise": 31000,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Sugar 50kg",
+        "hsn": null,
+        "qty": 20,
+        "ratePaise": 205000,
+        "gstRateBp": 500
+      }
+    ],
+    "totalPaise": 6207200
+  },
+  "meta": {
+    "layout": "lowercase-retail",
+    "interState": true,
+    "lines": 2
+  }
+}

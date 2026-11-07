@@ -1,0 +1,35 @@
+{
+  "name": "bill-060",
+  "input": {
+    "kind": "text",
+    "text": "Shree Ganesh Traders  Pune\ngstin 27aapfu0939f1zv\nbill no INV-7169  date 12/10/2026\nItem                      Qty  Rate      Amt\nPacking Tape 48mm         33   38.00     1254.00\nLED Bulb 9W               3    85.00     255.00\ncgst 6%                                        15.30\nsgst 6%                                        15.30\ncgst 9%                                        112.86\nsgst 9%                                        112.86\nnet amount 1765.00\nthank you visit again"
+  },
+  "expected": {
+    "supplierName": "Shree Ganesh Traders",
+    "supplierGstin": "27AAPFU0939F1ZV",
+    "invoiceNumber": "INV-7169",
+    "date": "2026-10-12",
+    "lines": [
+      {
+        "description": "Packing Tape 48mm",
+        "hsn": null,
+        "qty": 33,
+        "ratePaise": 3800,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "LED Bulb 9W",
+        "hsn": null,
+        "qty": 3,
+        "ratePaise": 8500,
+        "gstRateBp": 1200
+      }
+    ],
+    "totalPaise": 176500
+  },
+  "meta": {
+    "layout": "lowercase-retail",
+    "interState": false,
+    "lines": 2
+  }
+}

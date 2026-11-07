@@ -1,0 +1,28 @@
+{
+  "name": "bill-015",
+  "input": {
+    "kind": "text",
+    "text": "INVOICE\nM/s Bharat Steel Industries Pvt Ltd\nNashik\nGSTIN/UIN: 27AABCB7788M1ZY\nBuyer: Our Shop (27AABCU9603R1ZN)\nInvoice No.: 762\nDated: 12.01.2026\nSl  Particulars                 HSN/SAC  GST Rate  Quantity  Rate      Amount\n1   Sugar 50kg                  1701     5%        60 Nos    2050.00   123000.00\n                                                  Taxable Value  123000.00\n          CGST 2.5%                                        3075.00\n          SGST 2.5%                                        3075.00\n                                                  Total Amount   129150.00\nAmount Chargeable (in words): Rupees 129150 Only\nDeclaration: Goods once sold will not be taken back.\nfor Bharat Steel Industries Pvt Ltd\nAuthorised Signatory"
+  },
+  "expected": {
+    "supplierName": "M/s Bharat Steel Industries Pvt Ltd",
+    "supplierGstin": "27AABCB7788M1ZY",
+    "invoiceNumber": "762",
+    "date": "2026-01-12",
+    "lines": [
+      {
+        "description": "Sugar 50kg",
+        "hsn": "1701",
+        "qty": 60,
+        "ratePaise": 205000,
+        "gstRateBp": 500
+      }
+    ],
+    "totalPaise": 12915000
+  },
+  "meta": {
+    "layout": "tally-style",
+    "interState": false,
+    "lines": 1
+  }
+}

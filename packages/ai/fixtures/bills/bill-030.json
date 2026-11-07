@@ -1,0 +1,42 @@
+{
+  "name": "bill-030",
+  "input": {
+    "kind": "text",
+    "text": "Kumar Electricals\nInvoice No. KUM/26-27/0786 dt 25 Sep 2026\nGST No 33AAACK1234K1ZW\nState: 33\nPaint Brush 2 inch      30   25.00   750.00\nLED Bulb 9W             48   85.00   4080.00\nWire 1.5 sqmm 90m       21   1250.00   26250.00\nIGST 12%                                        489.60\nIGST 18%                                        4860.00\nTotal 36430.00"
+  },
+  "expected": {
+    "supplierName": "Kumar Electricals",
+    "supplierGstin": "33AAACK1234K1ZW",
+    "invoiceNumber": "KUM/26-27/0786",
+    "date": "2026-09-25",
+    "lines": [
+      {
+        "description": "Paint Brush 2 inch",
+        "hsn": null,
+        "qty": 30,
+        "ratePaise": 2500,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "LED Bulb 9W",
+        "hsn": null,
+        "qty": 48,
+        "ratePaise": 8500,
+        "gstRateBp": 1200
+      },
+      {
+        "description": "Wire 1.5 sqmm 90m",
+        "hsn": null,
+        "qty": 21,
+        "ratePaise": 125000,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 3643000
+  },
+  "meta": {
+    "layout": "plain",
+    "interState": true,
+    "lines": 3
+  }
+}

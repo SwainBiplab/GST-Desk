@@ -54,6 +54,30 @@ export const lanStop = () => invoke<null>('lan_stop');
 export const lanReply = (id: number, status: number, body: string) =>
   invoke<boolean>('lan_reply', { id, status, body });
 
+/** Offline AI (prompt 36): model files under the data folder, and the sidecar servers. All `ai_*`
+ * commands answer `not_built` when the app was built without the `ai` cargo feature. */
+export const aiModelsDir = () => invoke<string>('ai_models_dir');
+export const aiFileSize = (file: string) => invoke<number | null>('ai_file_size', { file });
+export const aiAppend = (file: string, base64: string) =>
+  invoke<null>('ai_append', { file, base64 });
+export const aiRemove = (file: string) => invoke<null>('ai_remove', { file });
+export const aiFinish = (partial: string, file: string) =>
+  invoke<null>('ai_finish', { partial, file });
+export const aiSha256 = (file: string) => invoke<string>('ai_sha256', { file });
+export const aiReadText = (file: string) => invoke<string | null>('ai_read_text', { file });
+export const aiWriteText = (file: string, text: string) =>
+  invoke<null>('ai_write_text', { file, text });
+export const aiFreeBytes = () => invoke<number | null>('ai_free_bytes');
+export const aiListDir = (dir: string) =>
+  invoke<{ name: string; size: number; modified: number }[]>('ai_list_dir', { dir });
+export const aiReadFile = async (path: string): Promise<Uint8Array> =>
+  new Uint8Array(await invoke<ArrayBuffer>('ai_read_file', { path }));
+export const aiHardware = () =>
+  invoke<{ ramGb: number; cores: number; gpu: string; os: string; arch: string }>('ai_hardware');
+export const sidecarStart = (kind: string, modelFile: string, threads?: number) =>
+  invoke<{ baseUrl: string }>('sidecar_start', { kind, modelFile, threads: threads ?? null });
+export const sidecarStop = (kind: string) => invoke<null>('sidecar_stop', { kind });
+
 export function on<T = unknown>(event: string, handler: (payload: T) => void): Promise<UnlistenFn> {
   return listen<T>(event, (e) => handler(e.payload));
 }

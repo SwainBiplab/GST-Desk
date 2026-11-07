@@ -1,0 +1,56 @@
+{
+  "name": "bill-038",
+  "input": {
+    "kind": "text",
+    "text": "Verma Plastics\nInvoice No. B57214 dt 2026-10-13\nGST No 09AAGCV5634P1ZK\nState: 09\nSugar 50kg              56   2050.00   114800.00\nCement OPC 53 50kg      48   380.00   18240.00\nLED Bulb 9W             40   85.00   3400.00\nSwitch 6A               22   45.00   990.00\nCotton Shirting 1.2m    47   210.00   9870.00\nIGST 5%                                        6233.50\nIGST 12%                                        408.00\nIGST 18%                                        178.20\nIGST 28%                                        5107.20\nTotal 159227.00"
+  },
+  "expected": {
+    "supplierName": "Verma Plastics",
+    "supplierGstin": "09AAGCV5634P1ZK",
+    "invoiceNumber": "B57214",
+    "date": "2026-10-13",
+    "lines": [
+      {
+        "description": "Sugar 50kg",
+        "hsn": null,
+        "qty": 56,
+        "ratePaise": 205000,
+        "gstRateBp": 500
+      },
+      {
+        "description": "Cement OPC 53 50kg",
+        "hsn": null,
+        "qty": 48,
+        "ratePaise": 38000,
+        "gstRateBp": 2800
+      },
+      {
+        "description": "LED Bulb 9W",
+        "hsn": null,
+        "qty": 40,
+        "ratePaise": 8500,
+        "gstRateBp": 1200
+      },
+      {
+        "description": "Switch 6A",
+        "hsn": null,
+        "qty": 22,
+        "ratePaise": 4500,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Cotton Shirting 1.2m",
+        "hsn": null,
+        "qty": 47,
+        "ratePaise": 21000,
+        "gstRateBp": 500
+      }
+    ],
+    "totalPaise": 15922700
+  },
+  "meta": {
+    "layout": "plain",
+    "interState": true,
+    "lines": 5
+  }
+}

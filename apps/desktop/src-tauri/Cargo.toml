@@ -30,7 +30,13 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 gst-lan-server = { path = "../lan-server", optional = true }
 tokio = { version = "1", features = ["sync"], optional = true }
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls"], optional = true }
+sha2 = { version = "0.10", optional = true }
+sysinfo = { version = "0.33", default-features = false, features = ["system"], optional = true }
+libc = { version = "0.2", optional = true }
 
 [features]
 # tablets and phones on the shop network; off by default until it has been tried on a real machine
 lan = ["dep:gst-lan-server", "dep:tokio"]
+# offline AI: model files and the sidecar servers; off by default until it has been tried on a real machine
+ai = ["dep:reqwest", "dep:sha2", "dep:sysinfo", "dep:libc"]

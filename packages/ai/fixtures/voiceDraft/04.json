@@ -1,0 +1,22 @@
+{
+  "name": "tamil-latin",
+  "input": {
+    "feature": "voice_draft",
+    "input": {
+      "text": "Kannan kku irandu kilo arisi aimbathu rupaai"
+    }
+  },
+  "expected": {
+    "intent": "unknown",
+    "party": "Kannan",
+    "lines": [
+      {
+        "description": "arisi",
+        "qty": 2,
+        "unit": "KGS",
+        "ratePaise": 5000
+      }
+    ],
+    "amountPaise": null
+  }
+}

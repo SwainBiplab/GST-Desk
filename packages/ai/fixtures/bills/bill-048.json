@@ -1,0 +1,42 @@
+{
+  "name": "bill-048",
+  "input": {
+    "kind": "text",
+    "text": "Patel Hardware Mart  Surat\ngstin 24abcpp4567q1z1\nbill no INV-2880  date 19.10.2026\nItem                      Qty  Rate      Amt\nPaint Brush 2 inch        6    25.00     150.00\nPlastic Bucket 20L        15   140.00    2100.00\nCotton Shirting 1.2m      9    210.00    1890.00\nigst 5%                                        94.50\nigst 18%                                        405.00\nnet amount 4640.00\nthank you visit again"
+  },
+  "expected": {
+    "supplierName": "Patel Hardware Mart",
+    "supplierGstin": "24ABCPP4567Q1Z1",
+    "invoiceNumber": "INV-2880",
+    "date": "2026-10-19",
+    "lines": [
+      {
+        "description": "Paint Brush 2 inch",
+        "hsn": null,
+        "qty": 6,
+        "ratePaise": 2500,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Plastic Bucket 20L",
+        "hsn": null,
+        "qty": 15,
+        "ratePaise": 14000,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Cotton Shirting 1.2m",
+        "hsn": null,
+        "qty": 9,
+        "ratePaise": 21000,
+        "gstRateBp": 500
+      }
+    ],
+    "totalPaise": 464000
+  },
+  "meta": {
+    "layout": "lowercase-retail",
+    "interState": true,
+    "lines": 3
+  }
+}

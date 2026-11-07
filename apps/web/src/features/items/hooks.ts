@@ -1,3 +1,4 @@
+import type { AiRouter } from '@gst/ai';
 import {
   ItemRepo,
   UnitRepo,
@@ -9,10 +10,10 @@ import {
   type Row,
 } from '@gst/db';
 import { today } from '@gst/domain';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useAppDb, useLiveQuery } from '@/app/db';
-import { hsnRouterFor, suggestHsn } from '@/lib/ai';
+import { hybridHsnRouterFor, suggestHsn } from '@/lib/ai';
 
 /** Every live item by name. Refetches when items change. */
 export function useItemList() {
@@ -91,7 +92,14 @@ export interface HsnHit {
 /** Top matches from the offline rules provider for a free-text description. Debounced. */
 export function useHsnSuggestions(text: string, enabled: boolean) {
   const { database } = useAppDb();
-  const router = useMemo(() => (database ? hsnRouterFor(database) : null), [database]);
+  const [router, setRouter] = useState<AiRouter | null>(null);
+  useEffect(() => {
+    let live = true;
+    if (database) void hybridHsnRouterFor(database).then((r) => live && setRouter(r));
+    return () => {
+      live = false;
+    };
+  }, [database]);
   const query = text.trim();
   const versionKey = useHsnVersionKey();
   const key = `${query}|${versionKey}`;

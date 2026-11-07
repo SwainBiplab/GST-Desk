@@ -129,6 +129,54 @@ export const prefilingIssueItem = z.object({
 });
 export type PrefilingIssueItem = z.infer<typeof prefilingIssueItem>;
 
+/**
+ * A purchase bill read from a scan (prompt 36). Accepting makes a purchase draft under `documentId` with
+ * the scan attached; the person issues it from the editor. Every field carries the confidence it was read with.
+ */
+export const aiExtractionItem = z.object({
+  /** The id the draft will have, chosen before accept so the card can open it afterwards. */
+  documentId: z.string(),
+  bill: z.object({
+    supplierName: z.string(),
+    supplierGstin: z.string().nullable(),
+    invoiceNumber: z.string(),
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    lines: z.array(
+      z.object({
+        description: z.string(),
+        hsn: z.string().nullable(),
+        qty: z.number(),
+        ratePaise: z.number().int(),
+        gstRateBp: z.number().int(),
+        /** The catalogue item it was matched to, or null for a free line. */
+        itemId: z.string().nullable(),
+      }),
+    ),
+    totalPaise: z.number().int(),
+  }),
+  supplierPartyId: z.string().nullable(),
+  fieldConfidence: z.record(z.string(), z.number()),
+  checks: z.object({
+    engineTotalPaise: z.number().int(),
+    totalsAgree: z.boolean(),
+    gstinValid: z.boolean().nullable(),
+    dateSane: z.boolean(),
+  }),
+  /** The scan, already stored by the app; registered against the draft on accept. */
+  attachment: z
+    .object({
+      fileName: z.string(),
+      mime: z.string(),
+      sizeBytes: z.number().int(),
+      sha256: z.string(),
+      storagePath: z.string(),
+    })
+    .nullable(),
+  sources: z.array(z.string()),
+  model: z.string().nullable(),
+});
+export type AiExtractionItem = z.infer<typeof aiExtractionItem>;
+
 /** Kinds whose owner has not shipped yet: the card shows what it holds, Accept stays off. */
 export const genericItem = z.record(z.string(), z.unknown());
 
@@ -141,7 +189,7 @@ export const INBOX_SCHEMAS = {
   draft_stale: draftStaleItem,
   low_stock: lowStockItem,
   backup_failed: backupFailedItem,
-  ai_extraction: genericItem,
+  ai_extraction: aiExtractionItem,
   prefiling_issue: prefilingIssueItem,
   gsp_job_stopped: gspJobStoppedItem,
   reconciliation_mismatch: genericItem,
@@ -167,11 +215,10 @@ export interface KindInfo {
 
 export const KIND_INFO: Record<InboxKind, KindInfo> = {
   ai_extraction: {
-    label: 'Extracted document',
+    label: 'Scanned purchase bill',
     informational: false,
     bulk: false,
-    pending: 'prompt 36',
-    opens: 'none',
+    opens: 'document',
   },
   duplicate_party: {
     label: 'Possible duplicate party',

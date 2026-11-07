@@ -1,0 +1,56 @@
+{
+  "name": "bill-014",
+  "input": {
+    "kind": "text",
+    "text": "Desai Textiles\nInvoice No. DES/26-27/0960 dt 01-07-2026\nGST No 24AAHPD6655L1ZJ\nState: 24\nSugar 50kg              15   2050.00   30750.00\nFloor Cleaner 5L        6   310.00   1860.00\nTMT Bar 12mm            1   62.50   62.50\nA4 Copier Paper 75gsm   50   285.00   14250.00\nPaint Brush 2 inch      41   25.00   1025.00\nIGST 5%                                        1537.50\nIGST 12%                                        1710.00\nIGST 18%                                        530.55\nTotal 51726.00"
+  },
+  "expected": {
+    "supplierName": "Desai Textiles",
+    "supplierGstin": "24AAHPD6655L1ZJ",
+    "invoiceNumber": "DES/26-27/0960",
+    "date": "2026-07-01",
+    "lines": [
+      {
+        "description": "Sugar 50kg",
+        "hsn": null,
+        "qty": 15,
+        "ratePaise": 205000,
+        "gstRateBp": 500
+      },
+      {
+        "description": "Floor Cleaner 5L",
+        "hsn": null,
+        "qty": 6,
+        "ratePaise": 31000,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "TMT Bar 12mm",
+        "hsn": null,
+        "qty": 1,
+        "ratePaise": 6250,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "A4 Copier Paper 75gsm",
+        "hsn": null,
+        "qty": 50,
+        "ratePaise": 28500,
+        "gstRateBp": 1200
+      },
+      {
+        "description": "Paint Brush 2 inch",
+        "hsn": null,
+        "qty": 41,
+        "ratePaise": 2500,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 5172600
+  },
+  "meta": {
+    "layout": "plain",
+    "interState": true,
+    "lines": 5
+  }
+}

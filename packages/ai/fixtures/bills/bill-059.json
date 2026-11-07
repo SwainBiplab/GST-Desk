@@ -1,0 +1,42 @@
+{
+  "name": "bill-059",
+  "input": {
+    "kind": "text",
+    "text": "TAX INVOICE  (Original for Recipient)\nM/s Kumar Electricals\nChennai\nGSTIN/UIN: 33AAACK1234K1ZW\nBuyer: Our Shop (27AABCU9603R1ZN)\nInvoice No.: 845\nDated: 9 Mar 2026\nSl  Particulars                 HSN/SAC  GST Rate  Quantity  Rate      Amount\n1   Switch 6A                   8536     18%       56 Nos    45.00     2520.00\n2   Floor Cleaner 5L            3402     18%       40 Nos    310.00    12400.00\n3   Mobile Charger 20W          8504     18%       10 Nos    399.00    3990.00\n                                                  Taxable Value  18910.00\n          IGST 18%                                        3403.80\n                                                  Total Amount   22314.00\nAmount Chargeable (in words): Rupees 22314 Only\nDeclaration: Goods once sold will not be taken back.\nfor Kumar Electricals\nAuthorised Signatory"
+  },
+  "expected": {
+    "supplierName": "M/s Kumar Electricals",
+    "supplierGstin": "33AAACK1234K1ZW",
+    "invoiceNumber": "845",
+    "date": "2026-03-09",
+    "lines": [
+      {
+        "description": "Switch 6A",
+        "hsn": "8536",
+        "qty": 56,
+        "ratePaise": 4500,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Floor Cleaner 5L",
+        "hsn": "3402",
+        "qty": 40,
+        "ratePaise": 31000,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Mobile Charger 20W",
+        "hsn": "8504",
+        "qty": 10,
+        "ratePaise": 39900,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 2231400
+  },
+  "meta": {
+    "layout": "tally-style",
+    "interState": true,
+    "lines": 3
+  }
+}

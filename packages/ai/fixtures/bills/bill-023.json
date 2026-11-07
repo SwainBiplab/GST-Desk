@@ -1,0 +1,49 @@
+{
+  "name": "bill-023",
+  "input": {
+    "kind": "text",
+    "text": "INVOICE\nM/s Shree Ganesh Traders\nPune\nGSTIN/UIN: 27AAPFU0939F1ZV\nBuyer: Our Shop (27AABCU9603R1ZN)\nInvoice No.: SHR/26-27/0103\nDated: 09.07.2026\nSl  Particulars                 HSN/SAC  GST Rate  Quantity  Rate      Amount\n1   Mobile Charger 20W          8504     18%       47 Nos    399.00    18753.00\n2   LED Bulb 9W                 8539     12%       34 Nos    85.00     2890.00\n3   Steel Pipe 1 inch           7306     18%       9 Nos     520.00    4680.00\n4   Ball Pen Blue               9608     18%       26 Nos    5.00      130.00\n                                                  Taxable Value  26453.00\n          CGST 6%                                        173.40\n          SGST 6%                                        173.40\n          CGST 9%                                        2120.67\n          SGST 9%                                        2120.67\n                                                  Total Amount   31041.00\nAmount Chargeable (in words): Rupees 31041 Only\nDeclaration: Goods once sold will not be taken back.\nfor Shree Ganesh Traders\nAuthorised Signatory"
+  },
+  "expected": {
+    "supplierName": "M/s Shree Ganesh Traders",
+    "supplierGstin": "27AAPFU0939F1ZV",
+    "invoiceNumber": "SHR/26-27/0103",
+    "date": "2026-07-09",
+    "lines": [
+      {
+        "description": "Mobile Charger 20W",
+        "hsn": "8504",
+        "qty": 47,
+        "ratePaise": 39900,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "LED Bulb 9W",
+        "hsn": "8539",
+        "qty": 34,
+        "ratePaise": 8500,
+        "gstRateBp": 1200
+      },
+      {
+        "description": "Steel Pipe 1 inch",
+        "hsn": "7306",
+        "qty": 9,
+        "ratePaise": 52000,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Ball Pen Blue",
+        "hsn": "9608",
+        "qty": 26,
+        "ratePaise": 500,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 3104100
+  },
+  "meta": {
+    "layout": "tally-style",
+    "interState": false,
+    "lines": 4
+  }
+}

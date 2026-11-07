@@ -1,0 +1,28 @@
+{
+  "name": "english-for-party",
+  "input": {
+    "feature": "voice_draft",
+    "input": {
+      "text": "3 kg sugar at 42 and 2 litre oil 180 rupees for Sharma Stores"
+    }
+  },
+  "expected": {
+    "intent": "unknown",
+    "party": "Sharma Stores",
+    "lines": [
+      {
+        "description": "sugar",
+        "qty": 3,
+        "unit": "KGS",
+        "ratePaise": 4200
+      },
+      {
+        "description": "oil",
+        "qty": 2,
+        "unit": "LTR",
+        "ratePaise": 18000
+      }
+    ],
+    "amountPaise": null
+  }
+}

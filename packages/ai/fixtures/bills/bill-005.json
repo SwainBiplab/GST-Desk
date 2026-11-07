@@ -1,0 +1,28 @@
+{
+  "name": "bill-005",
+  "input": {
+    "kind": "text",
+    "text": "VERMA PLASTICS\n83, MG Road, Kanpur\nGSTIN: 09AAGCV5634P1ZK   Phone: 9751855218\nTAX INVOICE  (Original for Recipient)\nInvoice No: 573        Date: 28/04/2026\nBill To: Our Shop, GSTIN 27AABCU9603R1ZN\nS.No  Description               HSN   Qty   Rate      Amount\n1     Steel Pipe 1 inch         7306  29    520.00    15080.00\nSub Total                                            15080.00\nIGST 18%                                        2714.40\nRound Off                                            -0.40\nGrand Total                                          17794.00\nE.&O.E.   Authorised Signatory"
+  },
+  "expected": {
+    "supplierName": "VERMA PLASTICS",
+    "supplierGstin": "09AAGCV5634P1ZK",
+    "invoiceNumber": "573",
+    "date": "2026-04-28",
+    "lines": [
+      {
+        "description": "Steel Pipe 1 inch",
+        "hsn": "7306",
+        "qty": 29,
+        "ratePaise": 52000,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 1779400
+  },
+  "meta": {
+    "layout": "header-table",
+    "interState": true,
+    "lines": 1
+  }
+}

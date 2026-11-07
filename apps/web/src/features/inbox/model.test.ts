@@ -69,7 +69,9 @@ describe('inbox rows', () => {
     // the GST return checks are built (accepting only acknowledges); reconciliation arrives with prompt 31
     expect(canAccept(row('prefiling_issue', {}))).toBe(true);
     expect(canAccept(row('reconciliation_mismatch', {}))).toBe(false);
-    expect(canAccept(row('ai_extraction', {}))).toBe(false);
+    // scanned bills are built (prompt 36); sync conflicts arrive with phase 3
+    expect(canAccept(row('ai_extraction', {}))).toBe(true);
+    expect(canAccept(row('sync_conflict', {}))).toBe(false);
     expect(canAccept(row('hsn_suggestion', {}, { status: 'accepted' }))).toBe(false);
   });
 
@@ -77,6 +79,7 @@ describe('inbox rows', () => {
     expect(editableFields('hsn_suggestion')).toEqual(['code']);
     expect(editableFields('reminder_due')).toEqual(['message']);
     expect(editableFields('duplicate_party')).toEqual(['keep']);
+    expect(editableFields('ai_extraction')).toEqual(['extraction']);
     expect(editableFields('low_stock')).toEqual([]);
   });
 

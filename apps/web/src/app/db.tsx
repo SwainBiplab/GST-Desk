@@ -39,13 +39,20 @@ export interface AppDbValue {
 const Context = createContext<AppDbValue | null>(null);
 
 /** Read once at load: router redirects drop the query string. */
-export const DEMO_REQUESTED = new URLSearchParams(location.search).get('demo') === '1';
+export const DEMO_REQUESTED =
+  new URLSearchParams(typeof location === 'undefined' ? '' : location.search).get('demo') === '1';
 /** `?demo=1&heavy=1` also adds one party with 200 invoices, for scale checks. */
-const HEAVY_REQUESTED = new URLSearchParams(location.search).get('heavy') === '1';
+const HEAVY_REQUESTED =
+  new URLSearchParams(typeof location === 'undefined' ? '' : location.search).get('heavy') === '1';
 /** `?demo=1&inbox=5000` also adds that many waiting inbox items, for scale checks. */
 const INBOX_REQUESTED = Math.min(
   20_000,
-  Math.max(0, Number(new URLSearchParams(location.search).get('inbox')) || 0),
+  Math.max(
+    0,
+    Number(
+      new URLSearchParams(typeof location === 'undefined' ? '' : location.search).get('inbox'),
+    ) || 0,
+  ),
 );
 
 const TABLES_ALL = [

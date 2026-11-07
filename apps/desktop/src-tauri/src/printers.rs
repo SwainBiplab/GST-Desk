@@ -15,7 +15,12 @@ pub fn parse_lines(out: &str) -> Vec<String> {
 pub fn list_printers() -> Result<Vec<String>, String> {
     let output = if cfg!(windows) {
         std::process::Command::new("powershell")
-            .args(["-NoProfile", "-NonInteractive", "-Command", "Get-Printer | ForEach-Object { $_.Name }"])
+            .args([
+                "-NoProfile",
+                "-NonInteractive",
+                "-Command",
+                "Get-Printer | ForEach-Object { $_.Name }",
+            ])
             .output()
     } else {
         // CUPS: one printer name per line
@@ -36,9 +41,16 @@ mod tests {
 
     #[test]
     fn it_keeps_names_in_order_without_blanks_or_repeats() {
-        let out = "\u{feff}Microsoft Print to PDF\r\n\r\nEPSON TM-T82  \r\nMicrosoft Print to PDF\r\n";
-        assert_eq!(parse_lines(out), vec!["Microsoft Print to PDF", "EPSON TM-T82"]);
+        let out =
+            "\u{feff}Microsoft Print to PDF\r\n\r\nEPSON TM-T82  \r\nMicrosoft Print to PDF\r\n";
+        assert_eq!(
+            parse_lines(out),
+            vec!["Microsoft Print to PDF", "EPSON TM-T82"]
+        );
         assert!(parse_lines("").is_empty());
-        assert_eq!(parse_lines("HP_LaserJet\nTM-T20"), vec!["HP_LaserJet", "TM-T20"]);
+        assert_eq!(
+            parse_lines("HP_LaserJet\nTM-T20"),
+            vec!["HP_LaserJet", "TM-T20"]
+        );
     }
 }

@@ -1,0 +1,49 @@
+{
+  "name": "bill-027",
+  "input": {
+    "kind": "text",
+    "text": "TAX INVOICE  (Original for Recipient)\nM/s Kumar Electricals\nChennai\nGSTIN/UIN: 33AAACK1234K1ZW\nBuyer: Our Shop (27AABCU9603R1ZN)\nInvoice No.: INV-8536\nDated: 22-05-2026\nSl  Particulars                 HSN/SAC  GST Rate  Quantity  Rate      Amount\n1   Packing Tape 48mm           3919     18%       60 Nos    38.00     2280.00\n2   LED Bulb 9W                 8539     12%       45 Nos    85.00     3825.00\n3   TMT Bar 12mm                7214     18%       51 Nos    62.50     3187.50\n4   Mobile Charger 20W          8504     18%       34 Nos    399.00    13566.00\n                                                  Taxable Value  22858.50\n          IGST 12%                                        459.00\n          IGST 18%                                        3426.03\n                                                  Total Amount   26744.00\nAmount Chargeable (in words): Rupees 26744 Only\nDeclaration: Goods once sold will not be taken back.\nfor Kumar Electricals\nAuthorised Signatory"
+  },
+  "expected": {
+    "supplierName": "M/s Kumar Electricals",
+    "supplierGstin": "33AAACK1234K1ZW",
+    "invoiceNumber": "INV-8536",
+    "date": "2026-05-22",
+    "lines": [
+      {
+        "description": "Packing Tape 48mm",
+        "hsn": "3919",
+        "qty": 60,
+        "ratePaise": 3800,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "LED Bulb 9W",
+        "hsn": "8539",
+        "qty": 45,
+        "ratePaise": 8500,
+        "gstRateBp": 1200
+      },
+      {
+        "description": "TMT Bar 12mm",
+        "hsn": "7214",
+        "qty": 51,
+        "ratePaise": 6250,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Mobile Charger 20W",
+        "hsn": "8504",
+        "qty": 34,
+        "ratePaise": 39900,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 2674400
+  },
+  "meta": {
+    "layout": "tally-style",
+    "interState": true,
+    "lines": 4
+  }
+}

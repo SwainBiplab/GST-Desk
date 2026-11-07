@@ -1,0 +1,35 @@
+{
+  "name": "bill-013",
+  "input": {
+    "kind": "text",
+    "text": "KUMAR ELECTRICALS\n18, MG Road, Chennai\nGSTIN: 33AAACK1234K1ZW   Phone: 9748676049\nINVOICE\nInvoice No: B77225        Date: 01-06-2026\nBill To: Our Shop, GSTIN 27AABCU9603R1ZN\nS.No  Description               HSN   Qty   Rate      Amount\n1     Packing Tape 48mm         3919  49    38.00     1862.00\n2     Wire 1.5 sqmm 90m         8544  20    1250.00   25000.00\nSub Total                                            26862.00\nIGST 18%                                        4835.16\nRound Off                                            -0.16\nGrand Total                                          31697.00\nE.&O.E.   Authorised Signatory"
+  },
+  "expected": {
+    "supplierName": "KUMAR ELECTRICALS",
+    "supplierGstin": "33AAACK1234K1ZW",
+    "invoiceNumber": "B77225",
+    "date": "2026-06-01",
+    "lines": [
+      {
+        "description": "Packing Tape 48mm",
+        "hsn": "3919",
+        "qty": 49,
+        "ratePaise": 3800,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Wire 1.5 sqmm 90m",
+        "hsn": "8544",
+        "qty": 20,
+        "ratePaise": 125000,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 3169700
+  },
+  "meta": {
+    "layout": "header-table",
+    "interState": true,
+    "lines": 2
+  }
+}

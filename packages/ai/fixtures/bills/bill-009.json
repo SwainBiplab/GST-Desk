@@ -1,0 +1,35 @@
+{
+  "name": "bill-009",
+  "input": {
+    "kind": "text",
+    "text": "DESAI TEXTILES\n11, Station Road, Ahmedabad\nGSTIN: 24AAHPD6655L1ZJ   Phone: 9924915528\nTAX INVOICE\nInvoice No: B45819        Date: 2026-06-26\nBill To: Our Shop, GSTIN 27AABCU9603R1ZN\nS.No  Description               HSN   Qty   Rate      Amount\n1     Switch 6A                 8536  25    45.00     1125.00\n2     Sugar 50kg                1701  26    2050.00   53300.00\nSub Total                                            54425.00\nIGST 5%                                        2665.00\nIGST 18%                                        202.50\nRound Off                                            0.50\nGrand Total                                          57293.00\nE.&O.E.   Authorised Signatory"
+  },
+  "expected": {
+    "supplierName": "DESAI TEXTILES",
+    "supplierGstin": "24AAHPD6655L1ZJ",
+    "invoiceNumber": "B45819",
+    "date": "2026-06-26",
+    "lines": [
+      {
+        "description": "Switch 6A",
+        "hsn": "8536",
+        "qty": 25,
+        "ratePaise": 4500,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Sugar 50kg",
+        "hsn": "1701",
+        "qty": 26,
+        "ratePaise": 205000,
+        "gstRateBp": 500
+      }
+    ],
+    "totalPaise": 5729300
+  },
+  "meta": {
+    "layout": "header-table",
+    "interState": true,
+    "lines": 2
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "english-plain",
+  "input": {
+    "feature": "voice_draft",
+    "input": {
+      "text": "sold 12 pieces LED bulb at 85 to Anil"
+    }
+  },
+  "expected": {
+    "intent": "sale",
+    "party": "Anil",
+    "lines": [
+      {
+        "description": "LED bulb",
+        "qty": 12,
+        "unit": "PCS",
+        "ratePaise": 8500
+      }
+    ],
+    "amountPaise": null
+  }
+}

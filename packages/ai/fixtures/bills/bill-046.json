@@ -1,0 +1,56 @@
+{
+  "name": "bill-046",
+  "input": {
+    "kind": "text",
+    "text": "Lakshmi Agencies\nInvoice No. INV-3193 dt 23/02/2026\nGST No 29AADFL9087D1ZZ\nState: 29\nTMT Bar 12mm            45   62.50   2812.50\nPlastic Bucket 20L      8   140.00   1120.00\nCement OPC 53 50kg      17   380.00   6460.00\nPaint Brush 2 inch      24   25.00   600.00\nFloor Cleaner 5L        42   310.00   13020.00\nIGST 18%                                        3159.45\nIGST 28%                                        1808.80\nTotal 28981.00"
+  },
+  "expected": {
+    "supplierName": "Lakshmi Agencies",
+    "supplierGstin": "29AADFL9087D1ZZ",
+    "invoiceNumber": "INV-3193",
+    "date": "2026-02-23",
+    "lines": [
+      {
+        "description": "TMT Bar 12mm",
+        "hsn": null,
+        "qty": 45,
+        "ratePaise": 6250,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Plastic Bucket 20L",
+        "hsn": null,
+        "qty": 8,
+        "ratePaise": 14000,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Cement OPC 53 50kg",
+        "hsn": null,
+        "qty": 17,
+        "ratePaise": 38000,
+        "gstRateBp": 2800
+      },
+      {
+        "description": "Paint Brush 2 inch",
+        "hsn": null,
+        "qty": 24,
+        "ratePaise": 2500,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Floor Cleaner 5L",
+        "hsn": null,
+        "qty": 42,
+        "ratePaise": 31000,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 2898100
+  },
+  "meta": {
+    "layout": "plain",
+    "interState": true,
+    "lines": 5
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "name": "bill-028",
+  "input": {
+    "kind": "text",
+    "text": "Bharat Steel Industries Pvt Ltd  Nashik\ngstin 27aabcb7788m1zy\nbill no INV-4207  date 28/07/2026\nItem                      Qty  Rate      Amt\nSugar 50kg                42   2050.00   86100.00\nTMT Bar 12mm              22   62.50     1375.00\nPacking Tape 48mm         33   38.00     1254.00\nMobile Charger 20W        18   399.00    7182.00\ncgst 2.5%                                        2152.50\nsgst 2.5%                                        2152.50\ncgst 9%                                        882.99\nsgst 9%                                        882.99\nnet amount 101982.00\nthank you visit again"
+  },
+  "expected": {
+    "supplierName": "Bharat Steel Industries Pvt Ltd",
+    "supplierGstin": "27AABCB7788M1ZY",
+    "invoiceNumber": "INV-4207",
+    "date": "2026-07-28",
+    "lines": [
+      {
+        "description": "Sugar 50kg",
+        "hsn": null,
+        "qty": 42,
+        "ratePaise": 205000,
+        "gstRateBp": 500
+      },
+      {
+        "description": "TMT Bar 12mm",
+        "hsn": null,
+        "qty": 22,
+        "ratePaise": 6250,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Packing Tape 48mm",
+        "hsn": null,
+        "qty": 33,
+        "ratePaise": 3800,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Mobile Charger 20W",
+        "hsn": null,
+        "qty": 18,
+        "ratePaise": 39900,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 10198200
+  },
+  "meta": {
+    "layout": "lowercase-retail",
+    "interState": false,
+    "lines": 4
+  }
+}

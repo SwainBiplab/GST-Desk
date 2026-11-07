@@ -1,0 +1,49 @@
+{
+  "name": "bill-052",
+  "input": {
+    "kind": "text",
+    "text": "Mehta & Sons  Delhi\ngstin 07aaefm2211r1z6\nbill no 806  date 18 Aug 2026\nItem                      Qty  Rate      Amt\nCement OPC 53 50kg        46   380.00    17480.00\nBall Pen Blue             31   5.00      155.00\nMobile Charger 20W        42   399.00    16758.00\nWire 1.5 sqmm 90m         56   1250.00   70000.00\nigst 18%                                        15644.34\nigst 28%                                        4894.40\nnet amount 124932.00\nthank you visit again"
+  },
+  "expected": {
+    "supplierName": "Mehta & Sons",
+    "supplierGstin": "07AAEFM2211R1Z6",
+    "invoiceNumber": "806",
+    "date": "2026-08-18",
+    "lines": [
+      {
+        "description": "Cement OPC 53 50kg",
+        "hsn": null,
+        "qty": 46,
+        "ratePaise": 38000,
+        "gstRateBp": 2800
+      },
+      {
+        "description": "Ball Pen Blue",
+        "hsn": null,
+        "qty": 31,
+        "ratePaise": 500,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Mobile Charger 20W",
+        "hsn": null,
+        "qty": 42,
+        "ratePaise": 39900,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Wire 1.5 sqmm 90m",
+        "hsn": null,
+        "qty": 56,
+        "ratePaise": 125000,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 12493200
+  },
+  "meta": {
+    "layout": "lowercase-retail",
+    "interState": true,
+    "lines": 4
+  }
+}

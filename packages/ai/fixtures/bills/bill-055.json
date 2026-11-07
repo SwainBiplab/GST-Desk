@@ -1,0 +1,35 @@
+{
+  "name": "bill-055",
+  "input": {
+    "kind": "text",
+    "text": "TAX INVOICE\nM/s Desai Textiles\nAhmedabad\nGSTIN/UIN: 24AAHPD6655L1ZJ\nBuyer: Our Shop (27AABCU9603R1ZN)\nInvoice No.: DES/26-27/0815\nDated: 18/01/2026\nSl  Particulars                 HSN/SAC  GST Rate  Quantity  Rate      Amount\n1   Packing Tape 48mm           3919     18%       41 Nos    38.00     1558.00\n2   Sugar 50kg                  1701     5%        52 Nos    2050.00   106600.00\n                                                  Taxable Value  108158.00\n          IGST 5%                                        5330.00\n          IGST 18%                                        280.44\n                                                  Total Amount   113768.00\nAmount Chargeable (in words): Rupees 113768 Only\nDeclaration: Goods once sold will not be taken back.\nfor Desai Textiles\nAuthorised Signatory"
+  },
+  "expected": {
+    "supplierName": "M/s Desai Textiles",
+    "supplierGstin": "24AAHPD6655L1ZJ",
+    "invoiceNumber": "DES/26-27/0815",
+    "date": "2026-01-18",
+    "lines": [
+      {
+        "description": "Packing Tape 48mm",
+        "hsn": "3919",
+        "qty": 41,
+        "ratePaise": 3800,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Sugar 50kg",
+        "hsn": "1701",
+        "qty": 52,
+        "ratePaise": 205000,
+        "gstRateBp": 500
+      }
+    ],
+    "totalPaise": 11376800
+  },
+  "meta": {
+    "layout": "tally-style",
+    "interState": true,
+    "lines": 2
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "name": "bill-049",
+  "input": {
+    "kind": "text",
+    "text": "SRI MURUGAN STORES\n92, Station Road, Madurai\nGSTIN: 33AAFPS1122E1ZA   Phone: 9344405996\nTax Invoice\nInvoice No: INV-1631        Date: 04-10-2026\nBill To: Our Shop, GSTIN 27AABCU9603R1ZN\nS.No  Description               HSN   Qty   Rate      Amount\n1     Packing Tape 48mm         3919  45    38.00     1710.00\n2     Switch 6A                 8536  32    45.00     1440.00\n3     TMT Bar 12mm              7214  36    62.50     2250.00\n4     Sugar 50kg                1701  17    2050.00   34850.00\nSub Total                                            40250.00\nIGST 5%                                        1742.50\nIGST 18%                                        972.00\nRound Off                                            0.50\nGrand Total                                          42965.00\nE.&O.E.   Authorised Signatory"
+  },
+  "expected": {
+    "supplierName": "SRI MURUGAN STORES",
+    "supplierGstin": "33AAFPS1122E1ZA",
+    "invoiceNumber": "INV-1631",
+    "date": "2026-10-04",
+    "lines": [
+      {
+        "description": "Packing Tape 48mm",
+        "hsn": "3919",
+        "qty": 45,
+        "ratePaise": 3800,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Switch 6A",
+        "hsn": "8536",
+        "qty": 32,
+        "ratePaise": 4500,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "TMT Bar 12mm",
+        "hsn": "7214",
+        "qty": 36,
+        "ratePaise": 6250,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Sugar 50kg",
+        "hsn": "1701",
+        "qty": 17,
+        "ratePaise": 205000,
+        "gstRateBp": 500
+      }
+    ],
+    "totalPaise": 4296500
+  },
+  "meta": {
+    "layout": "header-table",
+    "interState": true,
+    "lines": 4
+  }
+}

@@ -60,6 +60,8 @@ export function openTarget(r: InboxRow): OpenTarget | null {
       return { to: 'items', search: { edit: s['itemId'] } };
     case 'draft_stale':
       return { to: 'document', search: { id: s['documentId'] } };
+    case 'ai_extraction':
+      return r.status === 'accepted' ? { to: 'document', search: { id: s['documentId'] } } : null;
     case 'backup_failed':
       return { to: 'settings', search: { tab: 'backup' } };
     case 'gsp_job_stopped':
@@ -150,6 +152,15 @@ export function describeArgs(r: InboxRow): Record<string, unknown> {
       return { item: s['itemName'], onHand: units(s['onHandMicros']), min: units(s['minMicros']) };
     case 'draft_stale':
       return { label: s['label'], days: s['ageDays'] };
+    case 'ai_extraction': {
+      const b = (s['bill'] ?? {}) as Record<string, any>;
+      return {
+        supplier: b['supplierName'],
+        number: b['invoiceNumber'],
+        date: b['date'],
+        total: formatPaise(Number(b['totalPaise'] ?? 0)),
+      };
+    }
     case 'backup_failed':
     case 'prefiling_issue':
       return { message: s['message'] };
@@ -163,6 +174,8 @@ export function describeArgs(r: InboxRow): Record<string, unknown> {
 /** A short headline: the thing the item is about. */
 export function headline(r: InboxRow): string {
   const s = r.suggestion;
+  if (r.kind === 'ai_extraction')
+    return String((s['bill'] as Record<string, unknown> | undefined)?.['supplierName'] ?? r.kind);
   return String(
     s['partyName'] ?? s['itemName'] ?? s['keepName'] ?? s['label'] ?? s['message'] ?? r.kind,
   );
@@ -196,11 +209,12 @@ export function canAccept(r: InboxRow): boolean {
 }
 
 /** Fields a person may change before accepting, per kind. */
-export type EditField = 'code' | 'message' | 'keep';
+export type EditField = 'code' | 'message' | 'keep' | 'extraction';
 export function editableFields(kind: string): EditField[] {
   if (kind === 'hsn_suggestion') return ['code'];
   if (kind === 'reminder_due') return ['message'];
   if (kind === 'duplicate_party' || kind === 'duplicate_item') return ['keep'];
+  if (kind === 'ai_extraction') return ['extraction'];
   return [];
 }
 

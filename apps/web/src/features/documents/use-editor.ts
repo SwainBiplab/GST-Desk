@@ -3,6 +3,8 @@ import {
   DocumentFlowRepo,
   InsufficientStockError,
   InventoryRepo,
+  ItemRepo,
+  PartyRepo,
   PeriodLockedError,
   SettingsRepo,
   type LockOverride,
@@ -14,6 +16,8 @@ import {
   draftFromRows,
   draftToRows,
   emptyDraft,
+  emptyDraftLine,
+  type DraftLine,
   isBlankDraft,
   today,
   validateForIssue,
@@ -27,10 +31,11 @@ import { toast } from '@gst/ui';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { applyBillPrefill, newLineKey, withTrailingBlank } from './state';
+import { applyBillPrefill, applyItem, applyParty, newLineKey, withTrailingBlank } from './state';
 
 import { useAppDb } from '@/app/db';
 import { useUnsavedGuard } from '@/app/unsaved';
+import { clearVoicePrefill, peekVoicePrefill } from '@/features/ai/voice-prefill';
 import { useFeatureFlags } from '@/features/business/hooks';
 import { clearPrefill, peekPrefill } from '@/features/gst/prefill';
 
@@ -234,6 +239,41 @@ export function useDocumentEditor(opts: {
       metaRef.current.status === 'draft' || revisingRef.current ? withTrailingBlank(f(d)) : d,
     );
   }, []);
+
+  // a draft spoken (or typed) into the voice button: the party by name, each line by item name; what is
+  // not found stays as the words said, for the person to fix
+  useEffect(() => {
+    if (opts.id || !database || !ctx) return;
+    const v = peekVoicePrefill();
+    if (!v) return;
+    clearVoicePrefill();
+    let live = true;
+    void (async () => {
+      const party = v.party
+        ? ((await new PartyRepo(database).search(ctx, v.party, 1))[0] ?? null)
+        : null;
+      const lines: DraftLine[] = [];
+      for (const l of v.lines) {
+        const item = (await new ItemRepo(database).search(ctx, l.description, 1))[0];
+        let line = emptyDraftLine(newLineKey());
+        if (item) line = applyItem(line, item, opts.type);
+        else line = { ...line, description: l.description };
+        line = { ...line, qtyMicros: BigInt(Math.round(l.qty * 1_000_000)) };
+        if (l.ratePaise !== null) line = { ...line, ratePaise: BigInt(l.ratePaise) };
+        lines.push(line);
+      }
+      if (!live) return;
+      setDraft((d) => ({
+        ...(party
+          ? applyParty(d, party, { businessState })
+          : { ...d, partyName: v.party ?? d.partyName }),
+        ...(lines.length ? { lines } : {}),
+      }));
+    })();
+    return () => {
+      live = false;
+    };
+  }, [opts.id, opts.type, database, ctx, businessState, setDraft]);
 
   // Priced from the fields that affect money only, so editing a reference or a note does not produce a
   // new result (and does not redraw everything that shows it).

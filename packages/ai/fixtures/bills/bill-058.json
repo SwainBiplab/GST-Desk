@@ -1,0 +1,49 @@
+{
+  "name": "bill-058",
+  "input": {
+    "kind": "text",
+    "text": "Kumar Electricals\nInvoice No. 988 dt 14-06-2026\nGST No 33AAACK1234K1ZW\nState: 33\nA4 Copier Paper 75gsm   47   285.00   13395.00\nSwitch 6A               28   45.00   1260.00\nTMT Bar 12mm            13   62.50   812.50\nPacking Tape 48mm       23   38.00   874.00\nIGST 12%                                        1607.40\nIGST 18%                                        530.37\nTotal 18479.00"
+  },
+  "expected": {
+    "supplierName": "Kumar Electricals",
+    "supplierGstin": "33AAACK1234K1ZW",
+    "invoiceNumber": "988",
+    "date": "2026-06-14",
+    "lines": [
+      {
+        "description": "A4 Copier Paper 75gsm",
+        "hsn": null,
+        "qty": 47,
+        "ratePaise": 28500,
+        "gstRateBp": 1200
+      },
+      {
+        "description": "Switch 6A",
+        "hsn": null,
+        "qty": 28,
+        "ratePaise": 4500,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "TMT Bar 12mm",
+        "hsn": null,
+        "qty": 13,
+        "ratePaise": 6250,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Packing Tape 48mm",
+        "hsn": null,
+        "qty": 23,
+        "ratePaise": 3800,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 1847900
+  },
+  "meta": {
+    "layout": "plain",
+    "interState": true,
+    "lines": 4
+  }
+}

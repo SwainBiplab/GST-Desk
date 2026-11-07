@@ -1,0 +1,42 @@
+{
+  "name": "bill-035",
+  "input": {
+    "kind": "text",
+    "text": "INVOICE\nM/s Verma Plastics\nKanpur\nGSTIN/UIN: 09AAGCV5634P1ZK\nBuyer: Our Shop (27AABCU9603R1ZN)\nInvoice No.: B86356\nDated: 2026-02-06\nSl  Particulars                 HSN/SAC  GST Rate  Quantity  Rate      Amount\n1   Switch 6A                   8536     18%       41 Nos    45.00     1845.00\n2   Plastic Bucket 20L          3924     18%       37 Nos    140.00    5180.00\n3   Mobile Charger 20W          8504     18%       47 Nos    399.00    18753.00\n                                                  Taxable Value  25778.00\n          IGST 18%                                        4640.04\n                                                  Total Amount   30418.00\nAmount Chargeable (in words): Rupees 30418 Only\nDeclaration: Goods once sold will not be taken back.\nfor Verma Plastics\nAuthorised Signatory"
+  },
+  "expected": {
+    "supplierName": "M/s Verma Plastics",
+    "supplierGstin": "09AAGCV5634P1ZK",
+    "invoiceNumber": "B86356",
+    "date": "2026-02-06",
+    "lines": [
+      {
+        "description": "Switch 6A",
+        "hsn": "8536",
+        "qty": 41,
+        "ratePaise": 4500,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Plastic Bucket 20L",
+        "hsn": "3924",
+        "qty": 37,
+        "ratePaise": 14000,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Mobile Charger 20W",
+        "hsn": "8504",
+        "qty": 47,
+        "ratePaise": 39900,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 3041800
+  },
+  "meta": {
+    "layout": "tally-style",
+    "interState": true,
+    "lines": 3
+  }
+}

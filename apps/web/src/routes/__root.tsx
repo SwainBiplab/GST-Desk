@@ -11,6 +11,7 @@ import { UpdateBar } from '@/app/components/update-bar';
 import { AppDbProvider, DEMO_REQUESTED, useAppDb } from '@/app/db';
 import { registerDefaultActions } from '@/app/default-actions';
 import { lastShell } from '@/app/store';
+import { AiJobs } from '@/features/ai/ai-jobs';
 import { BackgroundJobs } from '@/features/data/background';
 import { DesktopJobs } from '@/features/desktop/desktop-jobs';
 import { GspJobs } from '@/features/einvoice/jobs';
@@ -66,6 +67,7 @@ function Root() {
           <GspJobs />
           <DesktopJobs />
           <LanJobs />
+          <AiJobs />
           <TelemetryJobs />
           <ErrorBoundary>
             <Outlet />

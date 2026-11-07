@@ -1,0 +1,56 @@
+{
+  "name": "bill-002",
+  "input": {
+    "kind": "text",
+    "text": "Bharat Steel Industries Pvt Ltd\nInvoice No. B36776 dt 2026-02-26\nGST No 27AABCB7788M1ZY\nState: 27\nA4 Copier Paper 75gsm   38   285.00   10830.00\nSwitch 6A               52   45.00   2340.00\nPlastic Bucket 20L      30   140.00   4200.00\nMobile Charger 20W      20   399.00   7980.00\nPaint Brush 2 inch      37   25.00   925.00\nCGST 6%                                        649.80\nSGST 6%                                        649.80\nCGST 9%                                        1390.05\nSGST 9%                                        1390.05\nTotal 30355.00"
+  },
+  "expected": {
+    "supplierName": "Bharat Steel Industries Pvt Ltd",
+    "supplierGstin": "27AABCB7788M1ZY",
+    "invoiceNumber": "B36776",
+    "date": "2026-02-26",
+    "lines": [
+      {
+        "description": "A4 Copier Paper 75gsm",
+        "hsn": null,
+        "qty": 38,
+        "ratePaise": 28500,
+        "gstRateBp": 1200
+      },
+      {
+        "description": "Switch 6A",
+        "hsn": null,
+        "qty": 52,
+        "ratePaise": 4500,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Plastic Bucket 20L",
+        "hsn": null,
+        "qty": 30,
+        "ratePaise": 14000,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Mobile Charger 20W",
+        "hsn": null,
+        "qty": 20,
+        "ratePaise": 39900,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Paint Brush 2 inch",
+        "hsn": null,
+        "qty": 37,
+        "ratePaise": 2500,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 3035500
+  },
+  "meta": {
+    "layout": "plain",
+    "interState": false,
+    "lines": 5
+  }
+}

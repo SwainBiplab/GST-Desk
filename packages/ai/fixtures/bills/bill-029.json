@@ -1,0 +1,49 @@
+{
+  "name": "bill-029",
+  "input": {
+    "kind": "text",
+    "text": "KUMAR ELECTRICALS\n62, Market Road, Chennai\nGSTIN: 33AAACK1234K1ZW   Phone: 9740202549\nTax Invoice\nInvoice No: KUM/26-27/0092        Date: 03.10.2026\nBill To: Our Shop, GSTIN 27AABCU9603R1ZN\nS.No  Description               HSN   Qty   Rate      Amount\n1     A4 Copier Paper 75gsm     4802  20    285.00    5700.00\n2     Cotton Shirting 1.2m      5208  3     210.00    630.00\n3     Sugar 50kg                1701  38    2050.00   77900.00\n4     Ball Pen Blue             9608  3     5.00      15.00\nSub Total                                            84245.00\nIGST 5%                                        3926.50\nIGST 12%                                        684.00\nIGST 18%                                        2.70\nRound Off                                            -0.20\nGrand Total                                          88858.00\nE.&O.E.   Authorised Signatory"
+  },
+  "expected": {
+    "supplierName": "KUMAR ELECTRICALS",
+    "supplierGstin": "33AAACK1234K1ZW",
+    "invoiceNumber": "KUM/26-27/0092",
+    "date": "2026-10-03",
+    "lines": [
+      {
+        "description": "A4 Copier Paper 75gsm",
+        "hsn": "4802",
+        "qty": 20,
+        "ratePaise": 28500,
+        "gstRateBp": 1200
+      },
+      {
+        "description": "Cotton Shirting 1.2m",
+        "hsn": "5208",
+        "qty": 3,
+        "ratePaise": 21000,
+        "gstRateBp": 500
+      },
+      {
+        "description": "Sugar 50kg",
+        "hsn": "1701",
+        "qty": 38,
+        "ratePaise": 205000,
+        "gstRateBp": 500
+      },
+      {
+        "description": "Ball Pen Blue",
+        "hsn": "9608",
+        "qty": 3,
+        "ratePaise": 500,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 8885800
+  },
+  "meta": {
+    "layout": "header-table",
+    "interState": true,
+    "lines": 4
+  }
+}

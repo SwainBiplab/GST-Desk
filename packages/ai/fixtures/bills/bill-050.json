@@ -1,0 +1,42 @@
+{
+  "name": "bill-050",
+  "input": {
+    "kind": "text",
+    "text": "Patel Hardware Mart\nInvoice No. PAT/26-27/0088 dt 27 Oct 2026\nGST No 24ABCPP4567Q1Z1\nState: 24\nFloor Cleaner 5L        45   310.00   13950.00\nA4 Copier Paper 75gsm   37   285.00   10545.00\nSteel Pipe 1 inch       24   520.00   12480.00\nIGST 12%                                        1265.40\nIGST 18%                                        4757.40\nTotal 42998.00"
+  },
+  "expected": {
+    "supplierName": "Patel Hardware Mart",
+    "supplierGstin": "24ABCPP4567Q1Z1",
+    "invoiceNumber": "PAT/26-27/0088",
+    "date": "2026-10-27",
+    "lines": [
+      {
+        "description": "Floor Cleaner 5L",
+        "hsn": null,
+        "qty": 45,
+        "ratePaise": 31000,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "A4 Copier Paper 75gsm",
+        "hsn": null,
+        "qty": 37,
+        "ratePaise": 28500,
+        "gstRateBp": 1200
+      },
+      {
+        "description": "Steel Pipe 1 inch",
+        "hsn": null,
+        "qty": 24,
+        "ratePaise": 52000,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 4299800
+  },
+  "meta": {
+    "layout": "plain",
+    "interState": true,
+    "lines": 3
+  }
+}

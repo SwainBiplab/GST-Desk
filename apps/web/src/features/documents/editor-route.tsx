@@ -27,6 +27,7 @@ interface Mounted {
   type: DocumentType;
   /** Counts mounts, so the same address opened again is a fresh editor. */
   n: number;
+  voice: string;
 }
 
 /**
@@ -41,6 +42,8 @@ export function EditorRoute({ shell }: { shell: Shell }) {
   const { search } = useLocationInfo();
   const { business, ctx } = useAppDb();
   const id = typeof search['id'] === 'string' ? search['id'] : null;
+  // a spoken draft arrives with a fresh `voice` stamp, so the same address opens a new editor for it
+  const voice = typeof search['voice'] === 'string' ? search['voice'] : '';
   const asked =
     typeof search['type'] === 'string'
       ? search['type']
@@ -51,11 +54,12 @@ export function EditorRoute({ shell }: { shell: Shell }) {
     ? (asked as DocumentType)
     : defaultSaleFor(business);
 
-  const [m, setM] = useState<Mounted>({ id, type, n: 0 });
+  const [m, setM] = useState<Mounted>({ id, type, n: 0, voice });
   const adopted = m.id === null && id !== null && adoptedIds.has(id);
   // adjusting state while rendering is React's way to reset on a changed input
   if (adopted) setM({ ...m, id });
-  else if (m.id !== id || (id === null && m.type !== type)) setM({ id, type, n: m.n + 1 });
+  else if (m.id !== id || (id === null && (m.type !== type || m.voice !== voice)))
+    setM({ id, type, n: m.n + 1, voice });
 
   if (!ctx || !business) return <p className="p-4 text-fg-muted">...</p>;
   return <EditorPage key={`${shell}:${m.n}`} shell={shell} type={m.type} id={m.id} />;

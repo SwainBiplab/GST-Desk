@@ -1,0 +1,291 @@
+{
+  "format": 1,
+  "generatedAt": "2026-11-07T04:37:51.198Z",
+  "models": [
+    {
+      "platforms": [],
+      "languages": ["en", "hi"],
+      "notes": "The baseline text model: reads bills and spoken sentences on an 8 GB laptop in a few seconds.",
+      "id": "qwen2.5-1.5b-instruct-q4",
+      "kind": "llm",
+      "name": "Qwen2.5 1.5B Instruct (Q4_K_M)",
+      "version": "2024-09",
+      "file": "qwen2.5-1.5b-instruct-q4_k_m.gguf",
+      "url": "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q4_k_m.gguf",
+      "licence": {
+        "name": "Apache-2.0",
+        "url": "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/blob/main/LICENSE",
+        "summary": "Apache License 2.0: free to use, modify and redistribute, with the licence and notices kept. No warranty."
+      },
+      "minRamGb": 6,
+      "sizeBytes": 1117320736,
+      "sha256": "6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e"
+    },
+    {
+      "platforms": [],
+      "languages": ["en", "hi"],
+      "notes": "More accurate on messy bills; needs 16 GB or a GPU to feel quick. Check the licence for business use.",
+      "id": "qwen2.5-3b-instruct-q4",
+      "kind": "llm",
+      "name": "Qwen2.5 3B Instruct (Q4_K_M)",
+      "version": "2024-09",
+      "file": "qwen2.5-3b-instruct-q4_k_m.gguf",
+      "url": "https://huggingface.co/Qwen/Qwen2.5-3B-Instruct-GGUF/resolve/main/qwen2.5-3b-instruct-q4_k_m.gguf",
+      "licence": {
+        "name": "Qwen Research License",
+        "url": "https://huggingface.co/Qwen/Qwen2.5-3B-Instruct-GGUF/blob/main/LICENSE",
+        "summary": "Qwen Research License: free for research and non-commercial use; commercial use needs a licence from Alibaba Cloud. Read it before using this model in a business."
+      },
+      "minRamGb": 10,
+      "sizeBytes": 2104932768,
+      "sha256": "626b4a6678b86442240e33df819e00132d3ba7dddfe1cdc4fbb18e0a9615c62d"
+    },
+    {
+      "platforms": [],
+      "languages": ["en", "hi", "ta", "mr", "bn", "gu"],
+      "notes": "The strong option for a 32 GB machine with a GPU.",
+      "id": "qwen2.5-7b-instruct-q4",
+      "kind": "llm",
+      "name": "Qwen2.5 7B Instruct (Q4_K_M)",
+      "version": "2024-09",
+      "file": "Qwen2.5-7B-Instruct-Q4_K_M.gguf",
+      "url": "https://huggingface.co/bartowski/Qwen2.5-7B-Instruct-GGUF/resolve/main/Qwen2.5-7B-Instruct-Q4_K_M.gguf",
+      "licence": {
+        "name": "Apache-2.0",
+        "url": "https://huggingface.co/Qwen/Qwen2.5-7B-Instruct/blob/main/LICENSE",
+        "summary": "Apache License 2.0: free to use, modify and redistribute, with the licence and notices kept. No warranty."
+      },
+      "minRamGb": 16,
+      "sizeBytes": 4683074240,
+      "sha256": "65b8fcd92af6b4fefa935c625d1ac27ea29dcb6ee14589c55a8f115ceaaa1423"
+    },
+    {
+      "platforms": [],
+      "languages": ["en"],
+      "notes": "Vectors for semantic HSN search.",
+      "id": "nomic-embed-text-v1.5-q8",
+      "kind": "embedding",
+      "name": "nomic-embed-text v1.5 (Q8)",
+      "version": "1.5",
+      "file": "nomic-embed-text-v1.5.Q8_0.gguf",
+      "url": "https://huggingface.co/nomic-ai/nomic-embed-text-v1.5-GGUF/resolve/main/nomic-embed-text-v1.5.Q8_0.gguf",
+      "licence": {
+        "name": "Apache-2.0",
+        "url": "https://huggingface.co/nomic-ai/nomic-embed-text-v1.5/blob/main/README.md",
+        "summary": "Apache License 2.0."
+      },
+      "minRamGb": 4,
+      "sizeBytes": 146146432,
+      "sha256": "3e24342164b3d94991ba9692fdc0dd08e3fd7362e0aacc396a9a5c54a544c3b7"
+    },
+    {
+      "platforms": [],
+      "languages": ["en"],
+      "notes": "A small vector model for HSN search on a tight machine.",
+      "id": "bge-small-en-v1.5-q8",
+      "kind": "embedding",
+      "name": "bge-small-en v1.5 (Q8)",
+      "version": "1.5",
+      "file": "bge-small-en-v1.5-q8_0.gguf",
+      "url": "https://huggingface.co/CompendiumLabs/bge-small-en-v1.5-gguf/resolve/main/bge-small-en-v1.5-q8_0.gguf",
+      "licence": {
+        "name": "MIT",
+        "url": "https://huggingface.co/BAAI/bge-small-en-v1.5",
+        "summary": "MIT License."
+      },
+      "minRamGb": 2,
+      "sizeBytes": 36806944,
+      "sha256": "ec38e8da142596baa913124ae50550de284b6916bf59577ef2f0cb9660c2f514"
+    },
+    {
+      "platforms": [],
+      "languages": ["en", "hi", "ta", "mr", "bn", "gu"],
+      "notes": "Speech to text for push-to-talk. Quick; fine for short sentences.",
+      "id": "whisper-base",
+      "kind": "whisper",
+      "name": "Whisper base (multilingual)",
+      "version": "ggml",
+      "file": "ggml-base.bin",
+      "url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin",
+      "licence": {
+        "name": "MIT",
+        "url": "https://github.com/openai/whisper/blob/main/LICENSE",
+        "summary": "MIT License (OpenAI Whisper weights, converted for whisper.cpp)."
+      },
+      "minRamGb": 4,
+      "sizeBytes": 147951465,
+      "sha256": "60ed5bc3dd14eea856493d334349b405782ddcaf0028d4b5df4088345fba2efe"
+    },
+    {
+      "platforms": [],
+      "languages": ["en", "hi", "ta", "mr", "bn", "gu"],
+      "notes": "Better with Hindi, Tamil and Marathi; about three times slower than base.",
+      "id": "whisper-small",
+      "kind": "whisper",
+      "name": "Whisper small (multilingual)",
+      "version": "ggml",
+      "file": "ggml-small.bin",
+      "url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin",
+      "licence": {
+        "name": "MIT",
+        "url": "https://github.com/openai/whisper/blob/main/LICENSE",
+        "summary": "MIT License (OpenAI Whisper weights, converted for whisper.cpp)."
+      },
+      "minRamGb": 8,
+      "sizeBytes": 487601967,
+      "sha256": "1be3a9b2063867b937e64e2ec7483364a79917e157fa98c5d94b5c1fffea987b"
+    },
+    {
+      "platforms": [],
+      "languages": ["en"],
+      "notes": "",
+      "id": "tess-eng",
+      "kind": "ocr-lang",
+      "name": "OCR: English",
+      "version": "tessdata_fast",
+      "file": "eng.traineddata",
+      "url": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/main/eng.traineddata",
+      "licence": {
+        "name": "Apache-2.0",
+        "url": "https://github.com/tesseract-ocr/tessdata_fast/blob/main/LICENSE",
+        "summary": "Apache License 2.0."
+      },
+      "minRamGb": 0,
+      "sizeBytes": 4113088,
+      "sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2"
+    },
+    {
+      "platforms": [],
+      "languages": ["hi"],
+      "notes": "",
+      "id": "tess-hin",
+      "kind": "ocr-lang",
+      "name": "OCR: Hindi (Devanagari)",
+      "version": "tessdata_fast",
+      "file": "hin.traineddata",
+      "url": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/main/hin.traineddata",
+      "licence": {
+        "name": "Apache-2.0",
+        "url": "https://github.com/tesseract-ocr/tessdata_fast/blob/main/LICENSE",
+        "summary": "Apache License 2.0."
+      },
+      "minRamGb": 0,
+      "sizeBytes": 1122751,
+      "sha256": "4c73ffc59d497c186b19d1e90f5d721d678ea6b2e277b719bee4e2af12271825"
+    },
+    {
+      "platforms": [],
+      "languages": ["mr"],
+      "notes": "",
+      "id": "tess-mar",
+      "kind": "ocr-lang",
+      "name": "OCR: Marathi",
+      "version": "tessdata_fast",
+      "file": "mar.traineddata",
+      "url": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/main/mar.traineddata",
+      "licence": {
+        "name": "Apache-2.0",
+        "url": "https://github.com/tesseract-ocr/tessdata_fast/blob/main/LICENSE",
+        "summary": "Apache License 2.0."
+      },
+      "minRamGb": 0,
+      "sizeBytes": 2118233,
+      "sha256": "0ba3f2d116972e72fe9e176bc84c38e81dfb6670f4ed1f7f6c8e16a27da7cb61"
+    },
+    {
+      "platforms": [],
+      "languages": ["ta"],
+      "notes": "",
+      "id": "tess-tam",
+      "kind": "ocr-lang",
+      "name": "OCR: Tamil",
+      "version": "tessdata_fast",
+      "file": "tam.traineddata",
+      "url": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/main/tam.traineddata",
+      "licence": {
+        "name": "Apache-2.0",
+        "url": "https://github.com/tesseract-ocr/tessdata_fast/blob/main/LICENSE",
+        "summary": "Apache License 2.0."
+      },
+      "minRamGb": 0,
+      "sizeBytes": 3237963,
+      "sha256": "d02fbec24be4b07e32e80d0ccfc3b6b67a3c5d61c9d0a7c8532677990912c6ec"
+    },
+    {
+      "platforms": [],
+      "languages": ["bn"],
+      "notes": "",
+      "id": "tess-ben",
+      "kind": "ocr-lang",
+      "name": "OCR: Bengali",
+      "version": "tessdata_fast",
+      "file": "ben.traineddata",
+      "url": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/main/ben.traineddata",
+      "licence": {
+        "name": "Apache-2.0",
+        "url": "https://github.com/tesseract-ocr/tessdata_fast/blob/main/LICENSE",
+        "summary": "Apache License 2.0."
+      },
+      "minRamGb": 0,
+      "sizeBytes": 855841,
+      "sha256": "31163084c279aaebd376216f0c3d5c17ad4b5fee8db49dae79c20000b5de5964"
+    },
+    {
+      "platforms": [],
+      "languages": ["gu"],
+      "notes": "",
+      "id": "tess-guj",
+      "kind": "ocr-lang",
+      "name": "OCR: Gujarati",
+      "version": "tessdata_fast",
+      "file": "guj.traineddata",
+      "url": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/main/guj.traineddata",
+      "licence": {
+        "name": "Apache-2.0",
+        "url": "https://github.com/tesseract-ocr/tessdata_fast/blob/main/LICENSE",
+        "summary": "Apache License 2.0."
+      },
+      "minRamGb": 0,
+      "sizeBytes": 1418394,
+      "sha256": "fa69658614b4946a9afae8853d67e0689838803dfa3d12c2e35ec53ee6f8df34"
+    }
+  ],
+  "bundles": [
+    {
+      "deviceClass": "minimal",
+      "models": ["tess-eng", "tess-hin"]
+    },
+    {
+      "deviceClass": "baseline",
+      "models": [
+        "tess-eng",
+        "tess-hin",
+        "qwen2.5-1.5b-instruct-q4",
+        "bge-small-en-v1.5-q8",
+        "whisper-base"
+      ]
+    },
+    {
+      "deviceClass": "capable",
+      "models": [
+        "tess-eng",
+        "tess-hin",
+        "qwen2.5-3b-instruct-q4",
+        "nomic-embed-text-v1.5-q8",
+        "whisper-small"
+      ]
+    },
+    {
+      "deviceClass": "strong",
+      "models": [
+        "tess-eng",
+        "tess-hin",
+        "qwen2.5-7b-instruct-q4",
+        "nomic-embed-text-v1.5-q8",
+        "whisper-small"
+      ]
+    }
+  ],
+  "keyId": "models-dev-1",
+  "signature": "D1beuhYRBPNJ5uIDuGAPJIrk90IrBY6wm8A5lgD8e3U+bKR3VCdSt6FEi66U1r73vBLHnrq3IPh5Sg3GAHatDw=="
+}

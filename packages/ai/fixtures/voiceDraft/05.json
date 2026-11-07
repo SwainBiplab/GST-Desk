@@ -1,0 +1,22 @@
+{
+  "name": "marathi-latin",
+  "input": {
+    "feature": "voice_draft",
+    "input": {
+      "text": "Patil kadun paach kilo sakhar"
+    }
+  },
+  "expected": {
+    "intent": "unknown",
+    "party": "Patil",
+    "lines": [
+      {
+        "description": "sakhar",
+        "qty": 5,
+        "unit": "KGS",
+        "ratePaise": null
+      }
+    ],
+    "amountPaise": null
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "name": "bill-031",
+  "input": {
+    "kind": "text",
+    "text": "Tax Invoice\nM/s Sri Murugan Stores\nMadurai\nGSTIN/UIN: 33AAFPS1122E1ZA\nBuyer: Our Shop (27AABCU9603R1ZN)\nInvoice No.: 459\nDated: 2026-08-19\nSl  Particulars                 HSN/SAC  GST Rate  Quantity  Rate      Amount\n1   Plastic Bucket 20L          3924     18%       29 Nos    140.00    4060.00\n2   Mobile Charger 20W          8504     18%       41 Nos    399.00    16359.00\n3   Paint Brush 2 inch          9603     18%       52 Nos    25.00     1300.00\n                                                  Taxable Value  21719.00\n          IGST 18%                                        3909.42\n                                                  Total Amount   25628.00\nAmount Chargeable (in words): Rupees 25628 Only\nDeclaration: Goods once sold will not be taken back.\nfor Sri Murugan Stores\nAuthorised Signatory"
+  },
+  "expected": {
+    "supplierName": "M/s Sri Murugan Stores",
+    "supplierGstin": "33AAFPS1122E1ZA",
+    "invoiceNumber": "459",
+    "date": "2026-08-19",
+    "lines": [
+      {
+        "description": "Plastic Bucket 20L",
+        "hsn": "3924",
+        "qty": 29,
+        "ratePaise": 14000,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Mobile Charger 20W",
+        "hsn": "8504",
+        "qty": 41,
+        "ratePaise": 39900,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Paint Brush 2 inch",
+        "hsn": "9603",
+        "qty": 52,
+        "ratePaise": 2500,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 2562800
+  },
+  "meta": {
+    "layout": "tally-style",
+    "interState": true,
+    "lines": 3
+  }
+}

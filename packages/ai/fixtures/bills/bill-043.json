@@ -1,0 +1,28 @@
+{
+  "name": "bill-043",
+  "input": {
+    "kind": "text",
+    "text": "TAX INVOICE\nM/s Patel Hardware Mart\nSurat\nGSTIN/UIN: 24ABCPP4567Q1Z1\nBuyer: Our Shop (27AABCU9603R1ZN)\nInvoice No.: B82245\nDated: 26-03-2026\nSl  Particulars                 HSN/SAC  GST Rate  Quantity  Rate      Amount\n1   Sugar 50kg                  1701     5%        35 Nos    2050.00   71750.00\n                                                  Taxable Value  71750.00\n          IGST 5%                                        3587.50\n                                                  Total Amount   75338.00\nAmount Chargeable (in words): Rupees 75338 Only\nDeclaration: Goods once sold will not be taken back.\nfor Patel Hardware Mart\nAuthorised Signatory"
+  },
+  "expected": {
+    "supplierName": "M/s Patel Hardware Mart",
+    "supplierGstin": "24ABCPP4567Q1Z1",
+    "invoiceNumber": "B82245",
+    "date": "2026-03-26",
+    "lines": [
+      {
+        "description": "Sugar 50kg",
+        "hsn": "1701",
+        "qty": 35,
+        "ratePaise": 205000,
+        "gstRateBp": 500
+      }
+    ],
+    "totalPaise": 7533800
+  },
+  "meta": {
+    "layout": "tally-style",
+    "interState": true,
+    "lines": 1
+  }
+}

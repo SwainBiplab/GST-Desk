@@ -17,6 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { PartyPicker } from './party-picker';
 import { applyParty, isPurchase } from './state';
 
+import { VoiceButton } from '@/features/ai/voice-button';
 import { useFeatureFlags } from '@/features/business/hooks';
 import { Field } from '@/features/onboarding/field';
 import type { TemplateOption } from '@/features/print/use-templates';
@@ -108,7 +109,7 @@ export function EditorHeader({
   if (simple) {
     return (
       <section
-        className="grid gap-4 sm:grid-cols-[1fr_12rem]"
+        className="grid gap-4 sm:grid-cols-[1fr_12rem_auto]"
         aria-label={t('docs.header.title')}
         data-testid="doc-header"
       >
@@ -134,6 +135,11 @@ export function EditorHeader({
             />
           )}
         </Field>
+        {!readOnly && (
+          <div className="self-end">
+            <VoiceButton compact />
+          </div>
+        )}
       </section>
     );
   }

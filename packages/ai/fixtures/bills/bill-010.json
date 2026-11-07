@@ -1,0 +1,28 @@
+{
+  "name": "bill-010",
+  "input": {
+    "kind": "text",
+    "text": "Kumar Electricals\nInvoice No. B72058 dt 1 Jul 2026\nGST No 33AAACK1234K1ZW\nState: 33\nBall Pen Blue           60   5.00   300.00\nIGST 18%                                        54.00\nTotal 354.00"
+  },
+  "expected": {
+    "supplierName": "Kumar Electricals",
+    "supplierGstin": "33AAACK1234K1ZW",
+    "invoiceNumber": "B72058",
+    "date": "2026-07-01",
+    "lines": [
+      {
+        "description": "Ball Pen Blue",
+        "hsn": null,
+        "qty": 60,
+        "ratePaise": 500,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 35400
+  },
+  "meta": {
+    "layout": "plain",
+    "interState": true,
+    "lines": 1
+  }
+}

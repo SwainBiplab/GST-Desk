@@ -1,0 +1,22 @@
+{
+  "name": "hindi-script",
+  "input": {
+    "feature": "voice_draft",
+    "input": {
+      "text": "रमेश को दो बोरी सीमेंट तीन सौ पचास रुपये"
+    }
+  },
+  "expected": {
+    "intent": "unknown",
+    "party": "रमेश",
+    "lines": [
+      {
+        "description": "सीमेंट",
+        "qty": 2,
+        "unit": "BAG",
+        "ratePaise": 35000
+      }
+    ],
+    "amountPaise": null
+  }
+}

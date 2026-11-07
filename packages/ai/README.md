@@ -72,11 +72,37 @@ and `acceptReviewItems` (apply through the owning repository in one transaction)
 To add a kind: a schema in `kinds.ts`, an entry in `KIND_INFO`, a detector, a case in `applyValue`, and a line in the
 web `features/inbox/model.ts`.
 
+## Tier 1: local models (prompt 36)
+
+`src/local` holds everything that runs a model or reads a scan on the device, all of it browser-safe:
+
+- `hardware.ts`, `manifest.ts`, `models.ts`: device classes, the signed model manifest (Ed25519), and the
+  `ModelManager` (licence per model, resumable Range downloads, SHA-256 check, pause, delete, disk use) over a
+  `ModelStorage` and a `RangeFetcher`, so it runs in tests, Node, the desktop and OPFS alike.
+- `grammar.ts`: a GBNF grammar from a Zod schema, and `extractJson` for prose-wrapped answers.
+- `runtime.ts`: `keeper` starts a sidecar on first use, runs one call at a time and stops it when idle.
+- `structured.ts`, `prompts.ts`: the shared prompt-generate-parse-validate path; `llama.ts`, `ollama.ts`,
+  `webllm.ts`: the three Tier 1 providers.
+- `embed.ts`: cosine, the hashed-trigram embedder, the brute-force index and the hybrid (BM25 + vector) HSN lookup.
+- `ocr/`: preprocessing (grey, denoise, Otsu, deskew, crop), layout (boxes to lines), the sidecar OCR client, a
+  fixture engine and a PNG writer.
+- `extract/`: the rules extractor (`extractBillFromText`), supplier and item matching, and `extractPurchaseBill`
+  (OCR, rules, model, merge, match, engine check).
+- `voice/parse.ts`: speech to a draft without a model; `drafting.ts`: template fill and a guarded paraphrase.
+- `tier0.ts`: `withTier0Local` registers the bill extractor and the speech parser on a `RulesProvider`.
+
+`src/db/adapters.ts` adds `indexHsnMaster`, `loadHsnVectors` and `hybridHsnLookupFor` over `hsn_embeddings`;
+`src/db/inbox.ts` applies an accepted `ai_extraction` as a purchase draft with the scan attached.
+`scripts/make-manifest.ts` builds and signs the manifest; `scripts/make-bills.ts` makes the golden set.
+See `docs/decisions/0022-tier1-local-ai.md`, `docs/ai/local-models.md`, `docs/ai/eval-results.md`.
+
 ## Evals
 
-`pnpm ai:eval --provider mock [--schema purchaseBill]` runs a provider over `fixtures/<schema>/*.json`
-(`{ name, input, expected, mock? }`; `expected` may be partial) and prints field-level accuracy. Offline providers:
-`mock` and `rules`. Add a schema to `SCHEMAS` and a fixtures folder to cover a new feature.
+`pnpm ai:eval --provider mock|rules|ollama|llama [--schema purchaseBill] [--model m] [--url http://...] [--markdown]`
+runs a provider over the fixtures (`{ name, input, expected, mock? }`; `expected` may be partial) and prints
+field-level accuracy and latency. `purchaseBill` reads `fixtures/purchaseBill`, `fixtures/bills` (60 synthetic
+bills) and `fixtures/bills/real`; `voiceDraft` reads eight spoken sentences. `ollama` and `llama` need a server
+already running. Add a schema to `SCHEMAS`, a mode and a folder in `scripts/eval.ts` to cover a new feature.
 
 `--accepted <file.sqlite>` also scores `hsnSuggestion` against the HSN suggestions a person accepted in that local
 database, using their correction where they edited it (read only, nothing leaves the machine).

@@ -39,7 +39,9 @@ fn to_sql(v: &Json) -> Result<Value, String> {
             if let Some(i) = n.as_i64() {
                 Value::Integer(i)
             } else if let Some(u) = n.as_u64() {
-                i64::try_from(u).map(Value::Integer).unwrap_or(Value::Real(u as f64))
+                i64::try_from(u)
+                    .map(Value::Integer)
+                    .unwrap_or(Value::Real(u as f64))
             } else {
                 Value::Real(n.as_f64().ok_or("number out of range")?)
             }
@@ -63,7 +65,9 @@ fn from_sql(v: ValueRef<'_>) -> Json {
         ValueRef::Null => Json::Null,
         ValueRef::Integer(i) if i.abs() <= MAX_SAFE => json!(i),
         ValueRef::Integer(i) => json!({ "$int": i.to_string() }),
-        ValueRef::Real(f) => serde_json::Number::from_f64(f).map(Json::Number).unwrap_or(Json::Null),
+        ValueRef::Real(f) => serde_json::Number::from_f64(f)
+            .map(Json::Number)
+            .unwrap_or(Json::Null),
         ValueRef::Text(t) => Json::String(String::from_utf8_lossy(t).into_owned()),
         ValueRef::Blob(b) => json!({ "$blob": B64.encode(b) }),
     }
@@ -72,12 +76,16 @@ fn from_sql(v: ValueRef<'_>) -> Json {
 /// Open (creating the folder and the file if needed) and set the connection up the way the browser's is.
 pub fn open_connection(path: &Path) -> Result<Connection, String> {
     if let Some(dir) = path.parent() {
-        std::fs::create_dir_all(dir).map_err(|e| format!("cannot create {}: {e}", dir.display()))?;
+        std::fs::create_dir_all(dir)
+            .map_err(|e| format!("cannot create {}: {e}", dir.display()))?;
     }
     let conn = Connection::open(path).map_err(|e| e.to_string())?;
-    conn.busy_timeout(std::time::Duration::from_secs(5)).map_err(|e| e.to_string())?;
-    conn.execute_batch("PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL;")
+    conn.busy_timeout(std::time::Duration::from_secs(5))
         .map_err(|e| e.to_string())?;
+    conn.execute_batch(
+        "PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL;",
+    )
+    .map_err(|e| e.to_string())?;
     Ok(conn)
 }
 
@@ -87,12 +95,21 @@ pub fn exec(conn: &Connection, sql: &str, params: &[Json], method: &str) -> Resu
     if method == "run" && bound.is_empty() {
         // a script such as a migration, or a trigger body with semicolons inside it
         conn.execute_batch(sql).map_err(|e| e.to_string())?;
-        return Ok(Rows { rows: vec![], columns: vec![] });
+        return Ok(Rows {
+            rows: vec![],
+            columns: vec![],
+        });
     }
     let mut stmt = conn.prepare(sql).map_err(|e| e.to_string())?;
-    let columns: Vec<String> = stmt.column_names().iter().map(|c| (*c).to_string()).collect();
+    let columns: Vec<String> = stmt
+        .column_names()
+        .iter()
+        .map(|c| (*c).to_string())
+        .collect();
     let n = columns.len();
-    let mut rows_iter = stmt.query(params_from_iter(bound.iter())).map_err(|e| e.to_string())?;
+    let mut rows_iter = stmt
+        .query(params_from_iter(bound.iter()))
+        .map_err(|e| e.to_string())?;
     let mut rows: Vec<Vec<Json>> = Vec::new();
     while let Some(row) = rows_iter.next().map_err(|e| e.to_string())? {
         if method == "run" {
@@ -108,20 +125,34 @@ pub fn exec(conn: &Connection, sql: &str, params: &[Json], method: &str) -> Resu
         }
     }
     if method == "run" {
-        return Ok(Rows { rows: vec![], columns: vec![] });
+        return Ok(Rows {
+            rows: vec![],
+            columns: vec![],
+        });
     }
     Ok(Rows { rows, columns })
 }
 
 fn name_of(id: Option<String>) -> String {
-    id.filter(|s| !s.is_empty()).unwrap_or_else(|| MAIN.to_string())
+    id.filter(|s| !s.is_empty())
+        .unwrap_or_else(|| MAIN.to_string())
 }
 
 #[tauri::command(async)]
-pub fn db_open(state: tauri::State<'_, DbState>, path: String, id: Option<String>) -> Result<String, String> {
+pub fn db_open(
+    state: tauri::State<'_, DbState>,
+    path: String,
+    id: Option<String>,
+) -> Result<String, String> {
     let conn = open_connection(Path::new(&path))?;
-    let version: String = conn.query_row("select sqlite_version()", [], |r| r.get(0)).map_err(|e| e.to_string())?;
-    state.0.lock().map_err(|_| "database lock poisoned")?.insert(name_of(id), conn);
+    let version: String = conn
+        .query_row("select sqlite_version()", [], |r| r.get(0))
+        .map_err(|e| e.to_string())?;
+    state
+        .0
+        .lock()
+        .map_err(|_| "database lock poisoned")?
+        .insert(name_of(id), conn);
     Ok(version)
 }
 
@@ -172,7 +203,13 @@ mod tests {
     #[test]
     fn a_transaction_issued_as_separate_calls_shares_one_connection() {
         let (dir, c) = temp_db("tx");
-        exec(&c, "create table t (id integer primary key, v text)", &[], "run").unwrap();
+        exec(
+            &c,
+            "create table t (id integer primary key, v text)",
+            &[],
+            "run",
+        )
+        .unwrap();
         exec(&c, "begin", &[], "run").unwrap();
         exec(&c, "insert into t (v) values (?)", &[json!("a")], "run").unwrap();
         exec(&c, "rollback", &[], "run").unwrap();
@@ -211,7 +248,13 @@ mod tests {
     fn foreign_keys_are_enforced_like_in_the_browser() {
         let (dir, c) = temp_db("fk");
         exec(&c, "create table p (id integer primary key)", &[], "run").unwrap();
-        exec(&c, "create table k (p integer references p(id))", &[], "run").unwrap();
+        exec(
+            &c,
+            "create table k (p integer references p(id))",
+            &[],
+            "run",
+        )
+        .unwrap();
         assert!(exec(&c, "insert into k values (?)", &[json!(9)], "run").is_err());
         let _ = std::fs::remove_dir_all(dir);
     }
@@ -219,11 +262,31 @@ mod tests {
     #[test]
     fn full_text_search_is_there() {
         let (dir, c) = temp_db("fts");
-        exec(&c, "create virtual table f using fts5(name, tokenize='unicode61 remove_diacritics 2')", &[], "run").unwrap();
-        exec(&c, "insert into f (name) values (?)", &[json!("शर्मा traders")], "run").unwrap();
-        let r = all(&c, "select name from f where f match ?", &[json!("\"tra\"*")]);
+        exec(
+            &c,
+            "create virtual table f using fts5(name, tokenize='unicode61 remove_diacritics 2')",
+            &[],
+            "run",
+        )
+        .unwrap();
+        exec(
+            &c,
+            "insert into f (name) values (?)",
+            &[json!("शर्मा traders")],
+            "run",
+        )
+        .unwrap();
+        let r = all(
+            &c,
+            "select name from f where f match ?",
+            &[json!("\"tra\"*")],
+        );
         assert_eq!(r.rows.len(), 1);
-        let r = all(&c, "select name from f where f match ?", &[json!("\"शर्मा\"*")]);
+        let r = all(
+            &c,
+            "select name from f where f match ?",
+            &[json!("\"शर्मा\"*")],
+        );
         assert_eq!(r.rows.len(), 1);
         let _ = std::fs::remove_dir_all(dir);
     }
@@ -231,12 +294,24 @@ mod tests {
     #[test]
     fn big_integers_and_blobs_survive_the_trip() {
         let (dir, c) = temp_db("types");
-        exec(&c, "create table t (n integer, b blob, r real, s text, z)", &[], "run").unwrap();
+        exec(
+            &c,
+            "create table t (n integer, b blob, r real, s text, z)",
+            &[],
+            "run",
+        )
+        .unwrap();
         let big = "9223372036854775807";
         exec(
             &c,
             "insert into t values (?, ?, ?, ?, ?)",
-            &[json!({"$int": big}), json!({"$blob": B64.encode([0u8, 1, 255])}), json!(1.5), json!("x"), Json::Null],
+            &[
+                json!({"$int": big}),
+                json!({"$blob": B64.encode([0u8, 1, 255])}),
+                json!(1.5),
+                json!("x"),
+                Json::Null,
+            ],
             "run",
         )
         .unwrap();
@@ -248,7 +323,10 @@ mod tests {
         assert_eq!(r.rows[0][4], Json::Null);
         // an ordinary integer is a plain number
         exec(&c, "insert into t (n) values (?)", &[json!(12345)], "run").unwrap();
-        assert_eq!(all(&c, "select n from t where n = 12345", &[]).rows[0][0], json!(12345));
+        assert_eq!(
+            all(&c, "select n from t where n = 12345", &[]).rows[0][0],
+            json!(12345)
+        );
         let _ = std::fs::remove_dir_all(dir);
     }
 
@@ -259,9 +337,21 @@ mod tests {
         for i in 0..3 {
             exec(&c, "insert into t values (?)", &[json!(i)], "run").unwrap();
         }
-        assert_eq!(exec(&c, "select v from t order by v", &[], "get").unwrap().rows.len(), 1);
+        assert_eq!(
+            exec(&c, "select v from t order by v", &[], "get")
+                .unwrap()
+                .rows
+                .len(),
+            1
+        );
         // RETURNING through `run` is executed and its rows dropped
-        let r = exec(&c, "insert into t values (?) returning v", &[json!(7)], "run").unwrap();
+        let r = exec(
+            &c,
+            "insert into t values (?) returning v",
+            &[json!(7)],
+            "run",
+        )
+        .unwrap();
         assert!(r.rows.is_empty());
         assert_eq!(all(&c, "select count(*) from t", &[]).rows[0][0], json!(4));
         let _ = std::fs::remove_dir_all(dir);
@@ -270,7 +360,13 @@ mod tests {
     #[test]
     fn a_script_with_a_trigger_body_runs_as_one_statement() {
         let (dir, c) = temp_db("script");
-        exec(&c, "create table t (v integer); create table log (v integer)", &[], "run").unwrap();
+        exec(
+            &c,
+            "create table t (v integer); create table log (v integer)",
+            &[],
+            "run",
+        )
+        .unwrap();
         exec(
             &c,
             "create trigger t_ai after insert on t begin insert into log values (new.v); insert into log values (new.v + 1); end",
@@ -279,7 +375,10 @@ mod tests {
         )
         .unwrap();
         exec(&c, "insert into t values (?)", &[json!(1)], "run").unwrap();
-        assert_eq!(all(&c, "select count(*) from log", &[]).rows[0][0], json!(2));
+        assert_eq!(
+            all(&c, "select count(*) from log", &[]).rows[0][0],
+            json!(2)
+        );
         let _ = std::fs::remove_dir_all(dir);
     }
 

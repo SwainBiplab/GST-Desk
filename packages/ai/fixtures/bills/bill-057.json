@@ -1,0 +1,42 @@
+{
+  "name": "bill-057",
+  "input": {
+    "kind": "text",
+    "text": "BHARAT STEEL INDUSTRIES PVT LTD\n56, Market Road, Nashik\nGSTIN: 27AABCB7788M1ZY   Phone: 9785502806\nTAX INVOICE\nInvoice No: B51319        Date: 18-05-2026\nBill To: Our Shop, GSTIN 27AABCU9603R1ZN\nS.No  Description               HSN   Qty   Rate      Amount\n1     TMT Bar 12mm              7214  17    62.50     1062.50\n2     Steel Pipe 1 inch         7306  60    520.00    31200.00\n3     Plastic Bucket 20L        3924  13    140.00    1820.00\nSub Total                                            34082.50\nCGST 9%                                        3067.43\nSGST 9%                                        3067.43\nRound Off                                            -0.35\nGrand Total                                          40217.00\nE.&O.E.   Authorised Signatory"
+  },
+  "expected": {
+    "supplierName": "BHARAT STEEL INDUSTRIES PVT LTD",
+    "supplierGstin": "27AABCB7788M1ZY",
+    "invoiceNumber": "B51319",
+    "date": "2026-05-18",
+    "lines": [
+      {
+        "description": "TMT Bar 12mm",
+        "hsn": "7214",
+        "qty": 17,
+        "ratePaise": 6250,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Steel Pipe 1 inch",
+        "hsn": "7306",
+        "qty": 60,
+        "ratePaise": 52000,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Plastic Bucket 20L",
+        "hsn": "3924",
+        "qty": 13,
+        "ratePaise": 14000,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 4021700
+  },
+  "meta": {
+    "layout": "header-table",
+    "interState": false,
+    "lines": 3
+  }
+}

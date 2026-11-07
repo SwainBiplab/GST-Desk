@@ -1,0 +1,35 @@
+{
+  "name": "bill-051",
+  "input": {
+    "kind": "text",
+    "text": "INVOICE\nM/s Desai Textiles\nAhmedabad\nGSTIN/UIN: 24AAHPD6655L1ZJ\nBuyer: Our Shop (27AABCU9603R1ZN)\nInvoice No.: DES/26-27/0293\nDated: 3 Feb 2026\nSl  Particulars                 HSN/SAC  GST Rate  Quantity  Rate      Amount\n1   Switch 6A                   8536     18%       37 Nos    45.00     1665.00\n2   Mobile Charger 20W          8504     18%       9 Nos     399.00    3591.00\n                                                  Taxable Value  5256.00\n          IGST 18%                                        946.08\n                                                  Total Amount   6202.00\nAmount Chargeable (in words): Rupees 6202 Only\nDeclaration: Goods once sold will not be taken back.\nfor Desai Textiles\nAuthorised Signatory"
+  },
+  "expected": {
+    "supplierName": "M/s Desai Textiles",
+    "supplierGstin": "24AAHPD6655L1ZJ",
+    "invoiceNumber": "DES/26-27/0293",
+    "date": "2026-02-03",
+    "lines": [
+      {
+        "description": "Switch 6A",
+        "hsn": "8536",
+        "qty": 37,
+        "ratePaise": 4500,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Mobile Charger 20W",
+        "hsn": "8504",
+        "qty": 9,
+        "ratePaise": 39900,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 620200
+  },
+  "meta": {
+    "layout": "tally-style",
+    "interState": true,
+    "lines": 2
+  }
+}

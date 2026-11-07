@@ -1,0 +1,28 @@
+{
+  "name": "hinglish-two-lines",
+  "input": {
+    "feature": "voice_draft",
+    "input": {
+      "text": "Ramesh ko do bori cement teen sau pachas rupaye aur paanch kilo nails sau rupaye ka bill banao"
+    }
+  },
+  "expected": {
+    "intent": "sale",
+    "party": "Ramesh",
+    "lines": [
+      {
+        "description": "cement",
+        "qty": 2,
+        "unit": "BAG",
+        "ratePaise": 35000
+      },
+      {
+        "description": "nails",
+        "qty": 5,
+        "unit": "KGS",
+        "ratePaise": 10000
+      }
+    ],
+    "amountPaise": null
+  }
+}

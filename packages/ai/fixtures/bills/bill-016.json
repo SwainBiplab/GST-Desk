@@ -1,0 +1,28 @@
+{
+  "name": "bill-016",
+  "input": {
+    "kind": "text",
+    "text": "Lakshmi Agencies  Bengaluru\ngstin 29aadfl9087d1zz\nbill no INV-4254  date 2026-08-13\nItem                      Qty  Rate      Amt\nMobile Charger 20W        48   399.00    19152.00\nigst 18%                                        3447.36\nnet amount 22599.00\nthank you visit again"
+  },
+  "expected": {
+    "supplierName": "Lakshmi Agencies",
+    "supplierGstin": "29AADFL9087D1ZZ",
+    "invoiceNumber": "INV-4254",
+    "date": "2026-08-13",
+    "lines": [
+      {
+        "description": "Mobile Charger 20W",
+        "hsn": null,
+        "qty": 48,
+        "ratePaise": 39900,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 2259900
+  },
+  "meta": {
+    "layout": "lowercase-retail",
+    "interState": true,
+    "lines": 1
+  }
+}

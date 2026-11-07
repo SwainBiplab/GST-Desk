@@ -1,0 +1,22 @@
+{
+  "name": "hinglish-purchase",
+  "input": {
+    "feature": "voice_draft",
+    "input": {
+      "text": "Gupta ji se 10 peti biscuit kharida 500 rupaye wala"
+    }
+  },
+  "expected": {
+    "intent": "purchase",
+    "party": "Gupta",
+    "lines": [
+      {
+        "description": "biscuit",
+        "qty": 10,
+        "unit": "BOX",
+        "ratePaise": 50000
+      }
+    ],
+    "amountPaise": null
+  }
+}

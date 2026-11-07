@@ -1,0 +1,28 @@
+{
+  "name": "bill-044",
+  "input": {
+    "kind": "text",
+    "text": "Bharat Steel Industries Pvt Ltd  Nashik\ngstin 27aabcb7788m1zy\nbill no 354  date 02-04-2026\nItem                      Qty  Rate      Amt\nCement OPC 53 50kg        45   380.00    17100.00\ncgst 14%                                        2394.00\nsgst 14%                                        2394.00\nnet amount 21888.00\nthank you visit again"
+  },
+  "expected": {
+    "supplierName": "Bharat Steel Industries Pvt Ltd",
+    "supplierGstin": "27AABCB7788M1ZY",
+    "invoiceNumber": "354",
+    "date": "2026-04-02",
+    "lines": [
+      {
+        "description": "Cement OPC 53 50kg",
+        "hsn": null,
+        "qty": 45,
+        "ratePaise": 38000,
+        "gstRateBp": 2800
+      }
+    ],
+    "totalPaise": 2188800
+  },
+  "meta": {
+    "layout": "lowercase-retail",
+    "interState": false,
+    "lines": 1
+  }
+}

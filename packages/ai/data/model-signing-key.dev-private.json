@@ -1,0 +1,6 @@
+{
+  "keyId": "models-dev-1",
+  "algorithm": "ed25519",
+  "note": "DEVELOPMENT ONLY. The release pipeline signs with a key that never enters the repository; see docs/ai/local-models.md.",
+  "privateKeyPkcs8Base64": "MC4CAQAwBQYDK2VwBCIEIAbQhZjqvmhJ1GTZiM3kcp/9yIDIrCyZQ3s50dQfGa1h"
+}

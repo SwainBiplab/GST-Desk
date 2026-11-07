@@ -1,0 +1,49 @@
+{
+  "name": "bill-006",
+  "input": {
+    "kind": "text",
+    "text": "Roy Paper Products\nInvoice No. 688 dt 08-06-2026\nGST No 19AABPR3344C1ZX\nState: 19\nPacking Tape 48mm       37   38.00   1406.00\nLED Bulb 9W             40   85.00   3400.00\nSugar 50kg              9   2050.00   18450.00\nCement OPC 53 50kg      27   380.00   10260.00\nIGST 5%                                        922.50\nIGST 12%                                        408.00\nIGST 18%                                        253.08\nIGST 28%                                        2872.80\nTotal 37972.00"
+  },
+  "expected": {
+    "supplierName": "Roy Paper Products",
+    "supplierGstin": "19AABPR3344C1ZX",
+    "invoiceNumber": "688",
+    "date": "2026-06-08",
+    "lines": [
+      {
+        "description": "Packing Tape 48mm",
+        "hsn": null,
+        "qty": 37,
+        "ratePaise": 3800,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "LED Bulb 9W",
+        "hsn": null,
+        "qty": 40,
+        "ratePaise": 8500,
+        "gstRateBp": 1200
+      },
+      {
+        "description": "Sugar 50kg",
+        "hsn": null,
+        "qty": 9,
+        "ratePaise": 205000,
+        "gstRateBp": 500
+      },
+      {
+        "description": "Cement OPC 53 50kg",
+        "hsn": null,
+        "qty": 27,
+        "ratePaise": 38000,
+        "gstRateBp": 2800
+      }
+    ],
+    "totalPaise": 3797200
+  },
+  "meta": {
+    "layout": "plain",
+    "interState": true,
+    "lines": 4
+  }
+}

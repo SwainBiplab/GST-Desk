@@ -8,7 +8,9 @@
  * - Nothing is applied unless a person accepts, or has switched on a specific auto-rule (off by default).
  */
 import {
+  AttachmentRepo,
   BusinessRepo,
+  DocumentFlowRepo,
   GstrRepo,
   InventoryRepo,
   ItemRepo,
@@ -22,6 +24,7 @@ import {
   type Database,
   type Row,
 } from '@gst/db';
+import { draftToRows, emptyDraft, emptyDraftLine, type DraftDocument } from '@gst/domain';
 import { isLanguage, languageOfState, reminderText, type PrintLanguage } from '@gst/i18n';
 
 import {
@@ -41,6 +44,7 @@ import {
   KIND_INFO,
   TIER0_KINDS,
   schemaFor,
+  type AiExtractionItem,
   type DuplicateItemItem,
   type DuplicatePartyItem,
   type HsnSuggestionItem,
@@ -341,6 +345,10 @@ async function applyValue(db: Database, ctx: Ctx, kind: string, value: any): Pro
       });
       return;
     }
+    case 'ai_extraction': {
+      await applyExtraction(db, ctx, value as AiExtractionItem);
+      return;
+    }
     case 'low_stock':
     case 'draft_stale':
     case 'backup_failed':
@@ -353,6 +361,77 @@ async function applyValue(db: Database, ctx: Ctx, kind: string, value: any): Pro
         `${info?.label ?? kind} items can't be applied yet${info?.pending ? ` (${info.pending})` : ''}`,
       );
     }
+  }
+}
+
+/**
+ * An accepted scan becomes a purchase draft: the engine prices the lines again (the bill's own total is
+ * kept only in the metadata for the audit), the supplier and items are the ones the person confirmed, and
+ * the scan is attached. The person issues it from the editor like any other draft.
+ */
+async function applyExtraction(db: Database, ctx: Ctx, v: AiExtractionItem): Promise<void> {
+  const biz = await new BusinessRepo(db).get(ctx);
+  if (!biz) throw new RuleError('no business');
+  const own = String(biz['state_code'] ?? '');
+  const supplierState = v.bill.supplierGstin ? v.bill.supplierGstin.slice(0, 2) : own;
+  const party = v.supplierPartyId ? await new PartyRepo(db).get(ctx, v.supplierPartyId) : null;
+  if (v.supplierPartyId && !party) throw new RuleError('that supplier no longer exists');
+  const items = new ItemRepo(db);
+  const draft: DraftDocument = {
+    ...emptyDraft('purchase_bill', v.bill.date, { supplierState, composition: false }),
+    partyId: party ? String(party['id']) : null,
+    partyName: party ? String(party['name']) : v.bill.supplierName,
+    partyGstin: party
+      ? ((party['gstin'] as string | null) ?? v.bill.supplierGstin)
+      : v.bill.supplierGstin,
+    partyState: party ? ((party['state_code'] as string | null) ?? supplierState) : supplierState,
+    supplierState: party ? String(party['state_code'] ?? supplierState) : supplierState,
+    placeOfSupply: own,
+    supplierInvoiceNo: v.bill.invoiceNumber,
+    supplierInvoiceDate: v.bill.date,
+    roundOff: true,
+    lines: [],
+  };
+  for (const [i, l] of v.bill.lines.entries()) {
+    const item = l.itemId ? await items.get(ctx, l.itemId) : null;
+    if (l.itemId && !item) throw new RuleError(`the item on line ${i + 1} no longer exists`);
+    draft.lines.push({
+      ...emptyDraftLine(`x${i}`),
+      itemId: item ? String(item['id']) : null,
+      description: l.description,
+      hsn: l.hsn ?? (item ? String(item['hsn'] ?? '') : ''),
+      qtyMicros: BigInt(Math.round(l.qty * 1_000_000)),
+      unitId: item ? ((item['unit_id'] as string | null) ?? null) : null,
+      ratePaise: BigInt(l.ratePaise),
+      gstRateBp: l.gstRateBp,
+      cessBp: item ? Number(item['cess_bp'] ?? 0) : 0,
+    });
+  }
+  const r = draftToRows(draft);
+  const doc = r.doc as unknown as Record<string, unknown>;
+  const saved = await new DocumentFlowRepo(db).saveDraft(ctx, {
+    doc: {
+      ...doc,
+      id: v.documentId,
+      metadata_json: {
+        ...((doc['metadata_json'] as object | null) ?? {}),
+        extraction: {
+          billTotalPaise: v.bill.totalPaise,
+          engineTotalPaise: Number(r.built.totals.totalPaise),
+          sources: v.sources,
+          model: v.model,
+          fieldConfidence: v.fieldConfidence,
+        },
+      },
+    } as never,
+    lines: r.lines as unknown as Record<string, unknown>[],
+  });
+  if (v.attachment) {
+    await new AttachmentRepo(db).register(ctx, {
+      ownerTable: 'documents',
+      ownerId: String(saved.document['id']),
+      ...v.attachment,
+    });
   }
 }
 

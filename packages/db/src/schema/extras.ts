@@ -24,8 +24,11 @@ export const TABLES_RECON = [
 export const TABLES_GSP = ['einvoices', 'ewaybills', 'gsp_jobs', 'gsp_log'] as const;
 /** The TDS and TCS tables: their guards are in `9006_extras_tax`. */
 export const TABLES_TAX = ['tax_challans', 'tax_deductions', 'tds_receivable'] as const;
+/** The local AI tables (reference data, no org): their guard is in `9007_extras_ai`. */
+export const TABLES_AI = ['hsn_embeddings'] as const;
 const later = (t: string) =>
   (TABLES_AFTER_V1 as readonly string[]).includes(t) ||
+  (TABLES_AI as readonly string[]).includes(t) ||
   (TABLES_TAX as readonly string[]).includes(t) ||
   (TABLES_RECON as readonly string[]).includes(t) ||
   (TABLES_GSP as readonly string[]).includes(t);
@@ -232,6 +235,14 @@ export const reconExtrasSql = (dialect: Dialect): string => guardsSql(dialect, T
 
 /** The same guards for the e-invoice and e-way bill tables. */
 export const gspExtrasSql = (dialect: Dialect): string => guardsSql(dialect, TABLES_GSP);
+
+/** The AI reference tables have no org, so they get the delete guard and no row-level security. */
+export const aiExtrasSql = (dialect: Dialect): string =>
+  TABLES_AI.map((t) =>
+    dialect === 'sqlite'
+      ? `CREATE TRIGGER ${t}_no_delete BEFORE DELETE ON ${t} BEGIN SELECT RAISE(ABORT, 'hard delete forbidden on ${t}'); END;`
+      : `CREATE TRIGGER ${t}_no_delete BEFORE DELETE ON ${t} FOR EACH ROW EXECUTE FUNCTION forbid_hard_delete();`,
+  ).join(`\n${BREAK}\n`) + '\n';
 
 /** The same guards for the TDS and TCS tables. */
 export const taxExtrasSql = (dialect: Dialect): string => guardsSql(dialect, TABLES_TAX);

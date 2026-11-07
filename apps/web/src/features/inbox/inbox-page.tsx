@@ -49,9 +49,12 @@ import {
 } from './model';
 
 import { useAppDb } from '@/app/db';
+import { useLocationInfo } from '@/app/hooks';
 import { useAppNavigate } from '@/app/hooks';
 import { isTypingTarget } from '@/app/shortcuts';
 import type { Shell } from '@/app/store';
+import { ExtractionDetail, ExtractionEditDialog } from '@/features/ai/extraction-detail';
+import { ScanPanel } from '@/features/ai/scan-panel';
 import { useFeatureFlags } from '@/features/business/hooks';
 import { track } from '@/features/telemetry/telemetry';
 import { dyn } from '@/lib/dyn-key';
@@ -92,6 +95,8 @@ export function InboxPage({ shell }: { shell: Shell }) {
   const rules = useAutoRules();
 
   const [view, setView] = useState<View>('open');
+  const { search: location } = useLocationInfo();
+  const [scanning, setScanning] = useState(() => location['intent'] === 'scan');
   const [kind, setKind] = useState('all');
   const [search, setSearch] = useState('');
   const [index, setIndex] = useState(0);
@@ -273,6 +278,13 @@ export function InboxPage({ shell }: { shell: Shell }) {
                 {t('inbox.actions.bulk')}
               </Button>
             )}
+            <Button
+              variant="secondary"
+              data-testid="inbox-scan"
+              onClick={() => setScanning((v) => !v)}
+            >
+              {t('ai.scan.title')}
+            </Button>
             <Button variant="ghost" data-testid="inbox-auto" onClick={() => setAuto(true)}>
               {t('inbox.auto.title')}
             </Button>
@@ -287,6 +299,16 @@ export function InboxPage({ shell }: { shell: Shell }) {
           </div>
         }
       />
+
+      {scanning && (
+        <ScanPanel
+          onScanned={() => {
+            setView('open');
+            setKind('ai_extraction');
+            setIndex(0);
+          }}
+        />
+      )}
 
       <div className="flex flex-wrap items-center gap-2 pb-3">
         <div role="tablist" aria-label={t('inbox.title')} className="flex gap-1">
@@ -434,7 +456,19 @@ export function InboxPage({ shell }: { shell: Shell }) {
           onConfirm={(reason) => void doReject(reject, reason)}
         />
       )}
-      {edit && (
+      {edit && edit.kind === 'ai_extraction' && (
+        <ExtractionEditDialog
+          row={edit}
+          busy={busy}
+          onCancel={() => setEdit(null)}
+          onConfirm={(value) => {
+            const r = edit;
+            setEdit(null);
+            void accept(r, value);
+          }}
+        />
+      )}
+      {edit && edit.kind !== 'ai_extraction' && (
         <EditDialog
           row={edit}
           busy={busy}
@@ -624,6 +658,8 @@ function Detail(props: {
         </table>
       )}
 
+      {row.kind === 'ai_extraction' && <ExtractionDetail row={row} />}
+
       {row.kind === 'reminder_due' && (
         <div className="py-2">
           <p className="text-xs text-fg-muted">
@@ -709,7 +745,16 @@ function Detail(props: {
           </Button>
         </div>
       )}
-      {view === 'done' && <StatusLine row={row} />}
+      {view === 'done' && (
+        <div className="flex flex-wrap items-center gap-2 pt-3">
+          <StatusLine row={row} />
+          {openTarget(row) && (
+            <Button variant="ghost" data-testid="detail-open" onClick={props.onOpen}>
+              {t('inbox.actions.open')}
+            </Button>
+          )}
+        </div>
+      )}
     </Card>
   );
 }

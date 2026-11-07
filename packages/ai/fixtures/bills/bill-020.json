@@ -1,0 +1,56 @@
+{
+  "name": "bill-020",
+  "input": {
+    "kind": "text",
+    "text": "Kumar Electricals  Chennai\ngstin 33aaack1234k1zw\nbill no B86856  date 2026-10-23\nItem                      Qty  Rate      Amt\nMobile Charger 20W        33   399.00    13167.00\nSteel Pipe 1 inch         2    520.00    1040.00\nFloor Cleaner 5L          22   310.00    6820.00\nCotton Shirting 1.2m      13   210.00    2730.00\nPacking Tape 48mm         53   38.00     2014.00\nigst 5%                                        136.50\nigst 18%                                        4147.38\nnet amount 30055.00\nthank you visit again"
+  },
+  "expected": {
+    "supplierName": "Kumar Electricals",
+    "supplierGstin": "33AAACK1234K1ZW",
+    "invoiceNumber": "B86856",
+    "date": "2026-10-23",
+    "lines": [
+      {
+        "description": "Mobile Charger 20W",
+        "hsn": null,
+        "qty": 33,
+        "ratePaise": 39900,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Steel Pipe 1 inch",
+        "hsn": null,
+        "qty": 2,
+        "ratePaise": 52000,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Floor Cleaner 5L",
+        "hsn": null,
+        "qty": 22,
+        "ratePaise": 31000,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Cotton Shirting 1.2m",
+        "hsn": null,
+        "qty": 13,
+        "ratePaise": 21000,
+        "gstRateBp": 500
+      },
+      {
+        "description": "Packing Tape 48mm",
+        "hsn": null,
+        "qty": 53,
+        "ratePaise": 3800,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 3005500
+  },
+  "meta": {
+    "layout": "lowercase-retail",
+    "interState": true,
+    "lines": 5
+  }
+}

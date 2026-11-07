@@ -1,0 +1,42 @@
+{
+  "name": "bill-021",
+  "input": {
+    "kind": "text",
+    "text": "SRI MURUGAN STORES\n52, Market Road, Madurai\nGSTIN: 33AAFPS1122E1ZA   Phone: 9365768209\nINVOICE\nInvoice No: B50033        Date: 12-10-2026\nBill To: Our Shop, GSTIN 27AABCU9603R1ZN\nS.No  Description               HSN   Qty   Rate      Amount\n1     Wire 1.5 sqmm 90m         8544  4     1250.00   5000.00\n2     Floor Cleaner 5L          3402  53    310.00    16430.00\n3     LED Bulb 9W               8539  36    85.00     3060.00\nSub Total                                            24490.00\nIGST 12%                                        367.20\nIGST 18%                                        3857.40\nRound Off                                            0.40\nGrand Total                                          28715.00\nE.&O.E.   Authorised Signatory"
+  },
+  "expected": {
+    "supplierName": "SRI MURUGAN STORES",
+    "supplierGstin": "33AAFPS1122E1ZA",
+    "invoiceNumber": "B50033",
+    "date": "2026-10-12",
+    "lines": [
+      {
+        "description": "Wire 1.5 sqmm 90m",
+        "hsn": "8544",
+        "qty": 4,
+        "ratePaise": 125000,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Floor Cleaner 5L",
+        "hsn": "3402",
+        "qty": 53,
+        "ratePaise": 31000,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "LED Bulb 9W",
+        "hsn": "8539",
+        "qty": 36,
+        "ratePaise": 8500,
+        "gstRateBp": 1200
+      }
+    ],
+    "totalPaise": 2871500
+  },
+  "meta": {
+    "layout": "header-table",
+    "interState": true,
+    "lines": 3
+  }
+}

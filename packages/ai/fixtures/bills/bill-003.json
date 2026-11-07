@@ -1,0 +1,28 @@
+{
+  "name": "bill-003",
+  "input": {
+    "kind": "text",
+    "text": "TAX INVOICE\nM/s Shree Ganesh Traders\nPune\nGSTIN/UIN: 27AAPFU0939F1ZV\nBuyer: Our Shop (27AABCU9603R1ZN)\nInvoice No.: B88979\nDated: 15/05/2026\nSl  Particulars                 HSN/SAC  GST Rate  Quantity  Rate      Amount\n1   Paint Brush 2 inch          9603     18%       12 Nos    25.00     300.00\n                                                  Taxable Value  300.00\n          CGST 9%                                        27.00\n          SGST 9%                                        27.00\n                                                  Total Amount   354.00\nAmount Chargeable (in words): Rupees 354 Only\nDeclaration: Goods once sold will not be taken back.\nfor Shree Ganesh Traders\nAuthorised Signatory"
+  },
+  "expected": {
+    "supplierName": "M/s Shree Ganesh Traders",
+    "supplierGstin": "27AAPFU0939F1ZV",
+    "invoiceNumber": "B88979",
+    "date": "2026-05-15",
+    "lines": [
+      {
+        "description": "Paint Brush 2 inch",
+        "hsn": "9603",
+        "qty": 12,
+        "ratePaise": 2500,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 35400
+  },
+  "meta": {
+    "layout": "tally-style",
+    "interState": false,
+    "lines": 1
+  }
+}

@@ -57,7 +57,9 @@ pub fn push(app: &tauri::AppHandle, requests: Vec<Request>) {
 
 #[tauri::command]
 pub fn take_launch_requests(q: tauri::State<'_, Queue>) -> Vec<Request> {
-    q.0.lock().map(|mut v| std::mem::take(&mut *v)).unwrap_or_default()
+    q.0.lock()
+        .map(|mut v| std::mem::take(&mut *v))
+        .unwrap_or_default()
 }
 
 /// Read a backup the system gave us. Only a `.gstbk` can be read this way, so a page cannot use it to
@@ -67,7 +69,9 @@ pub fn read_backup_file(path: String) -> Result<tauri::ipc::Response, String> {
     if !path.to_lowercase().ends_with(".gstbk") {
         return Err("only a GST Desk backup (.gstbk) can be opened".into());
     }
-    std::fs::read(&path).map(tauri::ipc::Response::new).map_err(|e| format!("cannot read the backup: {e}"))
+    std::fs::read(&path)
+        .map(tauri::ipc::Response::new)
+        .map_err(|e| format!("cannot read the backup: {e}"))
 }
 
 #[cfg(test)]
@@ -80,10 +84,19 @@ mod tests {
 
     #[test]
     fn it_finds_backups_and_links_and_ignores_the_rest() {
-        let got = parse_args(&s(&["gst-desk.exe", "C:\\b\\Shop-2026.GSTBK", "gstdesk://inbox", "--minimized", "notes.txt"]));
+        let got = parse_args(&s(&[
+            "gst-desk.exe",
+            "C:\\b\\Shop-2026.GSTBK",
+            "gstdesk://inbox",
+            "--minimized",
+            "notes.txt",
+        ]));
         assert_eq!(
             got,
-            vec![Request::File("C:\\b\\Shop-2026.GSTBK".into()), Request::Link("gstdesk://inbox".into())]
+            vec![
+                Request::File("C:\\b\\Shop-2026.GSTBK".into()),
+                Request::Link("gstdesk://inbox".into())
+            ]
         );
         assert!(parse_args(&s(&["gst-desk.exe"])).is_empty());
         // the program name itself is never taken for a file

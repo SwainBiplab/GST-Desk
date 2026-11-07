@@ -1,0 +1,28 @@
+{
+  "name": "bill-037",
+  "input": {
+    "kind": "text",
+    "text": "PATEL HARDWARE MART\n77, Industrial Estate, Surat\nGSTIN: 24ABCPP4567Q1Z1   Phone: 9749683701\nTAX INVOICE  (Original for Recipient)\nInvoice No: INV-129        Date: 06/08/2026\nBill To: Our Shop, GSTIN 27AABCU9603R1ZN\nS.No  Description               HSN   Qty   Rate      Amount\n1     Paint Brush 2 inch        9603  34    25.00     850.00\nSub Total                                            850.00\nIGST 18%                                        153.00\nGrand Total                                          1003.00\nE.&O.E.   Authorised Signatory"
+  },
+  "expected": {
+    "supplierName": "PATEL HARDWARE MART",
+    "supplierGstin": "24ABCPP4567Q1Z1",
+    "invoiceNumber": "INV-129",
+    "date": "2026-08-06",
+    "lines": [
+      {
+        "description": "Paint Brush 2 inch",
+        "hsn": "9603",
+        "qty": 34,
+        "ratePaise": 2500,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 100300
+  },
+  "meta": {
+    "layout": "header-table",
+    "interState": true,
+    "lines": 1
+  }
+}

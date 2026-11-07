@@ -1,0 +1,56 @@
+{
+  "name": "bill-053",
+  "input": {
+    "kind": "text",
+    "text": "PATEL HARDWARE MART\n82, Industrial Estate, Surat\nGSTIN: 24ABCPP4567Q1Z1   Phone: 9889010620\nINVOICE\nInvoice No: PAT/26-27/0676        Date: 15-03-2026\nBill To: Our Shop, GSTIN 27AABCU9603R1ZN\nS.No  Description               HSN   Qty   Rate      Amount\n1     A4 Copier Paper 75gsm     4802  53    285.00    15105.00\n2     Cotton Shirting 1.2m      5208  6     210.00    1260.00\n3     TMT Bar 12mm              7214  21    62.50     1312.50\n4     Floor Cleaner 5L          3402  38    310.00    11780.00\n5     Sugar 50kg                1701  36    2050.00   73800.00\nSub Total                                            103257.50\nIGST 5%                                        3753.00\nIGST 12%                                        1812.60\nIGST 18%                                        2356.65\nRound Off                                            0.25\nGrand Total                                          111180.00\nE.&O.E.   Authorised Signatory"
+  },
+  "expected": {
+    "supplierName": "PATEL HARDWARE MART",
+    "supplierGstin": "24ABCPP4567Q1Z1",
+    "invoiceNumber": "PAT/26-27/0676",
+    "date": "2026-03-15",
+    "lines": [
+      {
+        "description": "A4 Copier Paper 75gsm",
+        "hsn": "4802",
+        "qty": 53,
+        "ratePaise": 28500,
+        "gstRateBp": 1200
+      },
+      {
+        "description": "Cotton Shirting 1.2m",
+        "hsn": "5208",
+        "qty": 6,
+        "ratePaise": 21000,
+        "gstRateBp": 500
+      },
+      {
+        "description": "TMT Bar 12mm",
+        "hsn": "7214",
+        "qty": 21,
+        "ratePaise": 6250,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Floor Cleaner 5L",
+        "hsn": "3402",
+        "qty": 38,
+        "ratePaise": 31000,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Sugar 50kg",
+        "hsn": "1701",
+        "qty": 36,
+        "ratePaise": 205000,
+        "gstRateBp": 500
+      }
+    ],
+    "totalPaise": 11118000
+  },
+  "meta": {
+    "layout": "header-table",
+    "interState": true,
+    "lines": 5
+  }
+}

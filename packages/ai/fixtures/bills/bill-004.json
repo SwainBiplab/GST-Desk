@@ -1,0 +1,28 @@
+{
+  "name": "bill-004",
+  "input": {
+    "kind": "text",
+    "text": "Mehta & Sons  Delhi\ngstin 07aaefm2211r1z6\nbill no B70227  date 2026-05-05\nItem                      Qty  Rate      Amt\nMobile Charger 20W        19   399.00    7581.00\nigst 18%                                        1364.58\nnet amount 8946.00\nthank you visit again"
+  },
+  "expected": {
+    "supplierName": "Mehta & Sons",
+    "supplierGstin": "07AAEFM2211R1Z6",
+    "invoiceNumber": "B70227",
+    "date": "2026-05-05",
+    "lines": [
+      {
+        "description": "Mobile Charger 20W",
+        "hsn": null,
+        "qty": 19,
+        "ratePaise": 39900,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 894600
+  },
+  "meta": {
+    "layout": "lowercase-retail",
+    "interState": true,
+    "lines": 1
+  }
+}

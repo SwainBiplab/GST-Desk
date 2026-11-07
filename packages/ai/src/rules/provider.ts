@@ -2,10 +2,12 @@ import {
   BaseProvider,
   fail,
   validated,
+  type AiDocument,
   type AiPrompt,
   type AiResult,
   type CallOpts,
   type Capability,
+  type ExtractOpts,
   type Schema,
 } from '../provider';
 
@@ -22,6 +24,7 @@ export interface RuleOutcome {
   value: unknown;
   /** 0..1 */
   confidence: number;
+  fieldConfidence?: Record<string, number>;
 }
 
 /** A rule turns a feature's input into a proposal. Register more with `registerRule`. */
@@ -39,6 +42,9 @@ export const hsnLookupRule: Rule = async (input, env) => {
     confidence: hits.length ? Math.min(0.95, 0.4 + 0.5 * margin) : 0.2,
   };
 };
+
+/** An extractor turns a document (text, after OCR) into a proposal, the way a rule turns an input into one. */
+export type Extractor = (doc: AiDocument, env: RulesEnv) => Promise<RuleOutcome>;
 
 export const duplicatePartyRule: Rule = async (input, env) => {
   if (!env.parties) throw new Error('no party source configured');
@@ -58,12 +64,45 @@ export class RulesProvider extends BaseProvider {
     ['duplicate_party', duplicatePartyRule],
   ]);
 
+  private readonly extractors = new Map<string, Extractor>();
+
   constructor(private readonly env: RulesEnv = {}) {
     super();
   }
 
   capabilities(): Set<Capability> {
-    return new Set<Capability>(['suggest']);
+    const c = new Set<Capability>(['suggest']);
+    if (this.extractors.size) c.add('extract');
+    return c;
+  }
+
+  /** Add a Tier 0 extractor for a schema name (`purchaseBill`). */
+  registerExtractor(schemaName: string, fn: Extractor): this {
+    this.extractors.set(schemaName, fn);
+    return this;
+  }
+
+  override async extract<T>(
+    doc: AiDocument,
+    schema: Schema<T>,
+    opts: ExtractOpts = {},
+  ): Promise<AiResult<T>> {
+    const name = opts.schemaName ?? opts.feature ?? '';
+    const fn = this.extractors.get(name);
+    if (!fn) return fail('unsupported', `no extractor registered for "${name}"`, true);
+    const started = performance.now();
+    try {
+      const out = await fn(doc, this.env);
+      return validated(schema, out.value, {
+        provider: this.id,
+        model: `rules:${name}`,
+        confidence: out.confidence,
+        ...(out.fieldConfidence ? { fieldConfidence: out.fieldConfidence } : {}),
+        latencyMs: Math.round(performance.now() - started),
+      });
+    } catch (e) {
+      return fail('rule_failed', e instanceof Error ? e.message : String(e), true);
+    }
   }
 
   /** Hook for later prompts: add or replace the rule behind a feature id. */

@@ -45,9 +45,26 @@ export const purchaseBillSchema = z.object({
 });
 export type PurchaseBill = z.infer<typeof purchaseBillSchema>;
 
+/** What a spoken sentence becomes before a person confirms it (prompt 36). */
+export const voiceDraftSchema = z.object({
+  intent: z.enum(['sale', 'purchase', 'payment', 'unknown']),
+  party: z.string().nullable(),
+  lines: z.array(
+    z.object({
+      description: z.string(),
+      qty: z.number(),
+      unit: z.string().nullable(),
+      ratePaise: z.number().int().nullable(),
+    }),
+  ),
+  amountPaise: z.number().int().nullable(),
+});
+export type VoiceDraft = z.infer<typeof voiceDraftSchema>;
+
 /** Registry used by the eval CLI and fixtures. */
 export const SCHEMAS = {
   purchaseBill: purchaseBillSchema,
   hsnSuggestion: hsnSuggestionsSchema,
+  voiceDraft: voiceDraftSchema,
 } as const;
 export type SchemaName = keyof typeof SCHEMAS;

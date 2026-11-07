@@ -1,0 +1,28 @@
+{
+  "name": "bill-024",
+  "input": {
+    "kind": "text",
+    "text": "Mehta & Sons  Delhi\ngstin 07aaefm2211r1z6\nbill no B24856  date 2026-07-17\nItem                      Qty  Rate      Amt\nCement OPC 53 50kg        29   380.00    11020.00\nigst 28%                                        3085.60\nnet amount 14106.00\nthank you visit again"
+  },
+  "expected": {
+    "supplierName": "Mehta & Sons",
+    "supplierGstin": "07AAEFM2211R1Z6",
+    "invoiceNumber": "B24856",
+    "date": "2026-07-17",
+    "lines": [
+      {
+        "description": "Cement OPC 53 50kg",
+        "hsn": null,
+        "qty": 29,
+        "ratePaise": 38000,
+        "gstRateBp": 2800
+      }
+    ],
+    "totalPaise": 1410600
+  },
+  "meta": {
+    "layout": "lowercase-retail",
+    "interState": true,
+    "lines": 1
+  }
+}

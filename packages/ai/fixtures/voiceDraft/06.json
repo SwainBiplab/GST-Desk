@@ -1,0 +1,15 @@
+{
+  "name": "payment",
+  "input": {
+    "feature": "voice_draft",
+    "input": {
+      "text": "Mehta ko 2000 rupaye payment mila"
+    }
+  },
+  "expected": {
+    "intent": "payment",
+    "party": "Mehta",
+    "lines": [],
+    "amountPaise": 200000
+  }
+}

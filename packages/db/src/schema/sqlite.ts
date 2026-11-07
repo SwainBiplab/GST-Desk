@@ -14,6 +14,7 @@ export const items = t.items;
 export const item_variants = t.item_variants;
 export const hsn_master = t.hsn_master;
 export const rate_master_versions = t.rate_master_versions;
+export const hsn_embeddings = t.hsn_embeddings;
 export const number_series = t.number_series;
 export const number_reservations = t.number_reservations;
 export const documents = t.documents;

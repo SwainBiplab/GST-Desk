@@ -1,0 +1,56 @@
+{
+  "name": "bill-017",
+  "input": {
+    "kind": "text",
+    "text": "SHREE GANESH TRADERS\n74, Station Road, Pune\nGSTIN: 27AAPFU0939F1ZV   Phone: 9627961945\nTax Invoice\nInvoice No: 244        Date: 28.06.2026\nBill To: Our Shop, GSTIN 27AABCU9603R1ZN\nS.No  Description               HSN   Qty   Rate      Amount\n1     Mobile Charger 20W        8504  60    399.00    23940.00\n2     Wire 1.5 sqmm 90m         8544  49    1250.00   61250.00\n3     TMT Bar 12mm              7214  36    62.50     2250.00\n4     Cotton Shirting 1.2m      5208  36    210.00    7560.00\n5     A4 Copier Paper 75gsm     4802  44    285.00    12540.00\nSub Total                                            107540.00\nCGST 2.5%                                        189.00\nSGST 2.5%                                        189.00\nCGST 6%                                        752.40\nSGST 6%                                        752.40\nCGST 9%                                        7869.60\nSGST 9%                                        7869.60\nGrand Total                                          125162.00\nE.&O.E.   Authorised Signatory"
+  },
+  "expected": {
+    "supplierName": "SHREE GANESH TRADERS",
+    "supplierGstin": "27AAPFU0939F1ZV",
+    "invoiceNumber": "244",
+    "date": "2026-06-28",
+    "lines": [
+      {
+        "description": "Mobile Charger 20W",
+        "hsn": "8504",
+        "qty": 60,
+        "ratePaise": 39900,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Wire 1.5 sqmm 90m",
+        "hsn": "8544",
+        "qty": 49,
+        "ratePaise": 125000,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "TMT Bar 12mm",
+        "hsn": "7214",
+        "qty": 36,
+        "ratePaise": 6250,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Cotton Shirting 1.2m",
+        "hsn": "5208",
+        "qty": 36,
+        "ratePaise": 21000,
+        "gstRateBp": 500
+      },
+      {
+        "description": "A4 Copier Paper 75gsm",
+        "hsn": "4802",
+        "qty": 44,
+        "ratePaise": 28500,
+        "gstRateBp": 1200
+      }
+    ],
+    "totalPaise": 12516200
+  },
+  "meta": {
+    "layout": "header-table",
+    "interState": false,
+    "lines": 5
+  }
+}

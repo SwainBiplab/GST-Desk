@@ -1,7 +1,8 @@
+mod ai;
 mod db;
 mod diag;
-mod launch;
 mod lan;
+mod launch;
 mod paths;
 mod printers;
 mod tray;
@@ -26,7 +27,10 @@ pub fn run() {
         }))
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .plugin(tauri_plugin_deep_link::init())
-        .plugin(tauri_plugin_autostart::init(tauri_plugin_autostart::MacosLauncher::LaunchAgent, Some(vec!["--minimized"])))
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            Some(vec!["--minimized"]),
+        ))
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_dialog::init())
@@ -43,6 +47,7 @@ pub fn run() {
         .manage(launch::Queue::default())
         .manage(update::Pending::default())
         .manage(lan::LanState::default())
+        .manage(ai::AiState::default())
         .invoke_handler(tauri::generate_handler![
             db::db_open,
             db::db_exec,
@@ -62,6 +67,20 @@ pub fn run() {
             lan::lan_start,
             lan::lan_stop,
             lan::lan_reply,
+            ai::ai_models_dir,
+            ai::ai_file_size,
+            ai::ai_append,
+            ai::ai_remove,
+            ai::ai_finish,
+            ai::ai_sha256,
+            ai::ai_read_text,
+            ai::ai_write_text,
+            ai::ai_free_bytes,
+            ai::ai_list_dir,
+            ai::ai_read_file,
+            ai::ai_hardware,
+            ai::sidecar_start,
+            ai::sidecar_stop,
         ])
         .setup(move |app| {
             let handle = app.handle().clone();
@@ -71,7 +90,11 @@ pub fn run() {
             // links that arrive while the app runs
             let h = handle.clone();
             app.deep_link().on_open_url(move |event| {
-                let links = event.urls().iter().map(|u| launch::Request::Link(u.to_string())).collect();
+                let links = event
+                    .urls()
+                    .iter()
+                    .map(|u| launch::Request::Link(u.to_string()))
+                    .collect();
                 launch::push(&h, links);
             });
             // linux and windows development builds register the scheme at run time; installers do it for releases
@@ -87,6 +110,12 @@ pub fn run() {
             }
             Ok(())
         })
-        .run(tauri::generate_context!())
-        .expect("error while running GST Desk");
+        .build(tauri::generate_context!())
+        .expect("error while building GST Desk")
+        .run(|app, event| {
+            // no model server outlives the app
+            if let tauri::RunEvent::Exit = event {
+                ai::stop_all(&app.state::<ai::AiState>());
+            }
+        });
 }

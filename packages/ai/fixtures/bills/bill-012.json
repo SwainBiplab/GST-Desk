@@ -1,0 +1,56 @@
+{
+  "name": "bill-012",
+  "input": {
+    "kind": "text",
+    "text": "Patel Hardware Mart  Surat\ngstin 24abcpp4567q1z1\nbill no INV-8178  date 20 Jul 2026\nItem                      Qty  Rate      Amt\nWire 1.5 sqmm 90m         41   1250.00   51250.00\nBall Pen Blue             49   5.00      245.00\nPaint Brush 2 inch        31   25.00     775.00\nA4 Copier Paper 75gsm     48   285.00    13680.00\nPlastic Bucket 20L        19   140.00    2660.00\nigst 12%                                        1641.60\nigst 18%                                        9887.40\nnet amount 80139.00\nthank you visit again"
+  },
+  "expected": {
+    "supplierName": "Patel Hardware Mart",
+    "supplierGstin": "24ABCPP4567Q1Z1",
+    "invoiceNumber": "INV-8178",
+    "date": "2026-07-20",
+    "lines": [
+      {
+        "description": "Wire 1.5 sqmm 90m",
+        "hsn": null,
+        "qty": 41,
+        "ratePaise": 125000,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Ball Pen Blue",
+        "hsn": null,
+        "qty": 49,
+        "ratePaise": 500,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Paint Brush 2 inch",
+        "hsn": null,
+        "qty": 31,
+        "ratePaise": 2500,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "A4 Copier Paper 75gsm",
+        "hsn": null,
+        "qty": 48,
+        "ratePaise": 28500,
+        "gstRateBp": 1200
+      },
+      {
+        "description": "Plastic Bucket 20L",
+        "hsn": null,
+        "qty": 19,
+        "ratePaise": 14000,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 8013900
+  },
+  "meta": {
+    "layout": "lowercase-retail",
+    "interState": true,
+    "lines": 5
+  }
+}

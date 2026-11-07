@@ -1,0 +1,42 @@
+{
+  "name": "bill-054",
+  "input": {
+    "kind": "text",
+    "text": "Shree Ganesh Traders\nInvoice No. B60958 dt 24-08-2026\nGST No 27AAPFU0939F1ZV\nState: 27\nPaint Brush 2 inch      24   25.00   600.00\nA4 Copier Paper 75gsm   52   285.00   14820.00\nSteel Pipe 1 inch       55   520.00   28600.00\nCGST 6%                                        889.20\nSGST 6%                                        889.20\nCGST 9%                                        2628.00\nSGST 9%                                        2628.00\nTotal 51054.00"
+  },
+  "expected": {
+    "supplierName": "Shree Ganesh Traders",
+    "supplierGstin": "27AAPFU0939F1ZV",
+    "invoiceNumber": "B60958",
+    "date": "2026-08-24",
+    "lines": [
+      {
+        "description": "Paint Brush 2 inch",
+        "hsn": null,
+        "qty": 24,
+        "ratePaise": 2500,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "A4 Copier Paper 75gsm",
+        "hsn": null,
+        "qty": 52,
+        "ratePaise": 28500,
+        "gstRateBp": 1200
+      },
+      {
+        "description": "Steel Pipe 1 inch",
+        "hsn": null,
+        "qty": 55,
+        "ratePaise": 52000,
+        "gstRateBp": 1800
+      }
+    ],
+    "totalPaise": 5105400
+  },
+  "meta": {
+    "layout": "plain",
+    "interState": false,
+    "lines": 3
+  }
+}

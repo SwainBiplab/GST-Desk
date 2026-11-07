@@ -1,0 +1,42 @@
+{
+  "name": "bill-041",
+  "input": {
+    "kind": "text",
+    "text": "MEHTA & SONS\n84, MG Road, Delhi\nGSTIN: 07AAEFM2211R1Z6   Phone: 9604598188\nINVOICE\nInvoice No: B60732        Date: 28.05.2026\nBill To: Our Shop, GSTIN 27AABCU9603R1ZN\nS.No  Description               HSN   Qty   Rate      Amount\n1     TMT Bar 12mm              7214  10    62.50     625.00\n2     Ball Pen Blue             9608  39    5.00      195.00\n3     A4 Copier Paper 75gsm     4802  54    285.00    15390.00\nSub Total                                            16210.00\nIGST 12%                                        1846.80\nIGST 18%                                        147.60\nRound Off                                            -0.40\nGrand Total                                          18204.00\nE.&O.E.   Authorised Signatory"
+  },
+  "expected": {
+    "supplierName": "MEHTA & SONS",
+    "supplierGstin": "07AAEFM2211R1Z6",
+    "invoiceNumber": "B60732",
+    "date": "2026-05-28",
+    "lines": [
+      {
+        "description": "TMT Bar 12mm",
+        "hsn": "7214",
+        "qty": 10,
+        "ratePaise": 6250,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "Ball Pen Blue",
+        "hsn": "9608",
+        "qty": 39,
+        "ratePaise": 500,
+        "gstRateBp": 1800
+      },
+      {
+        "description": "A4 Copier Paper 75gsm",
+        "hsn": "4802",
+        "qty": 54,
+        "ratePaise": 28500,
+        "gstRateBp": 1200
+      }
+    ],
+    "totalPaise": 1820400
+  },
+  "meta": {
+    "layout": "header-table",
+    "interState": true,
+    "lines": 3
+  }
+}

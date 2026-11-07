@@ -32,6 +32,8 @@ import { restoreFocus } from '../focus';
 import { parseCommand, type Intent } from '../grammar';
 import { useAppStore } from '../store';
 
+import { VoiceButton } from '@/features/ai/voice-button';
+
 interface Found {
   parties: Row[];
   items: Row[];
@@ -191,6 +193,9 @@ function CommandPanel() {
         placeholder={t('command.placeholder')}
         data-testid="command-input"
       />
+      <div className="flex items-center justify-end gap-1 border-b border-border px-2 py-1">
+        <VoiceButton compact onClose={close} />
+      </div>
       <CommandList data-testid="command-results" data-search-ms={ms ?? ''}>
         {intent && (
           <CommandGroup heading={t('command.command')}>
