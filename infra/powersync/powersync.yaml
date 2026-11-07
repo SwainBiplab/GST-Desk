@@ -1,0 +1,28 @@
+# The PowerSync service (open edition). It replicates the business tables from Postgres by logical
+# replication and streams them to devices by the sync rules; devices upload their changes to the API
+# (`/v1/sync/write`), never to this service. Values come from the environment.
+replication:
+  connections:
+    - type: postgresql
+      uri: !env PS_REPLICATION_URI
+      sslmode: disable
+
+storage:
+  type: postgresql
+  uri: !env PS_STORAGE_URI
+  sslmode: disable
+
+port: 8080
+
+sync_rules:
+  path: sync-rules.yaml
+
+client_auth:
+  # the API signs device tokens with this shared secret (HS256); `k` is base64url
+  jwks:
+    keys:
+      - kty: oct
+        alg: HS256
+        kid: gst-sync
+        k: !env PS_JWT_SECRET_B64URL
+  audience: ['powersync']

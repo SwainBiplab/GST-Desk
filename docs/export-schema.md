@@ -411,7 +411,7 @@ Kind: belongs to a business. In a backup only.
 | `created_by` | text |  |  |
 | `updated_by` | text |  |  |
 | `series_id` | id (text) | yes | refers to `number_series` |
-| `device_id` | id (text) |  | refers to `devices` |
+| `device_id` | text |  |  |
 | `from_number` | integer | yes |  |
 | `to_number` | integer | yes |  |
 | `used` | integer | yes | default 0 |

@@ -24,7 +24,7 @@ const workflows = Object.fromEntries(
 
 describe('workflow files', () => {
   it('has the expected workflows', () => {
-    expect(files.sort()).toEqual(['ci.yml', 'desktop.yml', 'perf.yml', 'release.yml']);
+    expect(files.sort()).toEqual(['ci.yml', 'desktop.yml', 'drills.yml', 'perf.yml', 'release.yml']);
   });
 
   describe.each(Object.entries(workflows))('%s', (_name, { text, doc }) => {

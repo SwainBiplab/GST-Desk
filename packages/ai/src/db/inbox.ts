@@ -9,6 +9,7 @@
  */
 import {
   AttachmentRepo,
+  BaseRepo,
   BusinessRepo,
   DocumentFlowRepo,
   GstrRepo,
@@ -45,6 +46,7 @@ import {
   TIER0_KINDS,
   schemaFor,
   type AiExtractionItem,
+  type SyncConflictItem,
   type DuplicateItemItem,
   type DuplicatePartyItem,
   type HsnSuggestionItem,
@@ -349,6 +351,10 @@ async function applyValue(db: Database, ctx: Ctx, kind: string, value: any): Pro
       await applyExtraction(db, ctx, value as AiExtractionItem);
       return;
     }
+    case 'sync_conflict': {
+      await keepMine(db, ctx, value as SyncConflictItem);
+      return;
+    }
     case 'low_stock':
     case 'draft_stale':
     case 'backup_failed':
@@ -433,6 +439,68 @@ async function applyExtraction(db: Database, ctx: Ctx, v: AiExtractionItem): Pro
       ...v.attachment,
     });
   }
+}
+
+const BOOKKEEPING = new Set([
+  'id',
+  'org_id',
+  'business_id',
+  'version',
+  'created_at',
+  'updated_at',
+  'created_by',
+  'updated_by',
+]);
+const strip = (r: Record<string, unknown>) =>
+  Object.fromEntries(Object.entries(r).filter(([k]) => !BOOKKEEPING.has(k)));
+
+/**
+ * "Keep my version" of a sync conflict: apply what this device had on top of what the server kept. A draft
+ * gets my header and my lines back (priced by the engine on save); any other row gets my values for the
+ * fields I changed. A document that has been issued since cannot take a draft's edit: enter it again.
+ */
+async function keepMine(db: Database, ctx: Ctx, v: SyncConflictItem): Promise<void> {
+  if (v.table === 'documents' || v.table === 'document_lines') {
+    const docId =
+      v.table === 'documents'
+        ? v.rowId
+        : String(v.mine['document_id'] ?? v.theirs['document_id'] ?? '');
+    const flow = new DocumentFlowRepo(db);
+    const current = await flow.load(ctx, docId);
+    if (!current) throw new RuleError('that document no longer exists');
+    if (current.document['status'] !== 'draft')
+      throw new RuleError(
+        'that document was issued on another device since; enter your change as a revision or a new document',
+      );
+    const docOp = v.ops.find((o) => o.table === 'documents' && o.id === docId);
+    const lineOps = v.ops.filter(
+      (o) =>
+        o.table === 'document_lines' && o.op === 'PUT' && o.data && o.data['deleted_at'] == null,
+    );
+    const kept = new Set(['status', 'number', 'series_id', 'deleted_at']);
+    const docPatch = Object.fromEntries(
+      Object.entries(strip(docOp?.data ?? {})).filter(([k]) => !kept.has(k)),
+    );
+    const lines = lineOps.length
+      ? lineOps
+          .map((o) => strip(o.data!))
+          .sort((a, b) => Number(a['line_no']) - Number(b['line_no']))
+      : current.lines.map((l) => strip(l as Record<string, unknown>));
+    await flow.saveDraft(ctx, {
+      id: docId,
+      version: Number(current.document['version']),
+      doc: { ...strip(current.document as Record<string, unknown>), ...docPatch },
+      lines,
+    });
+    return;
+  }
+  const repo = new BaseRepo(db, v.table as never);
+  const row = await repo.get(ctx, v.rowId);
+  if (!row) throw new RuleError('that record no longer exists');
+  const patch = strip(v.mine);
+  delete patch['deleted_at'];
+  if (!Object.keys(patch).length) return;
+  await repo.update(ctx, v.rowId, patch, Number(row['version']));
 }
 
 /** Accept one item, applying it (or the edited version of it) in one transaction. */

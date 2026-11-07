@@ -631,9 +631,9 @@ describe.each(DIALECTS)('numbering, cancellation and audit (%s)', (dialect) => {
 
       await n.setMode(own, 'synced');
       const prov = await issue(draft({ date: '2026-07-02' }), {}, own);
-      expect(prov.document['number']).toBe('PROV-0001');
+      expect(prov.document['number']).toBe('PROV-DE-0001');
       const prov2 = await issue(draft({ date: '2026-07-02' }), {}, own);
-      expect(prov2.document['number']).toBe('PROV-0002');
+      expect(prov2.document['number']).toBe('PROV-DE-0002');
 
       const range = await n.reserveRange(own, key, 3, '2026-07-02');
       expect(range.to - range.from).toBe(2);
@@ -649,7 +649,7 @@ describe.each(DIALECTS)('numbering, cancellation and audit (%s)', (dialect) => {
       // the hook for sync: a provisional number becomes a real one from the counter
       const real = await f.finaliseNumber(own, prov.document['id']);
       expect(real['number']).toMatch(/^INV\/26-27\/\d{4}$/);
-      expect(real['number']).not.toBe('PROV-0001');
+      expect(real['number']).not.toBe('PROV-DE-0001');
       // finalising a real number changes nothing
       expect((await f.finaliseNumber(own, real['id']))['number']).toBe(real['number']);
 

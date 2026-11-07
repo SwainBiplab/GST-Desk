@@ -151,7 +151,8 @@ describe.each(DIALECTS)('every repository call needs a business (%s)', (dialect)
     for (const [name, Cls] of classes) {
       const repo = new Cls(d) as Record<string, (...a: unknown[]) => Promise<unknown>>;
       for (const method of methodsOf(Cls as never)) {
-        if (name === 'BusinessRepo' && method === 'create') continue; // creating a business is the one exception
+        // creating a business, and listing an organisation's businesses, are the exceptions
+        if (name === 'BusinessRepo' && (method === 'create' || method === 'list')) continue;
         for (const ctx of [noBusiness, noOrg]) {
           called += 1;
           try {
@@ -176,6 +177,8 @@ describe.each(DIALECTS)('every repository call needs a business (%s)', (dialect)
     ] as const) {
       await expect(fn(), name).rejects.toThrow(/businessId/);
     }
+
+    await expect(new BusinessRepo(d).list(noOrg)).rejects.toThrow(/orgId/);
 
     expect(failures).toEqual([]);
     expect(transactions).toBe(0);

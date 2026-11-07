@@ -106,6 +106,9 @@ describe('provisional numbers', () => {
   it('are recognisable and fit the number rules', () => {
     expect(provisionalNumber(7)).toBe('PROV-0007');
     expect(isProvisional('PROV-0007')).toBe(true);
+    expect(provisionalNumber(7, '9f3a1b2c')).toBe('PROV-9F3A1B2C-0007');
+    expect(isProvisional('PROV-9F3A1B2C-0007')).toBe(true);
+    expect(isProvisional('INV-0007')).toBe(false);
     expect(isProvisional('INV/25-26/0007')).toBe(false);
   });
 });

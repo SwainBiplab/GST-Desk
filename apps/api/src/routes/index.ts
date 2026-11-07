@@ -13,6 +13,7 @@ import { devRoutes } from './dev';
 import { fileRoutes } from './files';
 import { meRoutes } from './me';
 import { orgRoutes } from './orgs';
+import { syncRoutes } from './sync';
 
 export interface RouteDeps {
   db: PgDatabase;
@@ -30,6 +31,7 @@ export function mountRoutes(app: App, deps: RouteDeps): void {
   meRoutes(app, deps);
   orgRoutes(app, deps);
   fileRoutes(app, deps);
+  syncRoutes(app, deps);
   adminRoutes(app, deps);
   if (deps.config.env !== 'production') devRoutes(app, deps);
 }

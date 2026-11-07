@@ -62,6 +62,10 @@ describe('inbox rows', () => {
       search: { tab: 'backup' },
     });
     expect(openTarget(row('sync_conflict', {}))).toBeNull();
+    expect(openTarget(row('sync_conflict', { table: 'documents', rowId: 'd1' }))).toEqual({
+      to: 'document',
+      search: { id: 'd1' },
+    });
   });
 
   it('refuses to accept kinds that are not built yet', () => {
@@ -69,9 +73,9 @@ describe('inbox rows', () => {
     // the GST return checks are built (accepting only acknowledges); reconciliation arrives with prompt 31
     expect(canAccept(row('prefiling_issue', {}))).toBe(true);
     expect(canAccept(row('reconciliation_mismatch', {}))).toBe(false);
-    // scanned bills are built (prompt 36); sync conflicts arrive with phase 3
+    // scanned bills (prompt 36) and sync conflicts (prompt 41) are built
     expect(canAccept(row('ai_extraction', {}))).toBe(true);
-    expect(canAccept(row('sync_conflict', {}))).toBe(false);
+    expect(canAccept(row('sync_conflict', {}))).toBe(true);
     expect(canAccept(row('hsn_suggestion', {}, { status: 'accepted' }))).toBe(false);
   });
 

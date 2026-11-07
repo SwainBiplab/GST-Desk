@@ -47,6 +47,7 @@
     "testcontainers": "^12.2.1",
     "tsx": "^4.23.15",
     "typescript": "~6.0.0",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.0",
+    "@gst/sync": "workspace:*"
   }
 }

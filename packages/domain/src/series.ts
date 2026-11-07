@@ -107,12 +107,21 @@ export function seriesClash(
   return a.prefix === b.prefix && a.suffix === b.suffix;
 }
 
-/** Number given to a document before the device has a range to draw from. */
-export function provisionalNumber(counter: number): string {
-  return `PROV-${String(counter).padStart(4, '0')}`;
+/**
+ * Number given to a document issued offline before the device has a range to draw from:
+ * `PROV-<device tag>-0001`. The tag keeps two devices from making the same one. A provisional number is
+ * never a tax invoice number: the server replaces it with the next real number when the document syncs.
+ */
+export function provisionalNumber(counter: number, deviceTag = ''): string {
+  const tag = deviceTag
+    .replace(/[^A-Za-z0-9]/g, '')
+    .toUpperCase()
+    .slice(0, 8);
+  return `PROV-${tag ? `${tag}-` : ''}${String(counter).padStart(4, '0')}`;
 }
 
-export const isProvisional = (n: string | null | undefined): boolean => !!n && /^PROV-\d+$/.test(n);
+export const isProvisional = (n: string | null | undefined): boolean =>
+  !!n && /^PROV-(?:[A-Z0-9]{1,8}-)?\d+$/.test(n);
 
 /* ------------------------------------------------------------------ period lock */
 

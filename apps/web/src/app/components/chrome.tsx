@@ -1,6 +1,5 @@
 import type { Language } from '@gst/i18n';
 import {
-  Badge,
   Button,
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +21,7 @@ import { useFeatureFlags } from '@/features/business/hooks';
 import { useBackupStatus } from '@/features/data/backup-service';
 import { screenFor } from '@/features/help/model';
 import { openHelp } from '@/features/help/store';
+import { SyncPill } from '@/features/sync/sync-pill';
 import { track } from '@/features/telemetry/telemetry';
 import { changeLanguage } from '@/lib/i18n';
 import { KEYS } from '@/lib/terms';
@@ -63,22 +63,7 @@ export function BusinessSwitcher({ large = false }: { large?: boolean }) {
   );
 }
 
-/** Placeholder until sync exists: says where the data lives. */
-export function SyncPill() {
-  const { t } = useTranslation();
-  const { status, persistent } = useAppDb();
-  const unsaved = status === 'ready' && !persistent;
-  return (
-    <Badge
-      tone={unsaved ? 'warning' : 'neutral'}
-      data-testid="sync-pill"
-      data-db-status={status}
-      title={unsaved ? t('chrome.notSavedTitle') : t('chrome.syncLocalTitle')}
-    >
-      {unsaved ? t('chrome.localNotSaved') : t('chrome.local')}
-    </Badge>
-  );
-}
+export { SyncPill };
 
 /** Bell: how many things need a look (reviews waiting, items low on stock), and a menu to each. */
 export function NotificationBell({ shell }: { shell: Shell }) {

@@ -4,3 +4,9 @@ packages:
   - 'scripts'
   - 'tools/*'
   - 'tests/*'
+
+# Native modules whose install step is allowed to run (pnpm 10 runs none by default).
+# better-sqlite3: the SQLite driver of the PowerSync Node client used by the sync tests (Node 23's
+# built-in SQLite lacks what PowerSync needs before Node 24).
+onlyBuiltDependencies:
+  - better-sqlite3

@@ -28,3 +28,5 @@ export * from './repositories/lan-devices';
 export * from './repositories/inventory';
 export * from './backup';
 export * from './repositories/trash';
+export * from './sync/spec';
+export * from './sync/recompute';

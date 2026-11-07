@@ -246,3 +246,12 @@ export const aiExtrasSql = (dialect: Dialect): string =>
 
 /** The same guards for the TDS and TCS tables. */
 export const taxExtrasSql = (dialect: Dialect): string => guardsSql(dialect, TABLES_TAX);
+
+/**
+ * SQLite drops a table's triggers when a migration rebuilds it (0011 rebuilt `number_reservations` to drop a
+ * foreign key). Put the delete guard back where it may be missing; a fresh database already has it from 9000.
+ */
+export const restoreGuardsSql = (dialect: Dialect): string =>
+  dialect === 'sqlite'
+    ? `CREATE TRIGGER IF NOT EXISTS number_reservations_no_delete BEFORE DELETE ON number_reservations BEGIN SELECT RAISE(ABORT, 'hard delete forbidden on number_reservations'); END;\n`
+    : 'SELECT 1;\n';

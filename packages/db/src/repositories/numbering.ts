@@ -377,7 +377,7 @@ export class NumberingRepo extends BaseRepo {
       );
       const made = await new ReservationRepo(this.d).createWith(tx, c, {
         series_id: counter['id'],
-        device_id: null,
+        device_id: ctx.deviceId,
         from_number: reservation.from,
         to_number: reservation.to,
         used: 0,
@@ -426,6 +426,8 @@ export class NumberingRepo extends BaseRepo {
           eq(res.business_id, ctx.businessId),
           eq(res.series_id, counterId),
           eq(res.status, 'active'),
+          // with sync every device's ranges are in the book: a device draws only from its own
+          eq(res.device_id, ctx.deviceId),
           isNull(res.deleted_at),
         ),
       );

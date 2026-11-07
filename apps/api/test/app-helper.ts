@@ -54,7 +54,7 @@ export function makeTestApp(
   });
   const app = createApp({
     config,
-    log: pino({ level: 'silent' }),
+    log: pino({ level: process.env['API_TEST_LOG'] ?? 'silent' }),
     db: pg.app,
     auth,
     ipLimiter: new MemoryLimiter(10_000),

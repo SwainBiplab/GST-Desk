@@ -18,6 +18,7 @@ import { GspJobs } from '@/features/einvoice/jobs';
 import { HelpDialog } from '@/features/help/help-dialog';
 import { InboxJobs } from '@/features/inbox/jobs';
 import { LanJobs } from '@/features/lan/lan-jobs';
+import { SyncDevHooks } from '@/features/sync/dev-hooks';
 import { TelemetryJobs } from '@/features/telemetry/jobs';
 import i18n, { i18nReady } from '@/lib/i18n';
 
@@ -68,6 +69,7 @@ function Root() {
           <DesktopJobs />
           <LanJobs />
           <AiJobs />
+          <SyncDevHooks />
           <TelemetryJobs />
           <ErrorBoundary>
             <Outlet />

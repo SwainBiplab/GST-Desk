@@ -177,6 +177,32 @@ export const aiExtractionItem = z.object({
 });
 export type AiExtractionItem = z.infer<typeof aiExtractionItem>;
 
+/**
+ * Two devices changed the same thing while apart (prompt 41). The server kept one version (`theirs`) and
+ * this item keeps the other (`mine`) with the whole local transaction it came in (`ops`). Accepting keeps
+ * mine: it is applied again on top of what the server holds. Rejecting keeps theirs.
+ */
+export const syncConflictItem = z.object({
+  table: z.string(),
+  rowId: z.string(),
+  label: z.string(),
+  reason: z.string(),
+  mine: z.record(z.string(), z.unknown()),
+  theirs: z.record(z.string(), z.unknown()),
+  ops: z.array(
+    z.object({
+      op: z.string(),
+      table: z.string(),
+      id: z.string(),
+      data: z.record(z.string(), z.unknown()).optional(),
+      previous: z.record(z.string(), z.unknown()).optional(),
+    }),
+  ),
+  deviceId: z.string(),
+  byUser: z.string(),
+});
+export type SyncConflictItem = z.infer<typeof syncConflictItem>;
+
 /** Kinds whose owner has not shipped yet: the card shows what it holds, Accept stays off. */
 export const genericItem = z.record(z.string(), z.unknown());
 
@@ -193,7 +219,7 @@ export const INBOX_SCHEMAS = {
   prefiling_issue: prefilingIssueItem,
   gsp_job_stopped: gspJobStoppedItem,
   reconciliation_mismatch: genericItem,
-  sync_conflict: genericItem,
+  sync_conflict: syncConflictItem,
 } as const satisfies Record<InboxKind, z.ZodType>;
 
 export function schemaFor(kind: string): z.ZodType<Record<string, unknown>> {
@@ -251,8 +277,7 @@ export const KIND_INFO: Record<InboxKind, KindInfo> = {
     label: 'Sync conflict',
     informational: false,
     bulk: false,
-    pending: 'phase 3',
-    opens: 'none',
+    opens: 'document',
   },
   reminder_due: { label: 'Payment reminder', informational: false, bulk: false, opens: 'party' },
   low_stock: { label: 'Low stock', informational: true, bulk: false, opens: 'item' },

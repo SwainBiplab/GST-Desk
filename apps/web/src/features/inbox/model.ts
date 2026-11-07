@@ -62,6 +62,8 @@ export function openTarget(r: InboxRow): OpenTarget | null {
       return { to: 'document', search: { id: s['documentId'] } };
     case 'ai_extraction':
       return r.status === 'accepted' ? { to: 'document', search: { id: s['documentId'] } } : null;
+    case 'sync_conflict':
+      return s['table'] === 'documents' ? { to: 'document', search: { id: s['rowId'] } } : null;
     case 'backup_failed':
       return { to: 'settings', search: { tab: 'backup' } };
     case 'gsp_job_stopped':
@@ -161,6 +163,8 @@ export function describeArgs(r: InboxRow): Record<string, unknown> {
         total: formatPaise(Number(b['totalPaise'] ?? 0)),
       };
     }
+    case 'sync_conflict':
+      return { label: s['label'], reason: s['reason'] };
     case 'backup_failed':
     case 'prefiling_issue':
       return { message: s['message'] };
@@ -174,6 +178,7 @@ export function describeArgs(r: InboxRow): Record<string, unknown> {
 /** A short headline: the thing the item is about. */
 export function headline(r: InboxRow): string {
   const s = r.suggestion;
+  if (r.kind === 'sync_conflict') return String(s['label'] ?? r.kind);
   if (r.kind === 'ai_extraction')
     return String((s['bill'] as Record<string, unknown> | undefined)?.['supplierName'] ?? r.kind);
   return String(

@@ -6,6 +6,7 @@ import {
   duplicateDraft,
   isBlankLine,
   isBlankDraft,
+  isProvisional,
   type DocumentType,
   type DraftIssue,
   type LineSelection,
@@ -381,6 +382,11 @@ export function EditorPage({
 
   /** Share the PDF: the device's share sheet where it takes files, otherwise WhatsApp with the PDF saved to attach. */
   const share = async (number?: string) => {
+    // a provisional number is not a tax invoice number: nothing leaves the device until sync gives a real one
+    if (isProvisional(number ?? meta.number)) {
+      toast.error(t('sync.provisional.noShare'));
+      return;
+    }
     try {
       const r = await makeCurrentPdf(number ? { number, status: 'issued' } : undefined);
       const out = await shareDocument({
@@ -600,6 +606,15 @@ export function EditorPage({
         actions={
           <div className="flex flex-wrap items-center gap-2">
             {meta.number && <Badge data-testid="doc-issued-number">{meta.number}</Badge>}
+            {isProvisional(meta.number) && (
+              <Badge
+                tone="warning"
+                data-testid="doc-provisional"
+                title={t('sync.provisional.title')}
+              >
+                {t('sync.provisional.badge')}
+              </Badge>
+            )}
             <Badge data-testid="doc-status">{t(`docs.status.${meta.status}`)}</Badge>
             {!isDraft && meta.revision > 1 && (
               <Badge tone="info" data-testid="doc-revision">

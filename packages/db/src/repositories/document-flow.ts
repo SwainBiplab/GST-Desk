@@ -351,14 +351,19 @@ export class DocumentFlowRepo extends BaseRepo {
    * shell's default, else the type's default series. Each series keeps a counter per financial year.
    * The default series is created the first time it is needed.
    */
-  async takeNumberIn(
+  /**
+   * The series and year counter a document of `type` on `date` takes its number from (the one named, else
+   * the shell's or the type's default), made on first use. Shared by issuing and by the cloud handing out
+   * number ranges, so a series is never made twice.
+   */
+  async counterIn(
     tx: any,
     ctx: Ctx,
     type: string,
     date: string,
     fyStartMonth: number,
-    opts: { seriesKey?: string | null; shell?: ShellName; forceCounter?: boolean } = {},
-  ): Promise<{ number: string; seriesId: string }> {
+    opts: { seriesKey?: string | null; shell?: ShellName } = {},
+  ): Promise<Row> {
     const t = this.d.schema.number_series;
     const all: Row[] = await tx
       .select()
@@ -411,6 +416,41 @@ export class DocumentFlowRepo extends BaseRepo {
         fy: label,
         next_number: start,
       }));
+    return row;
+  }
+
+  /** Make sure the counter for a type and date exists; returns its series key. For the cloud's range handout. */
+  async ensureCounter(
+    ctx: Ctx,
+    type: string,
+    date: string,
+  ): Promise<{ seriesKey: string; counterId: string }> {
+    return runInTx(this.d, ctx, async (tx) => {
+      const c: Ctx = { ...ctx, tx };
+      const business = await new BusinessRepo(this.d).get(c);
+      const row = await this.counterIn(
+        tx,
+        c,
+        type,
+        date,
+        Number(business?.['fy_start_month'] ?? 4),
+      );
+      return {
+        seriesKey: String(row['series_key'] ?? `legacy-${type}`),
+        counterId: String(row['id']),
+      };
+    });
+  }
+
+  async takeNumberIn(
+    tx: any,
+    ctx: Ctx,
+    type: string,
+    date: string,
+    fyStartMonth: number,
+    opts: { seriesKey?: string | null; shell?: ShellName; forceCounter?: boolean } = {},
+  ): Promise<{ number: string; seriesId: string }> {
+    const row = await this.counterIn(tx, ctx, type, date, fyStartMonth, opts);
     const spec = {
       prefix: row['prefix'],
       suffix: row['suffix'],
@@ -462,12 +502,16 @@ export class DocumentFlowRepo extends BaseRepo {
     return { number: taken.number, seriesId: row['id'] };
   }
 
-  /** `PROV-0001`, `PROV-0002`, ... for a device that has no range yet. Never reused. */
+  /**
+   * `PROV-<device>-0001`, `PROV-<device>-0002`, ... for a device that has no range yet. Never reused. The
+   * counter is kept per device (settings scope `device:<id>`), so two devices never make the same one.
+   */
   private async nextProvisionalIn(ctx: Ctx): Promise<string> {
     const settings = new SettingsRepo(this.d);
-    const n = ((await settings.getValue<number>(ctx, 'provisional_counter')) ?? 0) + 1;
-    await settings.set(ctx, 'provisional_counter', n);
-    return provisionalNumber(n);
+    const scope = `device:${ctx.deviceId}`;
+    const n = ((await settings.getValue<number>(ctx, 'provisional_counter', scope)) ?? 0) + 1;
+    await settings.set(ctx, 'provisional_counter', n, scope);
+    return provisionalNumber(n, ctx.deviceId.replace(/[^0-9a-f]/gi, '').slice(0, 8));
   }
 
   /**
@@ -476,7 +520,14 @@ export class DocumentFlowRepo extends BaseRepo {
    */
   async finaliseNumber(ctx: Ctx, id: string): Promise<Row> {
     return serialised(this.d, () =>
-      runInTx(this.d, ctx, async (tx) => {
+      runInTx(this.d, ctx, (tx) => this.finaliseNumberIn(tx, { ...ctx, tx }, id)),
+    );
+  }
+
+  /** The same inside a transaction the caller holds (the cloud API's sync write path). */
+  async finaliseNumberIn(tx: any, ctx: Ctx, id: string): Promise<Row> {
+    {
+      {
         const c: Ctx = { ...ctx, tx };
         const doc = await this.getIn(tx, c, id);
         if (!doc) throw new NotFoundError('documents', id);
@@ -496,8 +547,8 @@ export class DocumentFlowRepo extends BaseRepo {
           { seriesKey: (counter?.['series_key'] as string | null) ?? null, forceCounter: true },
         );
         return this.updateIn(tx, c, id, { number, series_id: seriesId }, doc['version']);
-      }),
-    );
+      }
+    }
   }
 
   /**

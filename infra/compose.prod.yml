@@ -13,8 +13,8 @@ services:
       POSTGRES_DB: gst
     volumes:
       - postgres:/var/lib/postgresql/data
-    command:
-      [
+      - ./powersync/init-storage.sql:/docker-entrypoint-initdb.d/10-powersync.sql:ro
+    command: [
         'postgres',
         '-c',
         'max_connections=200',
@@ -22,6 +22,13 @@ services:
         'shared_buffers=512MB',
         '-c',
         'log_min_duration_statement=500',
+        # logical replication for the PowerSync service
+        '-c',
+        'wal_level=logical',
+        '-c',
+        'max_replication_slots=10',
+        '-c',
+        'max_wal_senders=10',
       ]
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER -d gst']
@@ -72,6 +79,24 @@ services:
     environment:
       OTEL_UPSTREAM: ${OTEL_UPSTREAM:-}
 
+  powersync:
+    image: journeyapps/powersync-service:latest
+    restart: unless-stopped
+    command: ['start', '-r', 'unified']
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POWERSYNC_CONFIG_PATH: /config/powersync.yaml
+      PS_REPLICATION_URI: postgres://${PG_OWNER_USER}:${PG_OWNER_PASSWORD}@postgres:5432/gst
+      PS_STORAGE_URI: postgres://${PG_OWNER_USER}:${PG_OWNER_PASSWORD}@postgres:5432/powersync_storage
+      PS_JWT_SECRET_B64URL: ${POWERSYNC_JWT_SECRET_B64URL:?set POWERSYNC_JWT_SECRET_B64URL (base64url of POWERSYNC_JWT_SECRET)}
+    volumes:
+      - ./powersync:/config:ro
+    # behind the same TLS proxy as the API, with gzip on: the stream compresses about tenfold
+    expose:
+      - '8080'
+
   api:
     image: ${API_IMAGE:-ghcr.io/leadergroup/gst-api:latest}
     restart: unless-stopped
@@ -99,6 +124,8 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
       SENTRY_DSN: ${SENTRY_DSN:-}
       INTERNAL_ORG_ID: ${INTERNAL_ORG_ID:-}
+      POWERSYNC_URL: ${POWERSYNC_URL:?set POWERSYNC_URL, the public https address of the powersync service}
+      POWERSYNC_JWT_SECRET: ${POWERSYNC_JWT_SECRET:?set POWERSYNC_JWT_SECRET, 32+ random characters}
       LOG_LEVEL: info
       TRUST_PROXY: 'true'
     deploy:

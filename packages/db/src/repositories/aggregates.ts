@@ -122,6 +122,8 @@ export class BusinessRepo {
 
   /** Every live business of the organisation (the cloud API lists them before a business is chosen). */
   async list(ctx: Ctx): Promise<Row[]> {
+    if (!ctx.orgId)
+      throw new RuleError('an organisation (orgId) is required to list its businesses');
     return runInTx(
       this.d,
       ctx,

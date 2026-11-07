@@ -9,10 +9,23 @@ services:
       POSTGRES_USER: owner
       POSTGRES_PASSWORD: owner
       POSTGRES_DB: gst
+    # logical replication for the PowerSync service
+    command:
+      [
+        'postgres',
+        '-c',
+        'wal_level=logical',
+        '-c',
+        'max_replication_slots=10',
+        '-c',
+        'max_wal_senders=10',
+      ]
     ports:
       - '5432:5432'
     volumes:
       - postgres:/var/lib/postgresql/data
+      # the PowerSync service's own storage database, made on first start
+      - ./powersync/init-storage.sql:/docker-entrypoint-initdb.d/10-powersync.sql:ro
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U owner -d gst']
       interval: 5s
@@ -66,6 +79,24 @@ services:
     ports:
       - '4318:4318'
 
+  # streams each organisation's businesses to its devices; devices upload through the API
+  powersync:
+    image: journeyapps/powersync-service:latest
+    command: ['start', '-r', 'unified']
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POWERSYNC_CONFIG_PATH: /config/powersync.yaml
+      PS_REPLICATION_URI: postgres://owner:owner@postgres:5432/gst
+      PS_STORAGE_URI: postgres://owner:owner@postgres:5432/powersync_storage
+      # base64url of POWERSYNC_JWT_SECRET below
+      PS_JWT_SECRET_B64URL: ZGV2ZWxvcG1lbnQtb25seS1zeW5jLXNlY3JldC1jaGFuZ2UtbWUtNDg
+    volumes:
+      - ./powersync:/config:ro
+    ports:
+      - '8080:8080'
+
   api:
     build:
       context: ..
@@ -94,6 +125,8 @@ services:
       OTP_PROVIDER: mock
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
       LOG_LEVEL: info
+      POWERSYNC_URL: http://localhost:8080
+      POWERSYNC_JWT_SECRET: development-only-sync-secret-change-me-48
       # a development stack is hit from one address (the load script, a developer's machine)
       RATE_LIMIT_IP_PER_MINUTE: '100000'
       RATE_LIMIT_ORG_PER_MINUTE: '100000'

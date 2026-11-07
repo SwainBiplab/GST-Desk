@@ -299,7 +299,8 @@ export const SPEC: TableSpec[] = [
     kind: 'tenant',
     cols: {
       series_id: c.uuid().nn.ref('number_series'),
-      device_id: c.uuid().ref('devices'),
+      /** The syncing device (the cloud's `sync_devices`; `devices` is local-only and holds LAN tablets). */
+      device_id: c.text(),
       from_number: c.int().nn,
       to_number: c.int().nn,
       /** Numbers consumed from the start of the range. */

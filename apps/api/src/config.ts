@@ -47,6 +47,9 @@ const schema = z.object({
     .default(2 * 1024 * 1024),
   /** Behind a TLS proxy the client address is in X-Forwarded-For; otherwise that header is a client's claim. */
   TRUST_PROXY: z.enum(['true', 'false']).default('false'),
+  /** Where devices reach the PowerSync service, and the secret device tokens are signed with. */
+  POWERSYNC_URL: z.string().url().optional(),
+  POWERSYNC_JWT_SECRET: z.string().min(32).optional(),
 });
 
 export type Env = z.infer<typeof schema>;
@@ -83,6 +86,8 @@ export interface Config {
   internalOrgId: string | undefined;
   limits: { ipPerMinute: number; orgPerMinute: number; maxBodyBytes: number };
   trustProxy: boolean;
+  /** Sync is on when both the service address and the token secret are set. */
+  sync: { powersyncUrl: string; jwtSecret: string } | null;
 }
 
 export class ConfigError extends Error {
@@ -157,5 +162,9 @@ export function loadConfig(raw: NodeJS.ProcessEnv): Config {
       maxBodyBytes: e.MAX_BODY_BYTES,
     },
     trustProxy: e.TRUST_PROXY === 'true',
+    sync:
+      e.POWERSYNC_URL && e.POWERSYNC_JWT_SECRET
+        ? { powersyncUrl: e.POWERSYNC_URL, jwtSecret: e.POWERSYNC_JWT_SECRET }
+        : null,
   };
 }

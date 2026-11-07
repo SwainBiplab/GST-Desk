@@ -56,6 +56,7 @@ import type { Shell } from '@/app/store';
 import { ExtractionDetail, ExtractionEditDialog } from '@/features/ai/extraction-detail';
 import { ScanPanel } from '@/features/ai/scan-panel';
 import { useFeatureFlags } from '@/features/business/hooks';
+import { SyncConflictDetail } from '@/features/sync/conflict-detail';
 import { track } from '@/features/telemetry/telemetry';
 import { dyn } from '@/lib/dyn-key';
 import { useTerm } from '@/lib/terms';
@@ -659,6 +660,7 @@ function Detail(props: {
       )}
 
       {row.kind === 'ai_extraction' && <ExtractionDetail row={row} />}
+      {row.kind === 'sync_conflict' && <SyncConflictDetail row={row} />}
 
       {row.kind === 'reminder_due' && (
         <div className="py-2">
@@ -698,7 +700,9 @@ function Detail(props: {
             disabled={props.busy || !canAccept(row)}
             onClick={props.onAccept}
           >
-            {t(info?.informational ? 'inbox.actions.acknowledge' : 'inbox.actions.accept')}
+            {row.kind === 'sync_conflict'
+              ? t('sync.conflict.keepMine')
+              : t(info?.informational ? 'inbox.actions.acknowledge' : 'inbox.actions.accept')}
           </Button>
           {editableFields(row.kind).length > 0 && (
             <Button variant="secondary" data-testid="detail-edit" onClick={props.onEdit}>
@@ -706,7 +710,9 @@ function Detail(props: {
             </Button>
           )}
           <Button variant="ghost" data-testid="detail-reject" onClick={props.onReject}>
-            {t('inbox.actions.reject')}
+            {row.kind === 'sync_conflict'
+              ? t('sync.conflict.keepTheirs')
+              : t('inbox.actions.reject')}
           </Button>
           <DropdownMenu open={props.snoozeOpen} onOpenChange={props.onSnoozeOpen}>
             <DropdownMenuTrigger asChild>

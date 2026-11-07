@@ -1028,6 +1028,7 @@ export const en = {
       gsp_job_stopped:
         '{{number}}: the document changed before it was sent. Open it and send it again.',
       ai_extraction: '{{supplier}} · {{number}} · {{date}} · {{total}}',
+      sync_conflict: '{{label}}: {{reason}}',
       generic: 'Waiting for review.',
     },
     reasons: {
@@ -3110,6 +3111,48 @@ export const en = {
         nothing_heard: 'Nothing was heard. Hold the button while you speak.',
         failed: 'That could not be understood: {{message}}',
       },
+    },
+  },
+  sync: {
+    pill: {
+      local: 'Local',
+      synced: 'Synced',
+      syncing: 'Syncing…',
+      pending_one: '{{count}} change waiting',
+      pending_other: '{{count}} changes waiting',
+      conflict_one: '{{count}} conflict',
+      conflict_other: '{{count}} conflicts',
+      offline: 'Offline',
+      offline_one: 'Offline, {{count}} waiting',
+      offline_other: 'Offline, {{count}} waiting',
+      error: 'Sync stuck',
+    },
+    sheet: {
+      title: 'Sync',
+      state: 'State',
+      last: 'Last synced',
+      never: 'Not yet',
+      queued: 'Changes waiting',
+      conflicts: 'Conflicts',
+      now: 'Sync now',
+      openConflicts: 'Open conflicts',
+      notAttached:
+        'This book is synced, but sync is not running on this device yet. Your changes are kept here and go up when it runs.',
+    },
+    conflict: {
+      field: 'Field',
+      theirs: 'Kept by the server',
+      mine: 'This device',
+      sameFields: 'The values are the same; only the order of changes differed.',
+      help: 'Keep my version applies this device’s change on top of what the server kept. Keep theirs leaves the server’s version.',
+      keepMine: 'Keep my version',
+      keepTheirs: 'Keep theirs',
+    },
+    provisional: {
+      badge: 'Provisional number',
+      title: 'Issued offline. The real number arrives when this device syncs.',
+      noShare:
+        'This document has a provisional number. Share or print it once it has synced and has its real number.',
     },
   },
   cloud: {
