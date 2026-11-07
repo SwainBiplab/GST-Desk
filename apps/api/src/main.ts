@@ -12,6 +12,9 @@ import { installErrorReporting } from './errors-reporting';
 import { makeJobs } from './jobs/queues';
 import { MemoryLimiter, RedisLimiter } from './limits';
 import { makeLogger } from './log';
+import { providersFrom } from './messaging/providers';
+import { MessagingService } from './messaging/service';
+import { enqueuer, startMessagingWorkers } from './messaging/worker';
 import { FcmSender } from './push/fcm';
 import { makeNotifier } from './push/notify';
 import { mountRoutes } from './routes';
@@ -88,7 +91,19 @@ const notify = makeNotifier(
     : null,
   log,
 );
-mountRoutes(app, { db, auth, storage, jobs, otp, config, notify });
+const providers = providersFrom(config);
+const messagingService = new MessagingService({ db, providers, log, enqueue: enqueuer(jobs) });
+if (jobs) await startMessagingWorkers(jobs, messagingService, log);
+mountRoutes(app, {
+  db,
+  auth,
+  storage,
+  jobs,
+  otp,
+  config,
+  notify,
+  messaging: { service: messagingService, providers },
+});
 
 const server = serve({ fetch: app.fetch, port: config.port, hostname: '0.0.0.0' }, (info) => {
   log.info({ port: info.port, env: config.env }, 'gst-api listening');

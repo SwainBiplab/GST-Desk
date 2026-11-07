@@ -71,6 +71,12 @@ Last refreshed at the close of Phase 1. Update it when a phase adds an asset, an
 
 - **Privilege escalation inside an organisation**: an admin promoting someone to owner, a team lead inventing a wider role, or calling better-auth's own organisation endpoints. Refused by `canManage` and `grantsWithin`, and the endpoints answer 404; tested route by route and role by role (`apps/api/test/team.test.ts`).
 - **A removed member keeps reading**: API calls and uploads stop at once; PowerSync downloads stop when the 5-minute token lapses (B-175).
+- **A forged delivery or opt-out webhook** (prompt 44): `POST /v1/webhooks/whatsapp` and `/resend` check the signature (Meta HMAC-SHA256, Resend/Svix with a timestamp tolerance) over the raw body before anything is parsed, compared in constant time; an unconfigured secret rejects everything. Events are idempotent by event key, and a status can only move forward.
+- **Provider credentials leak**: they are platform-level environment secrets (`infra/env.md`), never stored in a book, a row, a log line or a response; the status endpoint reports only whether each channel is configured.
+- **Personal data in logs**: the messaging service logs ids, kind and channel only, never an address, a name or a message body; a test asserts it.
+- **Messaging someone who said no**: WhatsApp needs a recorded opt-in; email is sent unless the party opted out; a STOP reply or an unsubscribe is recorded from the webhook; consent is re-checked at send time, not only when the message was made, and any opt-out stops reminders.
+- **Message spend or spam by one organisation**: the plan's monthly message limit is counted in `usage_events` and checked before queueing; approval is required unless the owner turned automatic sending on per kind; reminders stay out of quiet hours and cap at one rule per document.
+- **Recurring invoices run away**: they are issued by the server through the same draft, issue and numbering path as a person's, one run per date, with a single inbox item when a run fails; pausing is immediate.
 
 ## Out of scope for Phase 1 (to be added with the phases that introduce them)
 

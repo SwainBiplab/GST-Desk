@@ -1,0 +1,30 @@
+{
+  "object": "whatsapp_business_account",
+  "entry": [
+    {
+      "id": "102290129340398",
+      "changes": [
+        {
+          "field": "message_template_status_update",
+          "value": {
+            "event": "REJECTED",
+            "message_template_id": 1689556908129832,
+            "message_template_name": "gd_ab12cd34_invoice",
+            "message_template_language": "hi",
+            "reason": "INVALID_FORMAT"
+          }
+        },
+        {
+          "field": "message_template_status_update",
+          "value": {
+            "event": "APPROVED",
+            "message_template_id": 1689556908129833,
+            "message_template_name": "gd_ab12cd34_invoice",
+            "message_template_language": "en",
+            "reason": "NONE"
+          }
+        }
+      ]
+    }
+  ]
+}

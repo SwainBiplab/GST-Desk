@@ -95,6 +95,66 @@ export type ApprovalOutcome = {
   reviewItemId?: string;
 };
 
+/** Messaging (prompt 44): the API's shapes for settings, templates, the outbox and the log. */
+export type MessageKind = 'invoice' | 'receipt' | 'reminder';
+export interface DispatchSettings {
+  onIssue: Record<string, boolean>;
+  onPayment: boolean;
+  reminders: boolean;
+  offsets: number[];
+  quietStart: string;
+  quietEnd: string;
+  autoSend: Record<string, boolean>;
+  channel: 'whatsapp_first' | 'email_first' | 'whatsapp' | 'email';
+  defaultLanguage: string;
+}
+export interface MessagingStatus {
+  plan: string;
+  enabled: boolean;
+  used: number;
+  limit: number;
+  channels: { whatsapp: boolean; email: boolean };
+}
+export interface MessageTemplate {
+  id: string;
+  kind: MessageKind;
+  language: string;
+  name: string;
+  body: string;
+  status: 'draft' | 'pending' | 'approved' | 'rejected' | 'paused';
+  reason: string | null;
+}
+export interface OutboxMessage {
+  id: string;
+  party_id: string | null;
+  document_id: string | null;
+  kind: MessageKind;
+  channel: 'whatsapp' | 'email';
+  to_address: string;
+  language: string;
+  subject: string | null;
+  body: string;
+  created_at: string | number;
+}
+export interface LoggedMessage extends OutboxMessage {
+  status: string;
+  approval: string;
+  error: string | null;
+  timeline: { status: string; detail: string | null; at: number }[];
+}
+export interface RecurringInvoice {
+  id: string;
+  name: string;
+  frequency: string;
+  every: number;
+  next_run: string;
+  end_date: string | null;
+  active: boolean;
+  send: boolean;
+  runs: number;
+  last_error: string | null;
+}
+
 export class CloudError extends Error {
   constructor(
     readonly status: number,
@@ -370,6 +430,112 @@ export class CloudClient {
     return this.call(`/v1/invites/${id}/${accept ? 'accept' : 'decline'}`, {
       method: 'POST',
       body: '{}',
+    });
+  }
+
+  private m(orgId: string, path: string) {
+    return `/v1/orgs/${orgId}/messaging${path}`;
+  }
+
+  messagingStatus(orgId: string): Promise<MessagingStatus> {
+    return this.call(this.m(orgId, '/status'));
+  }
+  dispatchSettings(orgId: string, businessId: string): Promise<DispatchSettings> {
+    return this.call(this.m(orgId, `/settings/${businessId}`));
+  }
+  saveDispatchSettings(
+    orgId: string,
+    businessId: string,
+    s: DispatchSettings,
+  ): Promise<DispatchSettings> {
+    return this.call(this.m(orgId, `/settings/${businessId}`), {
+      method: 'PUT',
+      body: JSON.stringify(s),
+    });
+  }
+  messageTemplates(orgId: string): Promise<MessageTemplate[]> {
+    return this.call(this.m(orgId, '/templates'));
+  }
+  saveMessageTemplate(orgId: string, id: string, body: string): Promise<null> {
+    return this.call(this.m(orgId, `/templates/${id}`), {
+      method: 'PUT',
+      body: JSON.stringify({ body }),
+    });
+  }
+  previewTemplate(
+    orgId: string,
+    kind: MessageKind,
+    language: string,
+    body?: string,
+  ): Promise<{ text: string; problems: string[] }> {
+    return this.call(this.m(orgId, '/templates/preview'), {
+      method: 'POST',
+      body: JSON.stringify({ kind, language, ...(body ? { body } : {}) }),
+    });
+  }
+  submitTemplates(
+    orgId: string,
+    language?: string,
+  ): Promise<{ submitted: number; failed: string[] }> {
+    return this.call(this.m(orgId, '/templates/submit'), {
+      method: 'POST',
+      body: JSON.stringify(language ? { language } : {}),
+    });
+  }
+  syncTemplates(orgId: string): Promise<{ updated: number }> {
+    return this.call(this.m(orgId, '/templates/sync'), { method: 'POST', body: '{}' });
+  }
+  outbox(orgId: string, businessId: string): Promise<OutboxMessage[]> {
+    return this.call(this.m(orgId, `/outbox?businessId=${businessId}`));
+  }
+  approveMessage(orgId: string, id: string, edit?: { body?: string }): Promise<null> {
+    return this.call(this.m(orgId, `/messages/${id}/approve`), {
+      method: 'POST',
+      body: JSON.stringify(edit ?? {}),
+    });
+  }
+  rejectMessage(orgId: string, id: string): Promise<null> {
+    return this.call(this.m(orgId, `/messages/${id}/reject`), { method: 'POST', body: '{}' });
+  }
+  sendMessage(
+    orgId: string,
+    b: { businessId: string; kind: MessageKind; documentId: string; paymentId?: string },
+  ): Promise<{ id: string; approval: string; channel: string }> {
+    return this.call(this.m(orgId, '/send'), { method: 'POST', body: JSON.stringify(b) });
+  }
+  messageLog(
+    orgId: string,
+    q: { documentId?: string; partyId?: string },
+  ): Promise<LoggedMessage[]> {
+    const qs = new URLSearchParams(q as Record<string, string>).toString();
+    return this.call(this.m(orgId, `/log${qs ? `?${qs}` : ''}`));
+  }
+  consent(orgId: string, partyId: string): Promise<Record<string, 'opted_in' | 'opted_out'>> {
+    return this.call(this.m(orgId, `/consent/${partyId}`));
+  }
+  setConsent(
+    orgId: string,
+    b: { partyId: string; channel: 'whatsapp' | 'email'; status: 'opted_in' | 'opted_out' },
+  ): Promise<null> {
+    return this.call(this.m(orgId, '/consent'), { method: 'PUT', body: JSON.stringify(b) });
+  }
+  recurringInvoices(orgId: string): Promise<RecurringInvoice[]> {
+    return this.call(`/v1/orgs/${orgId}/recurring-invoices`);
+  }
+  createRecurring(orgId: string, b: Record<string, unknown>): Promise<{ id: string }> {
+    return this.call(`/v1/orgs/${orgId}/recurring-invoices`, {
+      method: 'POST',
+      body: JSON.stringify(b),
+    });
+  }
+  changeRecurring(
+    orgId: string,
+    id: string,
+    b: { active?: boolean; send?: boolean },
+  ): Promise<null> {
+    return this.call(`/v1/orgs/${orgId}/recurring-invoices/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(b),
     });
   }
 

@@ -1,0 +1,16 @@
+{
+  "type": "email.bounced",
+  "created_at": "2026-01-01T00:00:05.000Z",
+  "data": {
+    "email_id": "56761188-7520-42d8-8898-ff6fc54ce618",
+    "from": "GST Desk <billing@example.test>",
+    "to": ["customer@example.test"],
+    "subject": "Invoice INV/26-27/0001",
+    "created_at": "2026-01-01T00:00:04.000Z",
+    "bounce": {
+      "type": "Permanent",
+      "subType": "General",
+      "message": "The recipient's email address is on the suppression list"
+    }
+  }
+}

@@ -67,6 +67,8 @@ import { useConfirm } from '@/app/components/confirm';
 import { useRightPanel } from '@/app/components/panel';
 import { useAppDb, useLiveQuery } from '@/app/db';
 import type { Shell } from '@/app/store';
+import type { MessageKind } from '@/features/cloud/client';
+import { DocumentMessageItems, DocumentMessages } from '@/features/dispatch/document-messages';
 import { useDocPortal } from '@/features/einvoice/hooks';
 import { EinvoicePanel } from '@/features/einvoice/panel';
 import { useUnits } from '@/features/items/hooks';
@@ -94,6 +96,11 @@ import {
 import { usePermissions } from '@/features/team/permissions';
 import { track } from '@/features/telemetry/telemetry';
 
+const MESSAGE_KIND: Partial<Record<string, MessageKind>> = {
+  tax_invoice: 'invoice',
+  bill_of_supply: 'invoice',
+  debit_note: 'invoice',
+};
 const todayIso = () => new Date().toISOString().slice(0, 10);
 
 /** Documents money settles, so credit can be applied to them. */
@@ -737,6 +744,15 @@ export function EditorPage({
                 <DropdownMenuItem data-testid="doc-email" onSelect={() => void email()}>
                   {t('print.email')}
                 </DropdownMenuItem>
+                {meta.id && !isDraft && MESSAGE_KIND[draft.type] && (
+                  <DocumentMessageItems
+                    documentId={meta.id}
+                    kind={MESSAGE_KIND[draft.type]!}
+                    name={meta.number ?? ''}
+                    start={todayIso()}
+                    canRepeat={draft.type === 'tax_invoice'}
+                  />
+                )}
                 <DropdownMenuItem
                   data-testid="doc-duplicate"
                   disabled={!meta.id}
@@ -991,6 +1007,7 @@ export function EditorPage({
               {meta.id && !isDraft && (
                 <TabsContent value="history" className="min-h-0 flex-1 overflow-auto">
                   <HistoryTab documentId={meta.id} version={meta.version} />
+                  <DocumentMessages documentId={meta.id} />
                 </TabsContent>
               )}
               {attachmentTab && (

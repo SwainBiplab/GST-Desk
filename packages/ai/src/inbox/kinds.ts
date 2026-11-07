@@ -13,6 +13,7 @@ export const INBOX_KINDS = [
   'reconciliation_mismatch',
   'sync_conflict',
   'approval_request',
+  'recurring_failed',
   'reminder_due',
   'low_stock',
   'draft_stale',
@@ -224,6 +225,16 @@ export const approvalRequestItem = z.object({
 });
 export type ApprovalRequestItem = z.infer<typeof approvalRequestItem>;
 
+/** A recurring invoice that could not be made on its day (prompt 44): what failed, and the invoice it copies. */
+export const recurringFailedItem = z.object({
+  recurringId: z.string(),
+  name: z.string(),
+  date: z.string(),
+  message: z.string(),
+  documentId: z.string(),
+});
+export type RecurringFailedItem = z.infer<typeof recurringFailedItem>;
+
 /** Kinds whose owner has not shipped yet: the card shows what it holds, Accept stays off. */
 export const genericItem = z.record(z.string(), z.unknown());
 
@@ -242,6 +253,7 @@ export const INBOX_SCHEMAS = {
   reconciliation_mismatch: genericItem,
   sync_conflict: syncConflictItem,
   approval_request: approvalRequestItem,
+  recurring_failed: recurringFailedItem,
 } as const satisfies Record<InboxKind, z.ZodType>;
 
 export function schemaFor(kind: string): z.ZodType<Record<string, unknown>> {
@@ -304,6 +316,12 @@ export const KIND_INFO: Record<InboxKind, KindInfo> = {
   approval_request: {
     label: 'Waiting for approval',
     informational: false,
+    bulk: false,
+    opens: 'document',
+  },
+  recurring_failed: {
+    label: 'Recurring invoice failed',
+    informational: true,
     bulk: false,
     opens: 'document',
   },

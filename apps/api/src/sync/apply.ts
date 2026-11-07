@@ -70,11 +70,22 @@ export const clientTxSchema = z.object({
 export type ClientTx = z.infer<typeof clientTxSchema>;
 
 export type TxOutcome =
-  | { txId: number; outcome: 'applied'; renumbered: { id: string; from: string; to: string }[] }
+  | {
+      txId: number;
+      outcome: 'applied';
+      renumbered: { id: string; from: string; to: string }[];
+      events: AppliedEvents;
+    }
   | { txId: number; outcome: 'duplicate' }
   | { txId: number; outcome: 'conflict'; reviewItemId: string; reason: string }
   | { txId: number; outcome: 'approval'; reviewItemId: string; reason: string }
   | { txId: number; outcome: 'rejected'; reason: string };
+
+/** What a transaction did that other services act on (prompt 44): documents newly issued, payments newly recorded. */
+export interface AppliedEvents {
+  issued: { id: string; businessId: string }[];
+  payments: { id: string; businessId: string; date: string }[];
+}
 
 export interface SyncCaller {
   orgId: string;
@@ -174,14 +185,14 @@ export async function applyClientTx(
   if (seen) return { txId: ctxTx.txId, outcome: 'duplicate' };
 
   try {
-    const renumbered = await runInTx(
+    const { renumbered, events } = await runInTx(
       d,
       { ...ctx, businessId: ctx.businessId || 'sync' },
       (tx) => applyOps(d, tx, ctx, caller, ctxTx),
       { allowNoBusiness: true },
     );
     await record(d, caller, ctxTx.txId, 'applied');
-    return { txId: ctxTx.txId, outcome: 'applied', renumbered };
+    return { txId: ctxTx.txId, outcome: 'applied', renumbered, events };
   } catch (e) {
     if (e instanceof NeedsApproval) {
       const item = await raiseApproval(d, ctx, caller, ctxTx, e);
@@ -285,12 +296,14 @@ export async function applyOps(
   ctx: Ctx,
   caller: SyncCaller,
   ctxTx: ClientTx,
-): Promise<{ id: string; from: string; to: string }[]> {
+): Promise<{ renumbered: { id: string; from: string; to: string }[]; events: AppliedEvents }> {
   const touchedDocs = new Set<string>();
   // documents made in this upload, and documents revised in it: their lines may be written with them
   const revisedDocs = new Set<string>();
   const revisedNow = new Set<string>();
   const issuedNow = new Set<string>();
+  const paymentsNow: { id: string; businessId: string; date: string }[] = [];
+  const issuedBiz = new Map<string, string>();
   const businessOf = new Map<string, string>();
 
   await authorise(d, tx, caller, ctxTx);
@@ -396,6 +409,8 @@ export async function applyOps(
       // a document arriving already issued is history (conversion, import): it is checked, not re-priced
       if (op.table === 'documents') revisedDocs.add(op.id);
       await tx.insert(t).values(row);
+      if (op.table === 'payments' && row['status'] !== 'cancelled' && row['direction'] !== 'made')
+        paymentsNow.push({ id: op.id, businessId, date: String(row['date'] ?? '') });
       continue;
     }
 
@@ -456,7 +471,10 @@ export async function applyOps(
         revisedDocs.add(op.id);
         revisedNow.add(op.id);
       }
-      if (status === 'draft' && data['status'] === 'issued') issuedNow.add(op.id);
+      if (status === 'draft' && data['status'] === 'issued') {
+        issuedNow.add(op.id);
+        issuedBiz.set(op.id, businessId);
+      }
     } else if (LINE_FINANCIAL_TABLES.has(op.table)) {
       await assertLineWritable(d, tx, String(current['document_id']), revisedDocs);
       if (concurrent && changed.length)
@@ -599,7 +617,10 @@ export async function applyOps(
       }
     }
   }
-  return renumbered;
+  const issued = [...issuedNow]
+    .filter((id) => !!id)
+    .map((id) => ({ id, businessId: issuedBiz.get(id) ?? '' }));
+  return { renumbered, events: { issued, payments: paymentsNow } };
 }
 
 const roleName = (p: Permissions) => p.roleName ?? p.role;

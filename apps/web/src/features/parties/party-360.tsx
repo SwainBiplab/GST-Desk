@@ -40,6 +40,7 @@ import {
 import { useAppDb, useLiveQuery } from '@/app/db';
 import { useAppNavigate } from '@/app/hooks';
 import type { Shell } from '@/app/store';
+import { PartyMessaging } from '@/features/dispatch/document-messages';
 import { usePositions } from '@/features/payments/hooks';
 import { PayStatusBadge } from '@/features/payments/status-badge';
 import { dyn } from '@/lib/dyn-key';
@@ -537,11 +538,13 @@ export function Party360({ id, shell }: { id: string; shell: Shell }) {
 
       <Tabs defaultValue="ledger">
         <TabsList aria-label={t('parties.tabs.label')}>
-          {(['ledger', 'documents', 'payments', 'reminders', 'notes'] as const).map((k) => (
-            <TabsTrigger key={k} value={k} data-testid={`tab-${k}`}>
-              {t(`parties.tabs.${k}`)}
-            </TabsTrigger>
-          ))}
+          {(['ledger', 'documents', 'payments', 'reminders', 'messages', 'notes'] as const).map(
+            (k) => (
+              <TabsTrigger key={k} value={k} data-testid={`tab-${k}`}>
+                {t(`parties.tabs.${k}`)}
+              </TabsTrigger>
+            ),
+          )}
         </TabsList>
         <TabsContent value="ledger">
           <LedgerTab party={party} />
@@ -554,6 +557,9 @@ export function Party360({ id, shell }: { id: string; shell: Shell }) {
         </TabsContent>
         <TabsContent value="reminders">
           <RemindersTab party={party} dueText={formatPaise(owed)} duePaise={owed} />
+        </TabsContent>
+        <TabsContent value="messages">
+          <PartyMessaging partyId={id} />
         </TabsContent>
         <TabsContent value="notes">
           <NotesTab party={party} />

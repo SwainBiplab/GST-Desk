@@ -359,6 +359,7 @@ async function applyValue(db: Database, ctx: Ctx, kind: string, value: any): Pro
       // decided on the server, which holds the change: the inbox calls the cloud API for it
       throw new RuleError('an approval is decided with Approve or Decline, through the cloud');
     case 'low_stock':
+    case 'recurring_failed':
     case 'draft_stale':
     case 'backup_failed':
     case 'prefiling_issue':

@@ -58,6 +58,7 @@ import { DataTab } from '@/features/data/data-tab';
 import { TrashTab } from '@/features/data/trash-tab';
 import { isDesktop } from '@/features/desktop/bridge';
 import { DesktopTab } from '@/features/desktop/desktop-tab';
+import { DispatchTab } from '@/features/dispatch/dispatch-tab';
 import { PortalTab } from '@/features/einvoice/portal-tab';
 import { InventoryTab } from '@/features/inventory/settings-tab';
 import { LanTab } from '@/features/lan/lan-tab';
@@ -472,6 +473,7 @@ const TABS = [
   'ai',
   'cloud',
   'team',
+  'messages',
 ] as const;
 
 /** Settings: business profile, images, features, document terms, businesses. Sections follow the feature flags. */
@@ -571,6 +573,9 @@ export function SettingsPage() {
         </TabsContent>
         <TabsContent value="team">
           <TeamTab />
+        </TabsContent>
+        <TabsContent value="messages">
+          <DispatchTab />
         </TabsContent>
         {isDesktop() && (
           <TabsContent value="lan">

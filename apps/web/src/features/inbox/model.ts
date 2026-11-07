@@ -62,6 +62,8 @@ export function openTarget(r: InboxRow): OpenTarget | null {
       return { to: 'document', search: { id: s['documentId'] } };
     case 'ai_extraction':
       return r.status === 'accepted' ? { to: 'document', search: { id: s['documentId'] } } : null;
+    case 'recurring_failed':
+      return { to: 'document', search: { id: s['documentId'] } };
     case 'sync_conflict':
     case 'approval_request':
       return s['table'] === 'documents' ? { to: 'document', search: { id: s['rowId'] } } : null;
@@ -164,6 +166,8 @@ export function describeArgs(r: InboxRow): Record<string, unknown> {
         total: formatPaise(Number(b['totalPaise'] ?? 0)),
       };
     }
+    case 'recurring_failed':
+      return { name: s['name'], date: s['date'], message: s['message'] };
     case 'sync_conflict':
     case 'approval_request':
       return { label: s['label'], reason: s['reason'] };

@@ -5,6 +5,8 @@ import type { OtpSender } from '../auth/auth';
 import type { Config } from '../config';
 import type { PgDatabase } from '../db/pool';
 import type { Jobs } from '../jobs/queues';
+import type { providersFrom } from '../messaging/providers';
+import type { MessagingService } from '../messaging/service';
 import { readSession } from '../middleware/session';
 import type { Notifier } from '../push/notify';
 import type { Storage } from '../storage/s3';
@@ -13,10 +15,12 @@ import { adminRoutes } from './admin';
 import { devRoutes } from './dev';
 import { fileRoutes } from './files';
 import { meRoutes } from './me';
+import { messagingRoutes } from './messaging';
 import { orgRoutes } from './orgs';
 import { pushRoutes } from './push';
 import { syncRoutes } from './sync';
 import { teamRoutes } from './team';
+import { webhookRoutes } from './webhooks';
 
 export interface RouteDeps {
   db: PgDatabase;
@@ -27,6 +31,8 @@ export interface RouteDeps {
   config: Config;
   /** Push to phones; absent when FCM is not configured. */
   notify?: Notifier;
+  /** Cloud-tier messaging (prompt 44): the service and the providers it sends through. */
+  messaging?: { service: MessagingService; providers: ReturnType<typeof providersFrom> };
 }
 
 export function mountRoutes(app: App, deps: RouteDeps): void {
@@ -44,6 +50,8 @@ export function mountRoutes(app: App, deps: RouteDeps): void {
   syncRoutes(app, deps);
   teamRoutes(app, deps);
   pushRoutes(app, deps);
+  messagingRoutes(app, deps);
+  webhookRoutes(app, deps);
   adminRoutes(app, deps);
   if (deps.config.env !== 'production') devRoutes(app, deps);
 }

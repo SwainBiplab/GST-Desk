@@ -52,6 +52,16 @@ const schema = z.object({
   POWERSYNC_JWT_SECRET: z.string().min(32).optional(),
   /** The Firebase service account's JSON key, for push to phones (prompt 43). */
   FCM_SERVICE_ACCOUNT_JSON: z.string().optional(),
+  /** WhatsApp Business Cloud API (Meta), for the cloud tier's messages (prompt 44). */
+  WHATSAPP_PHONE_NUMBER_ID: z.string().optional(),
+  WHATSAPP_BUSINESS_ACCOUNT_ID: z.string().optional(),
+  WHATSAPP_ACCESS_TOKEN: z.string().optional(),
+  WHATSAPP_APP_SECRET: z.string().optional(),
+  WHATSAPP_VERIFY_TOKEN: z.string().optional(),
+  /** Resend, for email with the PDF attached. */
+  RESEND_API_KEY: z.string().optional(),
+  RESEND_FROM: z.string().optional(),
+  RESEND_WEBHOOK_SECRET: z.string().optional(),
 });
 
 export type Env = z.infer<typeof schema>;
@@ -92,6 +102,15 @@ export interface Config {
   sync: { powersyncUrl: string; jwtSecret: string } | null;
   /** Push to phones is on when a Firebase service account key is set. */
   fcm: { projectId: string; clientEmail: string; privateKey: string } | null;
+  /** Each channel is on when its credentials are all set. */
+  whatsapp: {
+    phoneNumberId: string;
+    businessAccountId: string;
+    accessToken: string;
+    appSecret: string;
+    verifyToken: string;
+  } | null;
+  resend: { apiKey: string; from: string; webhookSecret: string } | null;
 }
 
 function parseServiceAccount(raw: string | undefined) {
@@ -186,5 +205,23 @@ export function loadConfig(raw: NodeJS.ProcessEnv): Config {
         ? { powersyncUrl: e.POWERSYNC_URL, jwtSecret: e.POWERSYNC_JWT_SECRET }
         : null,
     fcm: parseServiceAccount(e.FCM_SERVICE_ACCOUNT_JSON),
+    whatsapp:
+      e.WHATSAPP_PHONE_NUMBER_ID &&
+      e.WHATSAPP_BUSINESS_ACCOUNT_ID &&
+      e.WHATSAPP_ACCESS_TOKEN &&
+      e.WHATSAPP_APP_SECRET &&
+      e.WHATSAPP_VERIFY_TOKEN
+        ? {
+            phoneNumberId: e.WHATSAPP_PHONE_NUMBER_ID,
+            businessAccountId: e.WHATSAPP_BUSINESS_ACCOUNT_ID,
+            accessToken: e.WHATSAPP_ACCESS_TOKEN,
+            appSecret: e.WHATSAPP_APP_SECRET,
+            verifyToken: e.WHATSAPP_VERIFY_TOKEN,
+          }
+        : null,
+    resend:
+      e.RESEND_API_KEY && e.RESEND_FROM && e.RESEND_WEBHOOK_SECRET
+        ? { apiKey: e.RESEND_API_KEY, from: e.RESEND_FROM, webhookSecret: e.RESEND_WEBHOOK_SECRET }
+        : null,
   };
 }

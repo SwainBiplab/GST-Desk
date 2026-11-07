@@ -9,6 +9,7 @@ import { loadConfig, type Config } from '../src/config';
 import type { Jobs } from '../src/jobs/queues';
 import { MemoryLimiter } from '../src/limits';
 import { mountRoutes } from '../src/routes';
+import type { RouteDeps } from '../src/routes';
 import type { Storage } from '../src/storage/s3';
 
 import type { PgStack } from './containers';
@@ -33,7 +34,12 @@ export interface Client {
 
 export function makeTestApp(
   pg: PgStack,
-  extra: { storage?: Storage | null; jobs?: Jobs | null; env?: Record<string, string> } = {},
+  extra: {
+    storage?: Storage | null;
+    jobs?: Jobs | null;
+    env?: Record<string, string>;
+    messaging?: RouteDeps['messaging'];
+  } = {},
 ): TestApp {
   const config = loadConfig({
     NODE_ENV: 'test',
@@ -68,6 +74,7 @@ export function makeTestApp(
     jobs: extra.jobs ?? null,
     otp,
     config,
+    ...(extra.messaging ? { messaging: extra.messaging } : {}),
   });
 
   const client = (email: string, token: string, cookie: string): Client => {

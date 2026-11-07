@@ -196,6 +196,21 @@ export function syncRoutes(app: App, deps: RouteDeps): void {
         for (const t of b.transactions) out.push(await applyClientTx(deps.db, caller, ctx, t));
         return out;
       });
+      // what the uploads did that messaging acts on: documents just issued, payments just recorded today
+      if (deps.messaging) {
+        const issued: { id: string; businessId: string }[] = [];
+        const payments: { id: string; businessId: string; documentId?: string | null }[] = [];
+        const today = new Date(Date.now() + 19_800_000).toISOString().slice(0, 10);
+        for (const x of results)
+          if (x.outcome === 'applied') {
+            issued.push(...x.events.issued.filter((d) => d.businessId));
+            payments.push(...x.events.payments.filter((p) => p.date === today && p.businessId));
+          }
+        if (issued.length || payments.length)
+          void deps.messaging.service
+            .onApplied(b.orgId, s.userId, { issued, payments })
+            .catch(() => undefined);
+      }
       // a conflict is for this person's other devices; a held change is for the approvers
       if (results.some((r) => r.outcome === 'conflict'))
         deps.notify?.org(b.orgId, { kind: 'inbox' }, { exceptUser: '' });

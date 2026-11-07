@@ -6,6 +6,7 @@ export * from './layout';
 export * from './model';
 export * from './presets';
 export * from './qr';
+export * from './rows';
 export * from './sample';
 export * from './stored';
 export * from './spec';
