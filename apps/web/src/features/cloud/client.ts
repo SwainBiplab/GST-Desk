@@ -114,14 +114,19 @@ export const readCloudUrl = (get: (k: string) => string | null): string => get(U
 export const writeCloudUrl = (set: (k: string, v: string) => void, url: string) =>
   set(URL_KEY, url.trim().replace(/\/$/, ''));
 
-/** Only https, or plain http to this machine for development. */
+declare const __DEBUG_API__: boolean;
+
+/** A private network address (the emulator's host, a LAN machine): plain http is allowed there in a debug build. */
+const PRIVATE_V4 = /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)\d+\.\d+(\.\d+)?$/;
+
+/** Only https, or plain http to this machine for development (and, in a debug phone build, to the LAN). */
 export function isAllowedApiUrl(url: string): boolean {
   try {
     const u = new URL(url);
-    return (
-      u.protocol === 'https:' ||
-      (u.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(u.hostname))
-    );
+    if (u.protocol === 'https:') return true;
+    if (u.protocol !== 'http:') return false;
+    if (['localhost', '127.0.0.1'].includes(u.hostname)) return true;
+    return typeof __DEBUG_API__ !== 'undefined' && __DEBUG_API__ && PRIVATE_V4.test(u.hostname);
   } catch {
     return false;
   }
@@ -223,6 +228,28 @@ export class CloudClient {
     if (!token) throw new CloudError(500, 'no_token', 'The server did not return a token.');
     this.token = token;
     return token;
+  }
+
+  /** Step two by phone: the code becomes a bearer token (a first sign-in makes the account). */
+  async signInWithPhoneCode(phone: string, code: string): Promise<string> {
+    const res = await this.fetchFn(`${this.baseUrl}/v1/auth/phone-number/verify`, {
+      method: 'POST',
+      headers: this.headers(),
+      body: JSON.stringify({ phoneNumber: phone, code }),
+    });
+    await parse<unknown>(res);
+    const token = res.headers.get('set-auth-token');
+    if (!token) throw new CloudError(500, 'no_token', 'The server did not return a token.');
+    this.token = token;
+    return token;
+  }
+
+  /** The phone's push token, so the API can say when the inbox or a reminder has something new. */
+  registerPushToken(o: { token: string; deviceId: string }): Promise<null> {
+    return this.call('/v1/me/push-tokens', {
+      method: 'POST',
+      body: JSON.stringify({ ...o, platform: 'android' }),
+    });
   }
 
   async signOut(): Promise<void> {

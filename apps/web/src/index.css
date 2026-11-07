@@ -13,6 +13,17 @@
   }
 }
 
+/* The phone layout (prompt 43): every control is a thumb-sized target, lists have room, no hover. */
+[data-layout='mobile'] {
+  --control-h: 2.75rem;
+  --pad-x: 1rem;
+  --row-h: 3rem;
+  -webkit-tap-highlight-color: transparent;
+}
+[data-layout='mobile'] body {
+  overscroll-behavior-y: none;
+}
+
 /* Printing: only the document, never the app around it. Each preview page prints as its own sheet. */
 /*
  * A dashboard card's answer easing in after "Working it out". Transform and opacity only, 220 ms

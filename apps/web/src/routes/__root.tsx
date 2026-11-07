@@ -19,6 +19,7 @@ import { HelpDialog } from '@/features/help/help-dialog';
 import { InboxJobs } from '@/features/inbox/jobs';
 import { LanJobs } from '@/features/lan/lan-jobs';
 import { SyncDevHooks } from '@/features/sync/dev-hooks';
+import { SyncJobs } from '@/features/sync/sync-jobs';
 import { PermissionsSource } from '@/features/team/source';
 import { TelemetryJobs } from '@/features/telemetry/jobs';
 import i18n, { i18nReady } from '@/lib/i18n';
@@ -48,13 +49,30 @@ function NotFound() {
 
 /** With no business yet, the only useful place is the setup wizard. */
 function FirstRunGuard() {
-  const { status, businessesReady, businesses } = useAppDb();
+  const { status, businessesReady, businesses, cloudBook } = useAppDb();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const screen = useRouterState({
+    select: (s): string | null => {
+      const v = (s.location.search as Record<string, unknown>)['screen'];
+      return typeof v === 'string' ? v : null;
+    },
+  });
   const navigate = useNavigate();
   useEffect(() => {
-    if (status !== 'ready' || !businessesReady || businesses.length > 0 || DEMO_REQUESTED) return;
-    if (!pathname.startsWith('/welcome')) void navigate({ to: '/welcome', replace: true });
-  }, [status, businessesReady, businesses.length, pathname, navigate]);
+    // a synced book has no business until the first download lands: the phone layout shows that
+    if (
+      status !== 'ready' ||
+      !businessesReady ||
+      businesses.length > 0 ||
+      DEMO_REQUESTED ||
+      cloudBook
+    )
+      return;
+    // the phone's account screen signs in to a business that syncs down: no local business needed
+    if (pathname.startsWith('/welcome') || (pathname === '/shop/settings' && screen === 'account'))
+      return;
+    void navigate({ to: '/welcome', replace: true });
+  }, [status, businessesReady, businesses.length, pathname, screen, navigate, cloudBook]);
   return null;
 }
 
@@ -71,6 +89,7 @@ function Root() {
           <LanJobs />
           <AiJobs />
           <SyncDevHooks />
+          <SyncJobs />
           <PermissionsSource />
           <TelemetryJobs />
           <ErrorBoundary>

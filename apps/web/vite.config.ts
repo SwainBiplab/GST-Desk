@@ -15,8 +15,19 @@ const pkgJson = JSON.parse(
   readFileSync(path.resolve(import.meta.dirname, 'package.json'), 'utf8'),
 ) as { version: string };
 
+/**
+ * `VITE_TARGET=capacitor` builds the phone app's web layer: Capacitor serves the files itself, so the
+ * service worker is replaced by one that removes itself; a debug build may also talk to the API on the
+ * development machine over plain http (the emulator reaches it at 10.0.2.2).
+ */
+const capacitor = process.env['VITE_TARGET'] === 'capacitor';
+const debugApi = capacitor && process.env['VITE_DEBUG_API'] === '1';
+
 export default defineConfig({
-  define: { __APP_VERSION__: JSON.stringify(pkgJson.version) },
+  define: { __APP_VERSION__: JSON.stringify(pkgJson.version), __DEBUG_API__: debugApi },
+  // the phone app runs in Android's System WebView, which Play keeps current on real phones; the syntax
+  // floor is Chrome 100 (Android 10+ with an updated WebView). Older ones see the note in entry-gate.js.
+  ...(capacitor ? { build: { target: ['chrome100', 'safari15'] } } : {}),
   plugins: [
     // `COVERAGE=1 vite build` instruments the feature code so the end-to-end run can report coverage
     ...(process.env['COVERAGE'] === '1'
@@ -33,8 +44,21 @@ export default defineConfig({
     tanstackRouter({ target: 'react', autoCodeSplitting: true }),
     react(),
     tailwindcss(),
+    ...(debugApi
+      ? [
+          {
+            name: 'gst-debug-csp',
+            transformIndexHtml: (html: string) =>
+              html.replace(
+                "connect-src 'self' https:",
+                "connect-src 'self' https: http://10.0.2.2:*",
+              ),
+          },
+        ]
+      : []),
     VitePWA({
       registerType: 'prompt',
+      selfDestroying: capacitor,
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,wasm}'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,

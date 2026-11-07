@@ -1,0 +1,33 @@
+# Sign in with a phone code against a development API (the emulator reaches the machine at 10.0.2.2).
+appId: in.gstdesk.app
+env:
+  API_URL: http://10.0.2.2:8787
+  PHONE: '+919876543210'
+---
+- launchApp:
+    clearState: true
+# a fresh install opens the setup wizard; the phone offers signing in instead
+- tapOn:
+    id: 'wizard-sign-in'
+- tapOn:
+    id: 'account-url'
+- inputText: ${API_URL}
+- tapOn:
+    id: 'account-phone'
+- inputText: ${PHONE}
+- hideKeyboard
+- tapOn:
+    id: 'account-send-code'
+- assertVisible:
+    id: 'account-dev-code'
+- copyTextFrom:
+    id: 'account-dev-code'
+- evalScript: ${output.code = maestro.copiedText.replace(/\D/g, '')}
+- tapOn:
+    id: 'account-code'
+- inputText: ${output.code}
+- hideKeyboard
+- tapOn:
+    id: 'account-sign-in-button'
+- assertVisible:
+    id: 'account-signed-in'

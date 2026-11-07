@@ -1,0 +1,33 @@
+# Scan a purchase bill with the camera into the inbox. On an emulator the camera photographs its
+# virtual scene, which holds no bill: the scan then finds no text and says so, and the flow ends when
+# the scan button is live again. On a phone, photograph a real bill and look for the card in the inbox.
+appId: in.gstdesk.app
+---
+- launchApp
+- tapOn:
+    id: 'tab-home'
+- tapOn:
+    id: 'home-scan'
+- tapOn:
+    text: 'While using the app'
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: 'shutter_button'
+    timeout: 15000
+- tapOn:
+    id: 'shutter_button'
+- tapOn:
+    id: 'done_button'
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: 'mobile-home'
+    timeout: 30000
+# the photo is being read; the button comes back when the scan is over (inbox card, or "no text")
+- extendedWaitUntil:
+    visible:
+      id: 'home-scan'
+      enabled: true
+    timeout: 180000
+- takeScreenshot: capture-done

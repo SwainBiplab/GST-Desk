@@ -196,6 +196,11 @@ export function syncRoutes(app: App, deps: RouteDeps): void {
         for (const t of b.transactions) out.push(await applyClientTx(deps.db, caller, ctx, t));
         return out;
       });
+      // a conflict is for this person's other devices; a held change is for the approvers
+      if (results.some((r) => r.outcome === 'conflict'))
+        deps.notify?.org(b.orgId, { kind: 'inbox' }, { exceptUser: '' });
+      if (results.some((r) => r.outcome === 'approval'))
+        deps.notify?.org(b.orgId, { kind: 'inbox' }, { roles: ['owner', 'admin'] });
       return c.json({ results }, 200);
     },
   );

@@ -12,6 +12,8 @@ import { installErrorReporting } from './errors-reporting';
 import { makeJobs } from './jobs/queues';
 import { MemoryLimiter, RedisLimiter } from './limits';
 import { makeLogger } from './log';
+import { FcmSender } from './push/fcm';
+import { makeNotifier } from './push/notify';
 import { mountRoutes } from './routes';
 import { makeStorage } from './storage/s3';
 import { startTelemetry } from './telemetry';
@@ -75,7 +77,18 @@ const app = createApp({
     storage: storage ? await storage.ready() : true,
   }),
 });
-mountRoutes(app, { db, auth, storage, jobs, otp, config });
+const notify = makeNotifier(
+  db,
+  config.fcm
+    ? new FcmSender({
+        project_id: config.fcm.projectId,
+        client_email: config.fcm.clientEmail,
+        private_key: config.fcm.privateKey,
+      })
+    : null,
+  log,
+);
+mountRoutes(app, { db, auth, storage, jobs, otp, config, notify });
 
 const server = serve({ fetch: app.fetch, port: config.port, hostname: '0.0.0.0' }, (info) => {
   log.info({ port: info.port, env: config.env }, 'gst-api listening');

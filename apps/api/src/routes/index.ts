@@ -6,6 +6,7 @@ import type { Config } from '../config';
 import type { PgDatabase } from '../db/pool';
 import type { Jobs } from '../jobs/queues';
 import { readSession } from '../middleware/session';
+import type { Notifier } from '../push/notify';
 import type { Storage } from '../storage/s3';
 
 import { adminRoutes } from './admin';
@@ -13,6 +14,7 @@ import { devRoutes } from './dev';
 import { fileRoutes } from './files';
 import { meRoutes } from './me';
 import { orgRoutes } from './orgs';
+import { pushRoutes } from './push';
 import { syncRoutes } from './sync';
 import { teamRoutes } from './team';
 
@@ -23,6 +25,8 @@ export interface RouteDeps {
   jobs: Jobs | null;
   otp: OtpSender;
   config: Config;
+  /** Push to phones; absent when FCM is not configured. */
+  notify?: Notifier;
 }
 
 export function mountRoutes(app: App, deps: RouteDeps): void {
@@ -39,6 +43,7 @@ export function mountRoutes(app: App, deps: RouteDeps): void {
   fileRoutes(app, deps);
   syncRoutes(app, deps);
   teamRoutes(app, deps);
+  pushRoutes(app, deps);
   adminRoutes(app, deps);
   if (deps.config.env !== 'production') devRoutes(app, deps);
 }

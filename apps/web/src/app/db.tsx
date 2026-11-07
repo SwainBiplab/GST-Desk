@@ -15,6 +15,7 @@ import {
 } from 'react';
 import type { ReactNode } from 'react';
 
+import type { DbKind, OpenedDb } from './db-impl';
 import { deviceId, useAppStore } from './store';
 
 export type DbStatus = 'loading' | 'ready' | 'error';
@@ -22,10 +23,13 @@ export type DbStatus = 'loading' | 'ready' | 'error';
 export interface AppDbValue {
   status: DbStatus;
   database: Database | null;
-  /** True when data survives a reload (OPFS or Tauri); false for the in-memory fallback. */
+  /** True when data survives a reload (OPFS, Tauri, the phone's SQLite); false for the in-memory fallback. */
   persistent: boolean;
-  kind: 'opfs' | 'memory' | 'tauri' | null;
+  kind: DbKind | null;
   error: Error | null;
+  /** The sync client and the cloud business it follows, when the open book is a synced one. */
+  synced: OpenedDb['synced'] | null;
+  cloudBook: OpenedDb['cloudBook'] | null;
   businesses: Row[];
   /** True once the list of businesses has been read (so "none" really means none). */
   businessesReady: boolean;
@@ -74,13 +78,18 @@ const TABLES_ALL = [
 export function AppDbProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const [state, setState] = useState<
-    Pick<AppDbValue, 'status' | 'database' | 'persistent' | 'kind' | 'error'>
+    Pick<
+      AppDbValue,
+      'status' | 'database' | 'persistent' | 'kind' | 'error' | 'synced' | 'cloudBook'
+    >
   >({
     status: 'loading',
     database: null,
     persistent: false,
     kind: null,
     error: null,
+    synced: null,
+    cloudBook: null,
   });
   const businessId = useAppStore((s) => s.businessId);
   const setBusinessId = useAppStore((s) => s.setBusinessId);
@@ -99,7 +108,11 @@ export function AppDbProvider({ children }: { children: ReactNode }) {
           persistent: opened.persistent,
           kind: opened.kind,
           error: null,
+          synced: opened.synced ?? null,
+          cloudBook: opened.cloudBook ?? null,
         });
+        // a synced book opens on the business chosen on the account screen
+        if (opened.cloudBook) setBusinessId(opened.cloudBook.businessId);
         // Load the HSN/SAC master that shipped with this install. Off the critical path: lookups work
         // once it lands, and a failure here must not stop the app.
         void import('@/lib/hsn')
@@ -113,7 +126,7 @@ export function AppDbProvider({ children }: { children: ReactNode }) {
         }));
       }
     })();
-  }, []);
+  }, [setBusinessId]);
 
   // refetch queries that read any table a repository just wrote
   const database = state.database;
@@ -157,11 +170,11 @@ export function AppDbProvider({ children }: { children: ReactNode }) {
         ? {
             orgId: business['org_id'],
             businessId: business['id'],
-            actor: 'local-user',
+            actor: state.cloudBook?.userId ?? 'local-user',
             deviceId: deviceId(),
           }
         : null,
-    [business],
+    [business, state.cloudBook?.userId],
   );
 
   const loadDemoData = useCallback(async () => {

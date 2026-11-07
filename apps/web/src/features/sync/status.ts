@@ -16,6 +16,8 @@ export interface SyncStatus {
   pending: number;
   /** Recent failures (network, server), newest first. */
   errors: { at: number; message: string }[];
+  /** The first download of a book (or a large catch-up): how far it has come. */
+  progress: { done: number; total: number; fraction: number } | null;
 }
 
 export const IDLE: SyncStatus = {
@@ -26,6 +28,7 @@ export const IDLE: SyncStatus = {
   lastSyncedAt: null,
   pending: 0,
   errors: [],
+  progress: null,
 };
 
 let status: SyncStatus = IDLE;

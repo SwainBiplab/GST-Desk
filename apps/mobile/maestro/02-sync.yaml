@@ -1,0 +1,36 @@
+# Choose a business and wait for the first download. With no business yet the app opens on the setup
+# wizard, which offers signing in instead; from anywhere else the account screen is under More.
+appId: in.gstdesk.app
+---
+- launchApp
+- runFlow:
+    when:
+      visible:
+        id: 'wizard-sign-in'
+    commands:
+      - tapOn:
+          id: 'wizard-sign-in'
+- runFlow:
+    when:
+      notVisible:
+        id: 'account-screen'
+    commands:
+      - tapOn:
+          id: 'tab-more'
+      - tapOn:
+          id: 'more-open-account'
+- assertVisible:
+    id: 'account-signed-in'
+# "Use on this phone" is gone once the business is already in use here
+- tapOn:
+    id: 'account-use-business'
+    optional: true
+- tapOn:
+    id: 'tab-home'
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: 'mobile-home'
+    timeout: 180000
+- assertVisible:
+    id: 'sync-pill'

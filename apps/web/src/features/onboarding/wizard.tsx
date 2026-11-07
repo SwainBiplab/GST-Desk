@@ -37,6 +37,7 @@ import {
   type Errors,
 } from '@/features/business/profile';
 import { changeLanguage } from '@/lib/i18n';
+import { isMobileLayout } from '@/platform';
 
 const ALL = ['language', 'start', 'registration', 'details', 'preset', 'bank', 'done'] as const;
 const ADD = ['registration', 'details', 'preset', 'bank', 'done'] as const;
@@ -207,21 +208,44 @@ export function Wizard({ addMode = false }: { addMode?: boolean }) {
                 onValueChange={(shell) => change({ shell: shell as 'shop' | 'books' })}
                 aria-label={t('welcome.mode.label')}
               >
-                {(['shop', 'books'] as const).map((s) => (
-                  <label
-                    key={s}
-                    htmlFor={`shell-${s}`}
-                    className="flex items-start gap-3 rounded-lg border border-border p-3"
-                  >
-                    <RadioGroupItem id={`shell-${s}`} value={s} />
-                    <span>
-                      <span className="block font-medium">{t(`shell.${s}`)}</span>
-                      <span className="block text-sm text-fg-muted">{t(`welcome.mode.${s}`)}</span>
-                    </span>
-                  </label>
-                ))}
+                {/* a phone has one layout: Books is a desktop mode */}
+                {(isMobileLayout() ? (['shop'] as const) : (['shop', 'books'] as const)).map(
+                  (s) => (
+                    <label
+                      key={s}
+                      htmlFor={`shell-${s}`}
+                      className="flex items-start gap-3 rounded-lg border border-border p-3"
+                    >
+                      <RadioGroupItem id={`shell-${s}`} value={s} />
+                      <span>
+                        <span className="block font-medium">{t(`shell.${s}`)}</span>
+                        <span className="block text-sm text-fg-muted">
+                          {t(`welcome.mode.${s}`)}
+                        </span>
+                      </span>
+                    </label>
+                  ),
+                )}
               </RadioGroup>
             </fieldset>
+            {isMobileLayout() && (
+              <Button
+                type="button"
+                variant="outline"
+                className="min-h-12"
+                id="wizard-sign-in"
+                data-testid="wizard-sign-in"
+                onClick={() =>
+                  void navigate({
+                    to: '/shop/$page',
+                    params: { page: 'settings' },
+                    search: { screen: 'account' } as never,
+                  })
+                }
+              >
+                {t('welcome.signInInstead')}
+              </Button>
+            )}
           </div>
         )}
 

@@ -1,0 +1,21 @@
+# Share the PDF of the bill just issued: the system share sheet opens.
+appId: in.gstdesk.app
+---
+- launchApp
+- tapOn:
+    id: 'tab-home'
+- tapOn:
+    id: 'home-doc'
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: 'bill-share'
+    timeout: 20000
+- tapOn:
+    id: 'bill-share'
+# the system share sheet, with the PDF named after the document
+- extendedWaitUntil:
+    visible: 'Sharing.*|Share.*'
+    timeout: 20000
+- assertVisible: ".*Tax-Invoice.*\\.pdf"
+- back

@@ -1,0 +1,81 @@
+# A bill with one hand on a business that may be empty: a new customer from the sheet, an item typed as
+# text with its rate, the quantity stepped, then Issue.
+appId: in.gstdesk.app
+---
+- launchApp
+- tapOn:
+    id: 'tab-home'
+- tapOn:
+    id: 'home-new-bill'
+- tapOn:
+    id: 'bill-party'
+- tapOn:
+    id: 'party-sheet-search'
+- inputText: 'Maestro Customer'
+- runFlow:
+    when:
+      visible:
+        id: 'party-sheet-create'
+    commands:
+      - tapOn:
+          id: 'party-sheet-create'
+      - tapOn:
+          id: 'party-new-save'
+- runFlow:
+    when:
+      visible:
+        id: 'party-sheet-row'
+    commands:
+      - tapOn:
+          id: 'party-sheet-row'
+          index: 0
+# the party sheet slides away before the next tap
+- extendedWaitUntil:
+    notVisible:
+      id: 'party-sheet'
+    timeout: 10000
+- assertVisible:
+    id: 'bill-party'
+- tapOn:
+    id: 'bill-add-item'
+- extendedWaitUntil:
+    visible:
+      id: 'item-sheet-search'
+    timeout: 10000
+- tapOn:
+    id: 'item-sheet-search'
+- inputText: 'Cement bag'
+- runFlow:
+    when:
+      visible:
+        id: 'item-sheet-row'
+    commands:
+      - tapOn:
+          id: 'item-sheet-row'
+          index: 0
+- runFlow:
+    when:
+      visible:
+        id: 'item-sheet-text'
+    commands:
+      - tapOn:
+          id: 'item-sheet-text'
+- tapOn:
+    id: 'line-rate'
+- eraseText
+- inputText: '350'
+- hideKeyboard
+- tapOn:
+    id: 'line-plus'
+- assertVisible:
+    id: 'line-qty'
+    text: '2'
+- tapOn:
+    id: 'bill-issue'
+# issuing takes a number from the device's block and prices the document again
+- extendedWaitUntil:
+    visible:
+      id: 'bill-number'
+    timeout: 30000
+- assertVisible:
+    id: 'bill-share'

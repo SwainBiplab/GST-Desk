@@ -5,6 +5,7 @@
 import { OpenAPIHono, createRoute, z, type Hook } from '@hono/zod-openapi';
 import type { Context, MiddlewareHandler } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
+import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
 import type { Logger } from 'pino';
 
@@ -116,6 +117,18 @@ export function createApp(deps: Deps): App {
     });
   });
   app.use('*', secureHeaders({ crossOriginResourcePolicy: 'same-origin' }));
+  // the apps call from their own origins (the web app's host, the desktop's tauri://, the phone's
+  // https://localhost): only the configured ones, with credentials, and the sign-in token header exposed
+  app.use(
+    '/v1/*',
+    cors({
+      origin: (origin) => (deps.config.trustedOrigins.includes(origin) ? origin : null),
+      credentials: true,
+      allowHeaders: ['authorization', 'content-type'],
+      exposeHeaders: ['set-auth-token', 'x-request-id'],
+      maxAge: 600,
+    }),
+  );
   app.use(
     '/v1/*',
     bodyLimit({

@@ -50,6 +50,8 @@ const schema = z.object({
   /** Where devices reach the PowerSync service, and the secret device tokens are signed with. */
   POWERSYNC_URL: z.string().url().optional(),
   POWERSYNC_JWT_SECRET: z.string().min(32).optional(),
+  /** The Firebase service account's JSON key, for push to phones (prompt 43). */
+  FCM_SERVICE_ACCOUNT_JSON: z.string().optional(),
 });
 
 export type Env = z.infer<typeof schema>;
@@ -88,6 +90,23 @@ export interface Config {
   trustProxy: boolean;
   /** Sync is on when both the service address and the token secret are set. */
   sync: { powersyncUrl: string; jwtSecret: string } | null;
+  /** Push to phones is on when a Firebase service account key is set. */
+  fcm: { projectId: string; clientEmail: string; privateKey: string } | null;
+}
+
+function parseServiceAccount(raw: string | undefined) {
+  if (!raw) return null;
+  let v: { project_id?: string; client_email?: string; private_key?: string };
+  try {
+    v = JSON.parse(raw) as typeof v;
+  } catch {
+    throw new ConfigError('FCM_SERVICE_ACCOUNT_JSON is not JSON');
+  }
+  if (!v.project_id || !v.client_email || !v.private_key)
+    throw new ConfigError(
+      'FCM_SERVICE_ACCOUNT_JSON needs project_id, client_email and private_key',
+    );
+  return { projectId: v.project_id, clientEmail: v.client_email, privateKey: v.private_key };
 }
 
 export class ConfigError extends Error {
@@ -166,5 +185,6 @@ export function loadConfig(raw: NodeJS.ProcessEnv): Config {
       e.POWERSYNC_URL && e.POWERSYNC_JWT_SECRET
         ? { powersyncUrl: e.POWERSYNC_URL, jwtSecret: e.POWERSYNC_JWT_SECRET }
         : null,
+    fcm: parseServiceAccount(e.FCM_SERVICE_ACCOUNT_JSON),
   };
 }

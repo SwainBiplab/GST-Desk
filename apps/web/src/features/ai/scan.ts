@@ -59,6 +59,8 @@ export interface ScanOptions {
   onStep?: (step: ScanStep) => void;
   /** Review items already raised for this file hash, so the same scan is not raised twice. */
   seenHashes?: Set<string>;
+  /** The model step did not run here (a phone that cannot): the item says so, for a desktop or the cloud to finish. */
+  deferModel?: boolean;
 }
 
 /** The rate for an HSN from the master, used for lines whose bill prints no rate. */
@@ -169,6 +171,7 @@ export async function scanFile(
       supplierMatch: result.supplier,
       lineMatches: result.lineMatches,
       timings: result.timings,
+      ...(o.deferModel ? { deferred: 'model' } : {}),
     },
     suggestion,
     schema: aiExtractionItem,

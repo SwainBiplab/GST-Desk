@@ -69,6 +69,11 @@ export class SyncConnector {
   /** The last upload failure (network, server), for the status sheet; cleared by a good upload. */
   lastError: { at: number; message: string } | null = null;
 
+  /** Register (or clear) what to call after every upload. */
+  listen(fn: ((r: TxResult[]) => void) | null): void {
+    this.onResults = fn;
+  }
+
   constructor(
     readonly id: SyncIdentity,
     private readonly fetchFn: (url: string, init: RequestInit) => Promise<Response> = (u, i) =>

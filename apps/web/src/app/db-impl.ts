@@ -16,14 +16,35 @@ import {
 } from './db-location';
 import { isTauri, openTauriBackend, openWorkerBackend, type OpenInfo } from './sqlite/backends';
 import { createDrizzle } from './sqlite/proxy';
+import { deviceId } from './store';
+
+import { readSession } from '@/features/cloud/client';
+import { readCloudBook, type CloudBook } from '@/features/sync/book';
+import { isNativeApp, platform } from '@/platform';
+import type { NativeSyncedBook } from '@/platform/capacitor/synced-book';
+
+export type DbKind = 'opfs' | 'memory' | 'tauri' | 'capacitor' | 'synced';
 
 export interface OpenedDb {
   database: Database;
   persistent: boolean;
   reason?: string;
-  kind: 'opfs' | 'memory' | 'tauri';
+  kind: DbKind;
   schemaVersion: number;
+  /** The sync client, when the book is a synced one (the phone app, prompt 43). */
+  synced?: NativeSyncedBook;
+  cloudBook?: CloudBook;
 }
+
+const local = {
+  get: (k: string) => {
+    try {
+      return localStorage.getItem(k);
+    } catch {
+      return null;
+    }
+  },
+};
 
 /** Does this database hold anything worth protecting before it is changed? */
 async function holdsData(database: Database): Promise<boolean> {
@@ -49,12 +70,15 @@ export async function desktopDbPath(loc: DbLocation): Promise<string> {
 
 async function openAt(loc: DbLocation): Promise<OpenedDb> {
   const tauri = isTauri();
+  const native = isNativeApp();
   const {
     backend,
     info,
   }: { backend: Awaited<ReturnType<typeof openWorkerBackend>>['backend']; info: OpenInfo } = tauri
     ? await openTauriBackend(await desktopDbPath(loc))
-    : await openWorkerBackend(loc.file, loc.dir);
+    : native
+      ? await (await import('@/platform/capacitor/sqlite-backend')).openCapacitorBackend(loc.file)
+      : await openWorkerBackend(loc.file, loc.dir);
 
   const database: Database = {
     dialect: 'sqlite',
@@ -80,12 +104,51 @@ async function openAt(loc: DbLocation): Promise<OpenedDb> {
     database,
     persistent: info.persistent,
     ...(info.reason ? { reason: info.reason } : {}),
-    kind: tauri ? 'tauri' : info.persistent ? 'opfs' : 'memory',
+    kind: tauri ? 'tauri' : native ? 'capacitor' : info.persistent ? 'opfs' : 'memory',
     schemaVersion: await schemaVersion(database),
   };
 }
 
+/**
+ * The phone app with a cloud business chosen opens that organisation's synced book: PowerSync over the
+ * native SQLite, streaming the business down and this device's changes up. Without a session it opens
+ * the local book instead (the account screen says sync is signed out).
+ */
+async function openSynced(book: CloudBook): Promise<OpenedDb | null> {
+  const session = readSession(local.get);
+  if (!session) return null;
+  const { openNativeSyncedBook } = await import('@/platform/capacitor/synced-book');
+  // an open that never answers (a plugin that is missing, a driver that waits for a worker) must say so
+  const timeout = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error('the synced book did not open in 90 seconds')), 90_000),
+  );
+  const synced = await Promise.race([
+    openNativeSyncedBook({
+      apiUrl: session.baseUrl,
+      apiToken: session.token,
+      orgId: book.orgId,
+      deviceId: deviceId(),
+      deviceName: `${platform()} phone`,
+      platform: platform(),
+    }),
+    timeout,
+  ]);
+  return {
+    database: synced.database,
+    persistent: true,
+    kind: 'synced',
+    schemaVersion: await schemaVersion(synced.database),
+    synced,
+    cloudBook: book,
+  };
+}
+
 export async function openAppDatabase(): Promise<OpenedDb> {
+  const book = readCloudBook(local.get);
+  if (book && isNativeApp()) {
+    const opened = await openSynced(book);
+    if (opened) return opened;
+  }
   const loc = activeLocation();
   try {
     const opened = await openAt(loc);
