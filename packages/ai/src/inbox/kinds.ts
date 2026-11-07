@@ -14,6 +14,7 @@ export const INBOX_KINDS = [
   'sync_conflict',
   'approval_request',
   'recurring_failed',
+  'payment_attention',
   'reminder_due',
   'low_stock',
   'draft_stale',
@@ -235,6 +236,20 @@ export const recurringFailedItem = z.object({
 });
 export type RecurringFailedItem = z.infer<typeof recurringFailedItem>;
 
+/**
+ * A gateway payment or refund that needs a person (prompt 45): money that matches no invoice, an invoice paid in
+ * part, more paid than was owed (kept as credit), or a refund the gateway refused.
+ */
+export const paymentAttentionItem = z.object({
+  reason: z.enum(['unmatched', 'partial', 'overpaid', 'refund_failed']),
+  amountPaise: z.number(),
+  providerPaymentId: z.string(),
+  documentId: z.string().nullable(),
+  number: z.string().nullable(),
+  message: z.string(),
+});
+export type PaymentAttentionItem = z.infer<typeof paymentAttentionItem>;
+
 /** Kinds whose owner has not shipped yet: the card shows what it holds, Accept stays off. */
 export const genericItem = z.record(z.string(), z.unknown());
 
@@ -254,6 +269,7 @@ export const INBOX_SCHEMAS = {
   sync_conflict: syncConflictItem,
   approval_request: approvalRequestItem,
   recurring_failed: recurringFailedItem,
+  payment_attention: paymentAttentionItem,
 } as const satisfies Record<InboxKind, z.ZodType>;
 
 export function schemaFor(kind: string): z.ZodType<Record<string, unknown>> {
@@ -321,6 +337,12 @@ export const KIND_INFO: Record<InboxKind, KindInfo> = {
   },
   recurring_failed: {
     label: 'Recurring invoice failed',
+    informational: true,
+    bulk: false,
+    opens: 'document',
+  },
+  payment_attention: {
+    label: 'Payment to check',
     informational: true,
     bulk: false,
     opens: 'document',

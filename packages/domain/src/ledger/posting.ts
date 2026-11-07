@@ -20,6 +20,7 @@ export type AccountKey =
   | 'openingEquity'
   | 'tcsPayable'
   | 'adjustments'
+  | 'gatewayFees'
   | `output${TaxHead}`
   | `input${TaxHead}`;
 
@@ -217,6 +218,40 @@ export function postWriteOff(direction: 'received' | 'made', amountPaise: bigint
           { account: 'payables', debitPaise: amountPaise, creditPaise: 0n, narration: 'write-off' },
           { account: 'roundOff', debitPaise: 0n, creditPaise: amountPaise, narration: 'write-off' },
         ];
+  assertBalanced(lines);
+  return lines;
+}
+
+/**
+ * What a payment gateway keeps from a payment (its fee and the GST on it): an expense, taken out of the bank
+ * balance, so the bank account equals what the gateway actually pays out. The GST on the fee is part of the
+ * expense for now; claiming it as input tax credit is a separate step (B-194).
+ */
+export function postGatewayFee(feePaise: bigint): LedgerLine[] {
+  if (feePaise <= 0n) throw new PostingError('gateway fee must be positive');
+  const lines: LedgerLine[] = [
+    {
+      account: 'gatewayFees',
+      debitPaise: feePaise,
+      creditPaise: 0n,
+      narration: 'payment gateway fee',
+    },
+    { account: 'bank', debitPaise: 0n, creditPaise: feePaise, narration: 'payment gateway fee' },
+  ];
+  assertBalanced(lines);
+  return lines;
+}
+
+/**
+ * Money paid back to a customer out of a credit note (a gateway refund): the credit note had already taken the
+ * amount off what they owe (receivables credited), so paying it out debits receivables again and credits the bank.
+ */
+export function postRefund(amountPaise: bigint): LedgerLine[] {
+  if (amountPaise <= 0n) throw new PostingError('refund must be positive');
+  const lines: LedgerLine[] = [
+    { account: 'receivables', debitPaise: amountPaise, creditPaise: 0n, narration: 'refund' },
+    { account: 'bank', debitPaise: 0n, creditPaise: amountPaise, narration: 'refund' },
+  ];
   assertBalanced(lines);
   return lines;
 }

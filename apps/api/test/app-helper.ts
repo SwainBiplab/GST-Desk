@@ -39,6 +39,7 @@ export function makeTestApp(
     jobs?: Jobs | null;
     env?: Record<string, string>;
     messaging?: RouteDeps['messaging'];
+    payments?: RouteDeps['payments'];
   } = {},
 ): TestApp {
   const config = loadConfig({
@@ -75,6 +76,7 @@ export function makeTestApp(
     otp,
     config,
     ...(extra.messaging ? { messaging: extra.messaging } : {}),
+    ...(extra.payments ? { payments: extra.payments } : {}),
   });
 
   const client = (email: string, token: string, cookie: string): Client => {

@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "BAD_REQUEST_ERROR",
+    "description": "Payment link creation is not enabled for your account"
+  }
+}

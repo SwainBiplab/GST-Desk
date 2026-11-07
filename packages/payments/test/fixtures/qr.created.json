@@ -1,0 +1,7 @@
+{
+  "id": "qr_Q1",
+  "image_url": "https://rzp.io/qr/Q1.png",
+  "status": "active",
+  "payment_amount": 50000,
+  "image_content": "upi://pay?pa=rpy.payto00000000000001@icici&pn=Pay%20Traders&tr=qr_Q1&am=500.00&cu=INR&mode=04"
+}

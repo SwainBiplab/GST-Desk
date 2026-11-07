@@ -56,7 +56,14 @@ export async function renderDocumentPdf(
     new BaseRepo(db, 'units').list(ctx),
     doc['party_id'] ? new PartyRepo(db).get(ctx, doc['party_id']) : Promise.resolve(null),
   ]);
+  // the live payment link for what is owed (prompt 45), if the business collects online
+  const [live] = await db.sql.begin(async (tx) => {
+    await tx`SELECT set_config('app.org_id', ${ctx.orgId}, true)`;
+    return tx`SELECT url FROM payment_requests WHERE org_id = ${ctx.orgId} AND document_id = ${documentId} AND kind = 'link'
+      AND status IN ('created', 'partial') AND expires_at > ${Date.now()} AND url IS NOT NULL ORDER BY created_at DESC LIMIT 1`;
+  });
   const model = buildStoredPrintModel({
+    payLink: (live?.['url'] as string | undefined) ?? null,
     document: doc,
     lines: found.lines,
     business: printBusiness(business, null),

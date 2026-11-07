@@ -1,0 +1,14 @@
+{
+  "entity": "event",
+  "event": "payment.captured",
+  "payload": {
+    "payment": {
+      "entity": {
+        "id": "pay_Xyz789",
+        "amount": 118000,
+        "status": "captured",
+        "method": "upi"
+      }
+    }
+  }
+}

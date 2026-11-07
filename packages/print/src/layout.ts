@@ -777,7 +777,7 @@ function totalsBlock(c: Ctx): Draw {
 
 function bankBlock(c: Ctx): Draw | null {
   const { model, spec } = c;
-  if (model.accounts.length === 0) return null;
+  if (model.accounts.length === 0 && !model.payLink) return null;
   return (s) => {
     const top = s.y;
     const qrSize = model.upi ? 64 : 0;
@@ -795,6 +795,7 @@ function bankBlock(c: Ctx): Draw | null {
         if (parts.length) left.text(parts.join('   '));
       } else if (a.upiId) left.text(`${c.label('upi')}: ${a.upiId}`);
     }
+    if (model.payLink) left.text(`${c.label('payOnline')}: ${model.payLink}`);
     for (const it of left.items) s.items.push(it);
     let h = left.y - top;
     if (model.upi) {

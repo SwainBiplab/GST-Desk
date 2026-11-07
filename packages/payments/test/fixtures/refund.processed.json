@@ -1,0 +1,14 @@
+{
+  "entity": "event",
+  "event": "refund.processed",
+  "payload": {
+    "refund": {
+      "entity": {
+        "id": "rfnd_R1",
+        "payment_id": "pay_Xyz789",
+        "amount": 30000,
+        "status": "processed"
+      }
+    }
+  }
+}

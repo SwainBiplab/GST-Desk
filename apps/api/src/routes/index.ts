@@ -8,6 +8,7 @@ import type { Jobs } from '../jobs/queues';
 import type { providersFrom } from '../messaging/providers';
 import type { MessagingService } from '../messaging/service';
 import { readSession } from '../middleware/session';
+import type { PaymentsService } from '../payments/service';
 import type { Notifier } from '../push/notify';
 import type { Storage } from '../storage/s3';
 
@@ -17,6 +18,7 @@ import { fileRoutes } from './files';
 import { meRoutes } from './me';
 import { messagingRoutes } from './messaging';
 import { orgRoutes } from './orgs';
+import { paymentsRoutes } from './payments';
 import { pushRoutes } from './push';
 import { syncRoutes } from './sync';
 import { teamRoutes } from './team';
@@ -33,6 +35,8 @@ export interface RouteDeps {
   notify?: Notifier;
   /** Cloud-tier messaging (prompt 44): the service and the providers it sends through. */
   messaging?: { service: MessagingService; providers: ReturnType<typeof providersFrom> };
+  /** Payment links, UPI QR and reconciliation (prompt 45). */
+  payments?: PaymentsService;
 }
 
 export function mountRoutes(app: App, deps: RouteDeps): void {
@@ -51,6 +55,7 @@ export function mountRoutes(app: App, deps: RouteDeps): void {
   teamRoutes(app, deps);
   pushRoutes(app, deps);
   messagingRoutes(app, deps);
+  paymentsRoutes(app, deps);
   webhookRoutes(app, deps);
   adminRoutes(app, deps);
   if (deps.config.env !== 'production') devRoutes(app, deps);

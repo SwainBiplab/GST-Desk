@@ -57,6 +57,8 @@ export interface PrintInput {
   party: PrintParty | null;
   shipTo?: string[] | null;
   accounts: readonly PrintAccount[];
+  /** A gateway payment link for what is owed (prompt 45), printed under the bank details. */
+  payLink?: string | null;
   units: ReadonlyMap<string, string>;
   einvoice?: {
     irn: string;
@@ -141,6 +143,7 @@ export interface PrintModel {
   foreign: { currency: string; amount: string } | null;
   accounts: PrintAccount[];
   upi: { id: string; name: string; payload: string } | null;
+  payLink: string | null;
   terms: string[];
   notes: string[];
   /** The Rule 46A wording on a composition business's bill of supply. */
@@ -375,6 +378,7 @@ export function buildPrintModel(i: PrintInput): PrintModel {
       .filter((a) => a.kind === 'bank' || a.kind === 'upi')
       .map((a) => ({ ...a })),
     upi,
+    payLink: i.payLink ?? null,
     terms: richToLines(d.terms),
     notes: richToLines(d.notes),
     declaration: declarationFor(d.type, composition ? 'composition' : 'regular'),

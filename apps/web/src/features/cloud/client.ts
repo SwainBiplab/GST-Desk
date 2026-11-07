@@ -155,6 +155,65 @@ export interface RecurringInvoice {
   last_error: string | null;
 }
 
+export interface GatewayStatus {
+  connected: boolean;
+  configured: boolean;
+  provider: string | null;
+  mode: 'test' | 'live' | null;
+  active: boolean;
+  keyId: string | null;
+  lastError: string | null;
+  lastOkAt: number | null;
+  webhookPath: string | null;
+}
+export interface PaymentRequest {
+  id: string;
+  documentId: string;
+  kind: 'link' | 'qr';
+  /** A link's address, or the UPI payload a QR is drawn from. */
+  url: string | null;
+  imageUrl: string | null;
+  amountPaise: number;
+  paidPaise: number;
+  partialAllowed: boolean;
+  expiresAt: number;
+  status: 'created' | 'partial' | 'paid' | 'expired' | 'cancelled';
+}
+export interface OnlinePayment {
+  id: string;
+  providerPaymentId: string;
+  documentId: string | null;
+  partyId: string | null;
+  amountPaise: number;
+  feePaise: number;
+  refundedPaise: number;
+  method: string;
+  status: 'received' | 'processing' | 'matched' | 'unmatched';
+  settlementId: string | null;
+  at: number;
+}
+export interface GatewaySettlement {
+  id: string;
+  amountPaise: number;
+  feePaise: number;
+  utr: string | null;
+  status: string;
+  at: number;
+  expectedPaise: number | null;
+  matched: boolean;
+}
+export interface GatewayRefund {
+  id: string;
+  gatewayPaymentId: string;
+  creditNoteId: string;
+  amountPaise: number;
+  status: 'requested' | 'rejected' | 'processing' | 'processed' | 'failed';
+  error: string | null;
+  requestedBy: string;
+  decidedBy: string | null;
+  createdAt: number;
+}
+
 export class CloudError extends Error {
   constructor(
     readonly status: number,
@@ -518,6 +577,68 @@ export class CloudClient {
     b: { partyId: string; channel: 'whatsapp' | 'email'; status: 'opted_in' | 'opted_out' },
   ): Promise<null> {
     return this.call(this.m(orgId, '/consent'), { method: 'PUT', body: JSON.stringify(b) });
+  }
+  private p(orgId: string, path: string) {
+    return `/v1/orgs/${orgId}/payments${path}`;
+  }
+  gatewayStatus(orgId: string, businessId: string): Promise<GatewayStatus> {
+    return this.call(this.p(orgId, `/gateway?businessId=${businessId}`));
+  }
+  connectGateway(
+    orgId: string,
+    b: { businessId: string; keyId: string; keySecret: string; webhookSecret: string },
+  ): Promise<GatewayStatus> {
+    return this.call(this.p(orgId, '/gateway'), { method: 'PUT', body: JSON.stringify(b) });
+  }
+  disconnectGateway(orgId: string, businessId: string): Promise<null> {
+    return this.call(this.p(orgId, `/gateway?businessId=${businessId}`), { method: 'DELETE' });
+  }
+  createPaymentRequest(
+    orgId: string,
+    b: {
+      businessId: string;
+      documentId: string;
+      kind: 'link' | 'qr';
+      partialAllowed?: boolean;
+      expiresInDays?: number;
+    },
+  ): Promise<PaymentRequest> {
+    return this.call(this.p(orgId, '/requests'), { method: 'POST', body: JSON.stringify(b) });
+  }
+  paymentRequests(orgId: string, documentId: string): Promise<PaymentRequest[]> {
+    return this.call(this.p(orgId, `/requests?documentId=${documentId}`));
+  }
+  paymentRequest(orgId: string, id: string): Promise<PaymentRequest> {
+    return this.call(this.p(orgId, `/requests/${id}`));
+  }
+  onlinePayments(orgId: string, businessId: string, status?: string): Promise<OnlinePayment[]> {
+    return this.call(
+      this.p(orgId, `/online?businessId=${businessId}${status ? `&status=${status}` : ''}`),
+    );
+  }
+  settlements(orgId: string, businessId: string): Promise<GatewaySettlement[]> {
+    return this.call(this.p(orgId, `/settlements?businessId=${businessId}`));
+  }
+  syncSettlements(orgId: string, businessId: string): Promise<GatewaySettlement[]> {
+    return this.call(this.p(orgId, '/settlements/sync'), {
+      method: 'POST',
+      body: JSON.stringify({ businessId }),
+    });
+  }
+  gatewayRefunds(orgId: string, businessId: string): Promise<GatewayRefund[]> {
+    return this.call(this.p(orgId, `/refunds?businessId=${businessId}`));
+  }
+  requestRefund(
+    orgId: string,
+    b: { businessId: string; gatewayPaymentId: string; creditNoteId: string; amountPaise: number },
+  ): Promise<{ id: string }> {
+    return this.call(this.p(orgId, '/refunds'), { method: 'POST', body: JSON.stringify(b) });
+  }
+  decideRefund(orgId: string, id: string, approve: boolean): Promise<{ status: string } | null> {
+    return this.call(this.p(orgId, `/refunds/${id}/${approve ? 'approve' : 'reject'}`), {
+      method: 'POST',
+      body: '{}',
+    });
   }
   recurringInvoices(orgId: string): Promise<RecurringInvoice[]> {
     return this.call(`/v1/orgs/${orgId}/recurring-invoices`);

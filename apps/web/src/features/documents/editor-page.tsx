@@ -68,7 +68,12 @@ import { useRightPanel } from '@/app/components/panel';
 import { useAppDb, useLiveQuery } from '@/app/db';
 import type { Shell } from '@/app/store';
 import type { MessageKind } from '@/features/cloud/client';
-import { DocumentMessageItems, DocumentMessages } from '@/features/dispatch/document-messages';
+import { CollectItems, CollectOverlay, useLivePayLink } from '@/features/collect/collect-dialog';
+import {
+  DocumentMessageItems,
+  DocumentMessages,
+  RepeatOverlay,
+} from '@/features/dispatch/document-messages';
 import { useDocPortal } from '@/features/einvoice/hooks';
 import { EinvoicePanel } from '@/features/einvoice/panel';
 import { useUnits } from '@/features/items/hooks';
@@ -188,6 +193,8 @@ export function EditorPage({
   const [creating, setCreating] = useState<{ name: string; key: string } | null>(null);
   const [dismissed, setDismissed] = useState<ReadonlySet<string>>(new Set());
   const [convertTo, setConvertTo] = useState<DocumentType | null>(null);
+  /** The dialogs of the More menu's cloud items; they sit outside the menu, which unmounts when it closes. */
+  const [overlay, setOverlay] = useState<'link' | 'qr' | 'repeat' | null>(null);
   const [busy, setBusy] = useState(false);
   const { setContent: setPanel } = useRightPanel();
   const [hidden, setHidden] = useState<ReadonlySet<GridColumn>>(new Set(DEFAULT_HIDDEN));
@@ -362,6 +369,10 @@ export function EditorPage({
    * The PDF of this document as it is right now (a fresh model, so a document that was just issued
    * carries its new number), kept with the document once it has one.
    */
+  const payLink = useLivePayLink(
+    meta.id ?? null,
+    !isDraft && meta.status === 'issued' && !!PAYABLE_TYPES.includes(draft.type),
+  );
   const makeCurrentPdf = async (over?: { number: string; status: 'issued' }) => {
     if (!printContext) throw new Error(t('print.notReady'));
     const m = modelNow(printContext, {
@@ -372,6 +383,7 @@ export function EditorPage({
       revision: meta.revision,
       party: partyQuery.data ?? null,
       ...portalPrint,
+      ...(payLink ? { payLink } : {}),
     });
     const fonts = await loadFonts(familiesFor(m, spec));
     const bytes = await makePdf(m, spec, fonts.bytes, {
@@ -744,13 +756,15 @@ export function EditorPage({
                 <DropdownMenuItem data-testid="doc-email" onSelect={() => void email()}>
                   {t('print.email')}
                 </DropdownMenuItem>
+                {meta.id && meta.status === 'issued' && PAYABLE_TYPES.includes(draft.type) && (
+                  <CollectItems onOpen={setOverlay} />
+                )}
                 {meta.id && !isDraft && MESSAGE_KIND[draft.type] && (
                   <DocumentMessageItems
                     documentId={meta.id}
                     kind={MESSAGE_KIND[draft.type]!}
-                    name={meta.number ?? ''}
-                    start={todayIso()}
                     canRepeat={draft.type === 'tax_invoice'}
+                    onRepeat={() => setOverlay('repeat')}
                   />
                 )}
                 <DropdownMenuItem
@@ -795,6 +809,22 @@ export function EditorPage({
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
+            {meta.id && (
+              <>
+                <CollectOverlay
+                  open={overlay === 'link' || overlay === 'qr' ? overlay : null}
+                  documentId={meta.id}
+                  onClose={() => setOverlay(null)}
+                />
+                <RepeatOverlay
+                  open={overlay === 'repeat'}
+                  documentId={meta.id}
+                  name={meta.number ?? ''}
+                  start={todayIso()}
+                  onClose={() => setOverlay(null)}
+                />
+              </>
+            )}
           </div>
         }
       />

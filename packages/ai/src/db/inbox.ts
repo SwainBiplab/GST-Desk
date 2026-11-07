@@ -360,6 +360,7 @@ async function applyValue(db: Database, ctx: Ctx, kind: string, value: any): Pro
       throw new RuleError('an approval is decided with Approve or Decline, through the cloud');
     case 'low_stock':
     case 'recurring_failed':
+    case 'payment_attention':
     case 'draft_stale':
     case 'backup_failed':
     case 'prefiling_issue':

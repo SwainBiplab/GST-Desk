@@ -60,6 +60,8 @@ const schema = z.object({
   WHATSAPP_VERIFY_TOKEN: z.string().optional(),
   /** Resend, for email with the PDF attached. */
   RESEND_API_KEY: z.string().optional(),
+  /** Base64 of 32 bytes: seals each business's payment gateway secrets (prompt 45). */
+  SECRETS_KEY: z.string().optional(),
   RESEND_FROM: z.string().optional(),
   RESEND_WEBHOOK_SECRET: z.string().optional(),
 });
@@ -111,6 +113,8 @@ export interface Config {
     verifyToken: string;
   } | null;
   resend: { apiKey: string; from: string; webhookSecret: string } | null;
+  /** Seals each business's payment gateway secrets (prompt 45). */
+  secretsKey: string | null;
 }
 
 function parseServiceAccount(raw: string | undefined) {
@@ -219,6 +223,7 @@ export function loadConfig(raw: NodeJS.ProcessEnv): Config {
             verifyToken: e.WHATSAPP_VERIFY_TOKEN,
           }
         : null,
+    secretsKey: e.SECRETS_KEY ?? null,
     resend:
       e.RESEND_API_KEY && e.RESEND_FROM && e.RESEND_WEBHOOK_SECRET
         ? { apiKey: e.RESEND_API_KEY, from: e.RESEND_FROM, webhookSecret: e.RESEND_WEBHOOK_SECRET }

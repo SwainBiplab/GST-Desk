@@ -436,7 +436,10 @@ export const SPEC: TableSpec[] = [
       document_id: c.uuid().nn.ref('documents'),
       amount_paise: c.big().nn,
       /** `write_off` is a round-off difference closed on the document, not money. */
-      kind: c.text().nn.default('payment').oneOf(['payment', 'credit_applied', 'write_off']),
+      kind: c
+        .text()
+        .nn.default('payment')
+        .oneOf(['payment', 'credit_applied', 'write_off', 'refund']),
       source_document_id: c.uuid().ref('documents'),
     },
     indexes: [{ cols: ['payment_id'] }, { cols: ['document_id'] }],

@@ -15,6 +15,7 @@ import { makeLogger } from './log';
 import { providersFrom } from './messaging/providers';
 import { MessagingService } from './messaging/service';
 import { enqueuer, startMessagingWorkers } from './messaging/worker';
+import { PaymentsService } from './payments/service';
 import { FcmSender } from './push/fcm';
 import { makeNotifier } from './push/notify';
 import { mountRoutes } from './routes';
@@ -94,6 +95,17 @@ const notify = makeNotifier(
 const providers = providersFrom(config);
 const messagingService = new MessagingService({ db, providers, log, enqueue: enqueuer(jobs) });
 if (jobs) await startMessagingWorkers(jobs, messagingService, log);
+const paymentsService = new PaymentsService({
+  db,
+  secretsKey: config.secretsKey,
+  log,
+  // a payment through the gateway gets the same receipt message as one recorded by hand
+  onPaid: (a) =>
+    messagingService.onApplied(a.orgId, 'system:gateway', {
+      issued: [],
+      payments: [{ id: a.paymentId, businessId: a.businessId, documentId: a.documentId }],
+    }),
+});
 mountRoutes(app, {
   db,
   auth,
@@ -103,6 +115,7 @@ mountRoutes(app, {
   config,
   notify,
   messaging: { service: messagingService, providers },
+  payments: paymentsService,
 });
 
 const server = serve({ fetch: app.fetch, port: config.port, hostname: '0.0.0.0' }, (info) => {

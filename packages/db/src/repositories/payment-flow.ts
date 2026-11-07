@@ -13,7 +13,9 @@ import {
   overdueDays,
   payStatus,
   planCreditApplication,
+  postGatewayFee,
   postPayment,
+  postRefund,
   postWriteOff,
   tcsOnReceipt,
   validateAllocations,
@@ -60,6 +62,8 @@ export interface PaymentInput {
   /** Everything received or paid, including any TCS. */
   amountPaise: bigint;
   tcsPaise?: bigint;
+  /** What a payment gateway kept (fee and its GST), posted as an expense out of the bank. */
+  gatewayFeePaise?: bigint;
   accountId?: string | null;
   /** Cheque number, or a UPI / bank reference. */
   reference?: string | null;
@@ -217,6 +221,9 @@ export class PaymentFlowRepo extends BaseRepo {
       if (a['kind'] === 'payment') add(paid, target, amount);
       else if (a['kind'] === 'credit_applied') {
         add(credit, target, amount);
+        if (a['source_document_id']) add(usedAsSource, String(a['source_document_id']), amount);
+      } else if (a['kind'] === 'refund') {
+        // cash paid back out of a credit note uses it up like applying it would
         if (a['source_document_id']) add(usedAsSource, String(a['source_document_id']), amount);
       } else if (a['kind'] === 'write_off') add(written, target, amount);
     }
@@ -492,6 +499,7 @@ export class PaymentFlowRepo extends BaseRepo {
       ...(input.tcsPaise ? { tcsPaise: input.tcsPaise } : {}),
     });
     if (wo > 0n) lines.push(...postWriteOff(input.direction, wo));
+    if ((input.gatewayFeePaise ?? 0n) > 0n) lines.push(...postGatewayFee(input.gatewayFeePaise!));
     return lines;
   }
 
@@ -697,6 +705,66 @@ export class PaymentFlowRepo extends BaseRepo {
       total_paise: num(input.amountPaise),
       metadata_json: this.voucherMetaIn(input, payment, numbers),
     });
+  }
+
+  /**
+   * Pay a customer back, in cash through a gateway, out of an issued credit note. Uses up that much of the note,
+   * posts receivables against the bank, and leaves a payment made (so the day book shows it). The caller (the
+   * refund workflow) has already had it approved and has the gateway's refund.
+   */
+  async recordRefund(
+    ctx: Ctx,
+    input: { creditNoteId: string; date: string; amountPaise: bigint; reference: string },
+  ): Promise<{ payment: Row }> {
+    const run = () =>
+      runInTx(this.d, ctx, async (tx) => {
+        const c: Ctx = { ...ctx, tx };
+        if (input.amountPaise <= 0n) throw new RuleError('The refund must be more than zero.');
+        await this.lock.assertOpen(c, input.date, {
+          action: 'payment',
+          documentId: input.creditNoteId,
+        });
+        const { credits } = await this.positionsIn(tx, c, input.date);
+        const note = credits.find((x) => x.id === input.creditNoteId && x.type === 'credit_note');
+        if (!note?.partyId) throw new RuleError('That credit note is not open for a refund.');
+        if (input.amountPaise > note.balancePaise)
+          throw new RuleError(
+            `Only ${note.balancePaise} paise are left on ${note.number ?? 'the credit note'}.`,
+          );
+        const payment: Row = await this.createIn(tx, c, {
+          date: input.date,
+          direction: 'made',
+          mode: 'bank',
+          account_id: null,
+          party_id: note.partyId,
+          amount_paise: num(input.amountPaise),
+          reference: input.reference,
+          cheque_date: null,
+          notes: `Refund of ${note.number ?? 'credit note'}`,
+          tcs_paise: 0,
+          status: 'cleared',
+        });
+        await (this.allocations as any).createIn(tx, c, {
+          payment_id: payment['id'],
+          document_id: note.id,
+          amount_paise: num(input.amountPaise),
+          kind: 'refund',
+          source_document_id: note.id,
+        });
+        for (const l of postRefund(input.amountPaise)) {
+          await (this.ledger as any).createIn(tx, c, {
+            payment_id: payment['id'],
+            party_id: l.account === 'receivables' ? note.partyId : null,
+            account_id: await this.flow.accountIdIn(tx, c, l.account),
+            debit_paise: num(l.debitPaise),
+            credit_paise: num(l.creditPaise),
+            date: input.date,
+            narration: l.narration,
+          });
+        }
+        return { payment };
+      });
+    return ctx.tx ? run() : serialised(this.d, run);
   }
 
   /* ------------------------------------------------------------------ edit and delete */

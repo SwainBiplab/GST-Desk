@@ -612,7 +612,7 @@ export async function partyBalancesIn(
         LEFT JOIN (
           SELECT a.source_document_id AS k, sum(a.amount_paise) AS v
           FROM payment_allocations a LEFT JOIN payments p ON p.id = a.payment_id
-          WHERE a.business_id = ${b} AND a.deleted_at IS NULL AND a.kind = 'credit_applied'
+          WHERE a.business_id = ${b} AND a.deleted_at IS NULL AND a.kind IN ('credit_applied', 'refund')
             AND a.source_document_id IS NOT NULL AND ${SETTLES}
           GROUP BY a.source_document_id
         ) s ON s.k = d.id

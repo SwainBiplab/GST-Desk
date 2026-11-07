@@ -152,6 +152,40 @@ test.describe('messages', () => {
       .toMatchObject({ offsets: [-2, 0, 5], autoSend: { reminder: true } });
   });
 
+  test('an issued invoice: send it by message and make it repeat', async ({ page }) => {
+    const fake = await fakeApi(page);
+    await openSeeded(page, '/books/documents');
+    await page.getByTestId('doc-filter-status').click();
+    await page.getByRole('option', { name: 'Issued', exact: true }).first().click();
+    await page.getByTestId('document-open').first().click();
+    await expect(page.getByTestId('doc-editor')).toBeVisible();
+
+    await page.getByTestId('doc-more').click();
+    await page.getByTestId('doc-send-message').click();
+    await expect
+      .poll(
+        () =>
+          fake.calls.find((c) => c.method === 'POST' && c.path.endsWith('/messaging/send'))?.body,
+      )
+      .toMatchObject({ kind: 'invoice' });
+
+    // the dialog stays open after the menu closes
+    await page.getByTestId('doc-more').click();
+    await page.getByTestId('doc-repeat').click();
+    await expect(page.getByTestId('repeat-dialog')).toBeVisible();
+    await page.getByTestId('repeat-frequency').selectOption('weekly');
+    await page.getByTestId('repeat-send').click();
+    await page.getByTestId('repeat-save').click();
+    await expect
+      .poll(
+        () =>
+          fake.calls.find((c) => c.method === 'POST' && c.path.endsWith('/recurring-invoices'))
+            ?.body,
+      )
+      .toMatchObject({ frequency: 'weekly', send: true });
+    await expect(page.getByTestId('repeat-dialog')).toHaveCount(0);
+  });
+
   test('templates show their status', async ({ page }) => {
     await fakeApi(page);
     await openSeeded(page, '/books/settings?tab=messages');

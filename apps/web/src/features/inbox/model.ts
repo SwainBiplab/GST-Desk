@@ -64,6 +64,8 @@ export function openTarget(r: InboxRow): OpenTarget | null {
       return r.status === 'accepted' ? { to: 'document', search: { id: s['documentId'] } } : null;
     case 'recurring_failed':
       return { to: 'document', search: { id: s['documentId'] } };
+    case 'payment_attention':
+      return s['documentId'] ? { to: 'document', search: { id: s['documentId'] } } : null;
     case 'sync_conflict':
     case 'approval_request':
       return s['table'] === 'documents' ? { to: 'document', search: { id: s['rowId'] } } : null;
@@ -168,6 +170,12 @@ export function describeArgs(r: InboxRow): Record<string, unknown> {
     }
     case 'recurring_failed':
       return { name: s['name'], date: s['date'], message: s['message'] };
+    case 'payment_attention':
+      return {
+        amount: formatPaise(Number(s['amountPaise'] ?? 0)),
+        number: s['number'] ?? '',
+        message: s['message'],
+      };
     case 'sync_conflict':
     case 'approval_request':
       return { label: s['label'], reason: s['reason'] };

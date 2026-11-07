@@ -29,19 +29,16 @@ export const RECURRENCES = ['weekly', 'monthly', 'quarterly', 'yearly'] as const
 export function DocumentMessageItems({
   documentId,
   kind,
-  name,
-  start,
   canRepeat,
+  onRepeat,
 }: {
   documentId: string;
   kind: MessageKind;
-  name: string;
-  start: string;
   canRepeat: boolean;
+  onRepeat: () => void;
 }) {
   const { t } = useTranslation();
   const state = useMessaging();
-  const [repeat, setRepeat] = useState(false);
   if (state.kind !== 'ready') return null;
   const { m } = state;
   const send = async () => {
@@ -60,20 +57,32 @@ export function DocumentMessageItems({
         {t('dispatch.document.send')}
       </DropdownMenuItem>
       {canRepeat && (
-        <DropdownMenuItem data-testid="doc-repeat" onSelect={() => setRepeat(true)}>
+        <DropdownMenuItem data-testid="doc-repeat" onSelect={onRepeat}>
           {t('dispatch.document.repeat')}
         </DropdownMenuItem>
       )}
-      {repeat && (
-        <RepeatDialog
-          m={m}
-          documentId={documentId}
-          name={name}
-          start={start}
-          onClose={() => setRepeat(false)}
-        />
-      )}
     </>
+  );
+}
+
+/** The repeat dialog, outside the menu that opens it (a closing menu would take it along). */
+export function RepeatOverlay({
+  open,
+  documentId,
+  name,
+  start,
+  onClose,
+}: {
+  open: boolean;
+  documentId: string;
+  name: string;
+  start: string;
+  onClose: () => void;
+}) {
+  const state = useMessaging();
+  if (state.kind !== 'ready' || !open) return null;
+  return (
+    <RepeatDialog m={state.m} documentId={documentId} name={name} start={start} onClose={onClose} />
   );
 }
 

@@ -1,0 +1,27 @@
+{
+  "entity": "event",
+  "event": "payment_link.paid",
+  "payload": {
+    "payment_link": {
+      "entity": {
+        "id": "plink_Abc123",
+        "reference_id": "req-1",
+        "status": "paid",
+        "amount": 118000,
+        "amount_paid": 118000
+      }
+    },
+    "payment": {
+      "entity": {
+        "id": "pay_Xyz789",
+        "amount": 118000,
+        "currency": "INR",
+        "status": "captured",
+        "method": "upi",
+        "fee": 2784,
+        "tax": 425,
+        "created_at": 1793000000
+      }
+    }
+  }
+}

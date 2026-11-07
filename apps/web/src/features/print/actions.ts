@@ -103,6 +103,10 @@ export async function findSavedPdf(
   );
 }
 
+/** The online payment link, as a line under the share text when the document has a live one. */
+const payLine = (language: PrintLanguage, model: PrintModel): string =>
+  model.payLink ? `\n\n${printLabel(language, 'payOnline')}: ${model.payLink}` : '';
+
 export interface ShareArgs {
   model: PrintModel;
   language: PrintLanguage;
@@ -121,17 +125,18 @@ export type ShareOutcome = 'shared' | 'whatsapp' | 'cancelled';
  * attach a file to a WhatsApp chat on its own.
  */
 export async function shareDocument(a: ShareArgs): Promise<ShareOutcome> {
-  const text = shareText(
-    a.language,
-    {
-      party: a.model.party?.name ?? '',
-      type: printLabel(a.language, `title.${a.model.type}` as PrintLabelKey),
-      number: a.model.number ?? '',
-      total: a.totalText,
-      business: a.model.business.name,
-    },
-    a.override,
-  );
+  const text =
+    shareText(
+      a.language,
+      {
+        party: a.model.party?.name ?? '',
+        type: printLabel(a.language, `title.${a.model.type}` as PrintLabelKey),
+        number: a.model.number ?? '',
+        total: a.totalText,
+        business: a.model.business.name,
+      },
+      a.override,
+    ) + payLine(a.language, a.model);
   const file = new File([a.bytes.slice().buffer as ArrayBuffer], a.fileName, {
     type: 'application/pdf',
   });
@@ -163,12 +168,13 @@ export function emailLink(
 ): string {
   const subject =
     `${printLabel(language, `title.${model.type}` as PrintLabelKey)} ${model.number ?? ''}`.trim();
-  const body = shareText(language, {
-    party: model.party?.name ?? '',
-    type: printLabel(language, `title.${model.type}` as PrintLabelKey),
-    number: model.number ?? '',
-    total: totalText,
-    business: model.business.name,
-  });
+  const body =
+    shareText(language, {
+      party: model.party?.name ?? '',
+      type: printLabel(language, `title.${model.type}` as PrintLabelKey),
+      number: model.number ?? '',
+      total: totalText,
+      business: model.business.name,
+    }) + payLine(language, model);
   return `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }

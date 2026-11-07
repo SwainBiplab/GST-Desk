@@ -1,0 +1,27 @@
+{
+  "entity": "event",
+  "event": "qr_code.credited",
+  "payload": {
+    "qr_code": {
+      "entity": {
+        "id": "qr_Q1",
+        "notes": {
+          "request": "req-2"
+        },
+        "payment_amount": 50000
+      }
+    },
+    "payment": {
+      "entity": {
+        "id": "pay_Q9",
+        "amount": 50000,
+        "currency": "INR",
+        "status": "captured",
+        "method": "upi",
+        "fee": 118,
+        "tax": 18,
+        "created_at": 1793000100
+      }
+    }
+  }
+}

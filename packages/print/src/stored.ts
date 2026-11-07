@@ -32,6 +32,8 @@ export interface StoredPrintInput {
   party: PrintParty | null;
   shipTo?: string[] | null;
   accounts: readonly PrintAccount[];
+  /** A gateway payment link for what is owed (prompt 45). */
+  payLink?: string | null;
   units: ReadonlyMap<string, string>;
 }
 
@@ -206,6 +208,7 @@ export function buildStoredPrintModel(i: StoredPrintInput): PrintModel {
     accounts: i.accounts
       .filter((a) => a.kind === 'bank' || a.kind === 'upi')
       .map((a) => ({ ...a })),
+    payLink: i.payLink ?? null,
     upi: upiAccount
       ? {
           id: upiAccount.upiId!,

@@ -37,6 +37,20 @@ describe('one page', () => {
   });
 });
 
+describe('a payment link', () => {
+  it('is printed under the bank details when the document has one, and not otherwise', () => {
+    const link = 'https://rzp.io/i/abc123';
+    const withLink = allTexts(lay({ ...sampleModel(), payLink: link }).pages);
+    expect(withLink).toContain(`Pay online: ${link}`);
+    expect(allTexts(lay().pages).some((x) => x.includes('Pay online'))).toBe(false);
+  });
+  it('is printed in the party’s language, and alone when there are no bank accounts', () => {
+    const link = 'https://rzp.io/i/abc123';
+    const bare = lay({ ...sampleModel(), accounts: [], upi: null, payLink: link });
+    expect(allTexts(bare.pages).some((x) => x.includes(link))).toBe(true);
+  });
+});
+
 function inside(p: LayoutPage) {
   for (const i of p.items) {
     const [x1, y1, x2, y2] =

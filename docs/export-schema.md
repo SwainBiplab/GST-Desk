@@ -568,7 +568,7 @@ Kind: belongs to a business. In a business export.
 | `payment_id` | id (text) |  | refers to `payments` |
 | `document_id` | id (text) | yes | refers to `documents` |
 | `amount_paise` | integer (paise, micro-units or a count) | yes |  |
-| `kind` | text | yes | one of `payment`, `credit_applied`, `write_off`; default "payment" |
+| `kind` | text | yes | one of `payment`, `credit_applied`, `write_off`, `refund`; default "payment" |
 | `source_document_id` | id (text) |  | refers to `documents` |
 
 ### `gst_filings`

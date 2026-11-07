@@ -38,6 +38,7 @@ import { VoiceEntry } from './voice';
 import { useConfirm } from '@/app/components/confirm';
 import { useAppDb } from '@/app/db';
 import { useAppNavigate, useLocationInfo } from '@/app/hooks';
+import { ShowQrButton } from '@/features/collect/show-qr';
 import { btPrintingSupported } from '@/platform/printer';
 
 const TYPES: readonly string[] = [
@@ -234,6 +235,7 @@ function MobileBill({ type, id }: { type: DocumentType; id: string | null }) {
           </p>
         )}
         <div className="grid w-full grid-cols-2 gap-2">
+          <ShowQrButton documentId={editor.currentId()} />
           <Button
             className="min-h-12"
             data-testid="bill-share"

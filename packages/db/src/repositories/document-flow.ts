@@ -65,6 +65,7 @@ export const ACCOUNTS: Record<AccountKey, [string, string, string]> = {
   expenses: ['5100', 'Expenses', 'expense'],
   roundOff: ['5200', 'Round-off', 'expense'],
   adjustments: ['5300', 'Adjustments', 'expense'],
+  gatewayFees: ['5400', 'Payment gateway fees', 'expense'],
   openingEquity: ['3100', 'Opening Balance Equity', 'equity'],
   tcsPayable: ['2200', 'TCS Payable', 'liability'],
   outputCgst: ['2100', 'Output GST', 'liability'],

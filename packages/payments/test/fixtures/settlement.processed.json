@@ -1,0 +1,17 @@
+{
+  "entity": "event",
+  "event": "settlement.processed",
+  "payload": {
+    "settlement": {
+      "entity": {
+        "id": "setl_S1",
+        "amount": 112000,
+        "fees": 2784,
+        "tax": 425,
+        "utr": "UTIB1234567890",
+        "status": "processed",
+        "created_at": 1793100000
+      }
+    }
+  }
+}
