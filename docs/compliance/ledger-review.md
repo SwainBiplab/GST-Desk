@@ -47,8 +47,11 @@ accountant to confirm they are what a firm and its CA need.
 
 ## Open points for the reviewer
 
-1. **No stock adjustment.** Purchases are expensed when bought and there is no closing-stock entry, so the profit
-   and loss is a trading view. Valuation (prompt 51) will add the adjustment; confirm the presentation until then.
+1. **Stock in the books.** With a valuation method chosen (Settings → Inventory, prompt 51) every movement posts at
+   cost: goods in debit Inventory (1250) and credit Changes in Inventory (5050), goods out the reverse, so the profit
+   and loss shows Purchases (5000) and Changes in Inventory separately and their sum is the cost of goods sold
+   (Schedule III). Without a method the profit and loss stays a trading view. Confirm the presentation and the
+   account names; the demo business has no method chosen.
 2. **Cash flow classification.** Every balance sheet movement outside cash and bank is "operating" unless its
    account's group is capital, drawings, reserves or loans (financing) or fixed assets and investments (investing).
    Confirm the groups and names.

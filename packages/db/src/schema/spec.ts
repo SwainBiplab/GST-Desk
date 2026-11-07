@@ -190,6 +190,11 @@ export const SPEC: TableSpec[] = [
       /** True when the rate differs from what the HSN master gives for `hsn`. Set by the repository. */
       gst_rate_overridden: c.bool().nn.default(false),
       track_stock: c.bool().nn.default(false),
+      /** How units are told apart (prompt 51): not at all, by batch, or one serial per unit. */
+      tracking_mode: c.text().nn.default('none').oneOf(['none', 'batch', 'serial']),
+      /** A batch of this item must carry an expiry date. */
+      expiry_required: c.bool().nn.default(false),
+      default_godown_id: c.uuid().ref('godowns'),
       /** Reorder level. */
       min_stock_micros: money(),
       opening_stock_micros: money(),
@@ -400,6 +405,7 @@ export const SPEC: TableSpec[] = [
       total_paise: money(),
       batch_id: c.uuid().ref('batches'),
       serials_json: c.json(),
+      godown_id: c.uuid().ref('godowns'),
     },
     indexes: [{ cols: ['document_id'] }, { cols: ['item_id'] }],
   },
@@ -845,7 +851,13 @@ export const SPEC: TableSpec[] = [
   {
     name: 'godowns',
     kind: 'tenant',
-    cols: { name: c.text().nn, is_default: c.bool().nn.default(false) },
+    cols: {
+      name: c.text().nn,
+      is_default: c.bool().nn.default(false),
+      code: c.text(),
+      address: c.text(),
+      is_active: c.bool().nn.default(true),
+    },
   },
   {
     name: 'batches',
@@ -855,8 +867,68 @@ export const SPEC: TableSpec[] = [
       batch_no: c.text().nn,
       mfg_date: c.date(),
       expiry_date: c.date(),
+      mrp_paise: c.big(),
+      purchase_rate_paise: c.big(),
     },
-    indexes: [{ cols: ['item_id'] }],
+    indexes: [
+      { cols: ['item_id'] },
+      { cols: ['item_id', 'batch_no'], unique: true, where: 'deleted_at IS NULL' },
+    ],
+  },
+  {
+    /** One row per serial number (prompt 51): where it is and whether it is in stock. */
+    name: 'serials',
+    kind: 'tenant',
+    cols: {
+      item_id: c.uuid().nn.ref('items'),
+      serial_no: c.text().nn,
+      batch_id: c.uuid().ref('batches'),
+      godown_id: c.uuid().ref('godowns'),
+      status: c.text().nn.default('in_stock').oneOf(['in_stock', 'out']),
+      last_movement_id: c.uuid(),
+    },
+    indexes: [
+      { cols: ['item_id', 'serial_no'], unique: true, where: 'deleted_at IS NULL' },
+      { cols: ['item_id', 'status'] },
+    ],
+  },
+  {
+    /** Stock moved between godowns (prompt 51): dispatched, then received, or both at once. */
+    name: 'stock_transfers',
+    kind: 'tenant',
+    cols: {
+      number: c.text(),
+      from_godown_id: c.uuid().nn.ref('godowns'),
+      to_godown_id: c.uuid().nn.ref('godowns'),
+      status: c.text().nn.default('dispatched').oneOf(['dispatched', 'received', 'cancelled']),
+      date: c.date().nn,
+      received_date: c.date(),
+      note: c.text(),
+    },
+    indexes: [{ cols: ['status'] }, { cols: ['date'] }],
+  },
+  {
+    name: 'stock_transfer_lines',
+    kind: 'tenant',
+    cols: {
+      transfer_id: c.uuid().nn.ref('stock_transfers'),
+      item_id: c.uuid().nn.ref('items'),
+      batch_id: c.uuid().ref('batches'),
+      serials_json: c.json(),
+      qty_micros: c.big().nn,
+    },
+    indexes: [{ cols: ['transfer_id'] }],
+  },
+  {
+    /** A reorder level for one item in one godown (prompt 51); the item's own level is business-wide. */
+    name: 'godown_levels',
+    kind: 'tenant',
+    cols: {
+      item_id: c.uuid().nn.ref('items'),
+      godown_id: c.uuid().nn.ref('godowns'),
+      min_stock_micros: c.big().nn.default(0),
+    },
+    indexes: [{ cols: ['item_id', 'godown_id'], unique: true, where: 'deleted_at IS NULL' }],
   },
   {
     name: 'stock_movements',
@@ -873,8 +945,26 @@ export const SPEC: TableSpec[] = [
       document_id: c.uuid().ref('documents'),
       date: c.date().nn,
       note: c.text(),
+      /** The serials this movement carried (serial-tracked items). */
+      serials_json: c.json(),
+      /**
+       * The cost of the goods moved, in paise (prompt 51): what a purchase paid, what the valuation engine
+       * charged a sale, what a reversal gives back. Null when the engine decides on the fly.
+       */
+      cost_paise: c.big(),
+      /** True when `cost_paise` is to be taken as given rather than recomputed (reversals, revaluations). */
+      cost_fixed: c.bool().nn.default(false),
+      transfer_id: c.uuid().ref('stock_transfers'),
+      /** The journal voucher that carried this movement into the books (adjustments and opening stock). */
+      voucher_id: c.uuid().ref('journal_vouchers'),
     },
-    indexes: [{ cols: ['item_id', 'date'] }, { cols: ['document_id'] }],
+    indexes: [
+      { cols: ['item_id', 'date'] },
+      { cols: ['document_id'] },
+      { cols: ['godown_id'] },
+      { cols: ['batch_id'] },
+      { cols: ['transfer_id'] },
+    ],
   },
   {
     name: 'templates',

@@ -16,6 +16,7 @@ import type {
   DraftStaleItem,
   DuplicateItemItem,
   DuplicatePartyItem,
+  ExpiryDueItem,
   HsnSuggestionItem,
   LowStockItem,
   RateChangeItem,
@@ -361,6 +362,44 @@ export function detectLowStock(rows: readonly StockLite[], now: number): Finding
         itemName: r.name,
         onHandMicros: r.onHandMicros,
         minMicros: r.minMicros,
+      },
+    }));
+}
+
+export interface ExpiryLite {
+  batchId: string;
+  itemId: string;
+  itemName: string;
+  batchNo: string;
+  expiryDate: string;
+  onHandMicros: number;
+  daysLeft: number;
+}
+
+/** Default horizon: a batch is flagged once it is within these many days of expiry. */
+export const EXPIRY_HORIZON_DAYS = 90;
+
+/** A batch with stock expiring within the horizon, or expired; asked again at most once a month per batch. */
+export function detectExpiry(
+  rows: readonly ExpiryLite[],
+  now: number,
+  horizonDays = EXPIRY_HORIZON_DAYS,
+): Finding<ExpiryDueItem>[] {
+  const month = monthKey(now);
+  return rows
+    .filter((r) => r.onHandMicros > 0 && r.daysLeft <= horizonDays)
+    .map((r) => ({
+      kind: 'expiry_due',
+      key: `expiry_due:${r.batchId}:${month}`,
+      payload: { batchId: r.batchId, onHandMicros: r.onHandMicros, expiryDate: r.expiryDate },
+      suggestion: {
+        itemId: r.itemId,
+        itemName: r.itemName,
+        batchId: r.batchId,
+        batchNo: r.batchNo,
+        expiryDate: r.expiryDate,
+        onHandMicros: r.onHandMicros,
+        daysLeft: r.daysLeft,
       },
     }));
 }

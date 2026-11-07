@@ -1,4 +1,4 @@
-import { InventoryRepo, ItemRepo, type CountMatch, type Row } from '@gst/db';
+import { GodownRepo, InventoryRepo, ItemRepo, type CountMatch, type Row } from '@gst/db';
 import {
   ADJUST_REASONS,
   countSheetTemplate,
@@ -28,18 +28,36 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { useBatches, useGodowns } from './hooks';
+
 import { useAppDb } from '@/app/db';
 import { downloadText } from '@/features/parties/csv';
 import { qtyText } from '@/features/reports/model';
 
 interface EntryRow {
   key: number;
-  item: { id: string; name: string; sku: string; onHandMicros: number } | null;
+  item: {
+    id: string;
+    name: string;
+    sku: string;
+    onHandMicros: number;
+    trackingMode: 'none' | 'batch' | 'serial';
+  } | null;
   text: string;
+  /** Batch-tracked items: the batch adjusted. */
+  batchId: string | null;
+  /** Serial-tracked items: the serials, as typed. */
+  serials: string;
 }
 
 let nextKey = 1;
-const blank = (): EntryRow => ({ key: nextKey++, item: null, text: '' });
+const blank = (): EntryRow => ({
+  key: nextKey++,
+  item: null,
+  text: '',
+  batchId: null,
+  serials: '',
+});
 const TRACKED_ONLY = (r: Row) => !!r['track_stock'];
 
 /** Type to find an item by SKU, barcode or name; Enter takes the first match. */
@@ -78,6 +96,8 @@ function ItemLookup({
         name: String(r['name']),
         sku: String(r['sku'] ?? ''),
         onHandMicros: onHand.get(String(r['id'])) ?? 0,
+        trackingMode: (String(r['tracking_mode'] ?? 'none') || 'none') as
+          'none' | 'batch' | 'serial',
       })),
     );
   };
@@ -141,6 +161,43 @@ function ItemLookup({
   );
 }
 
+/** The batch of an item to adjust, with what it holds in the godown chosen. */
+function BatchPick({
+  itemId,
+  godownId,
+  value,
+  index,
+  onChange,
+}: {
+  itemId: string;
+  godownId: string | null;
+  value: string | null;
+  index: number;
+  onChange: (batchId: string | null) => void;
+}) {
+  const { t } = useTranslation();
+  const batches = useBatches(itemId, godownId).data ?? [];
+  return (
+    <Select value={value ?? '__none'} onValueChange={(v) => onChange(v === '__none' ? null : v)}>
+      <SelectTrigger
+        aria-label={t('inventory.adjust.batch')}
+        data-testid={`adjust-row-${index}-batch`}
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="__none">{t('inventory.adjust.chooseBatch')}</SelectItem>
+        {batches.map((b) => (
+          <SelectItem key={b.id} value={b.id}>
+            {b.batchNo}
+            {b.expiryDate ? ` · ${b.expiryDate}` : ''} · {qtyText(b.onHandMicros)}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
 /**
  * Stock adjustment: type quantities for many items at once (add or remove, or set to what was
  * counted), or fill in a count sheet as a CSV and bring it in. Everything is booked in one go with a
@@ -163,6 +220,9 @@ export function AdjustSheet({
   const [rows, setRows] = useState<EntryRow[]>(() => [blank(), blank(), blank()]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const godowns = useGodowns().data ?? [];
+  const [godownId, setGodownId] = useState<string | null>(null);
+  const godownOrDefault = godownId ?? godowns.find((g) => g.isDefault)?.id ?? null;
 
   // a row ready for the item this was opened from
   useEffect(() => {
@@ -179,8 +239,12 @@ export function AdjustSheet({
             name: String(item['name']),
             sku: String(item['sku'] ?? ''),
             onHandMicros: onHand.get(initialItemId) ?? 0,
+            trackingMode: (String(item['tracking_mode'] ?? 'none') || 'none') as
+              'none' | 'batch' | 'serial',
           },
           text: '',
+          batchId: null,
+          serials: '',
         },
         ...rs.slice(1),
       ]);
@@ -215,6 +279,8 @@ export function AdjustSheet({
       const lines = used.map((r) => ({
         itemId: r.item!.id,
         v: (parsed(r) as { micros: number }).micros,
+        batchId: r.batchId,
+        serials: r.serials,
       }));
       const done =
         mode === 'delta'
@@ -222,12 +288,25 @@ export function AdjustSheet({
               date,
               reason,
               ...(note.trim() ? { note } : {}),
-              lines: lines.map((l) => ({ itemId: l.itemId, deltaMicros: l.v })),
+              lines: lines.map((l) => ({
+                itemId: l.itemId,
+                deltaMicros: l.v,
+                godownId,
+                batchId: l.batchId,
+                ...(l.serials.trim()
+                  ? { serials: l.serials.split(/[\s,;]+/).filter(Boolean) }
+                  : {}),
+              })),
             })
           : await repo.applyCount(ctx, {
               date,
+              godownId,
               ...(note.trim() ? { note } : {}),
-              counts: lines.map((l) => ({ itemId: l.itemId, countedMicros: l.v })),
+              counts: lines.map((l) => ({
+                itemId: l.itemId,
+                countedMicros: l.v,
+                batchId: l.batchId,
+              })),
             });
       toast.success(t('inventory.adjust.done', { count: done.adjusted.length }));
       onClose();
@@ -245,7 +324,13 @@ export function AdjustSheet({
   const downloadSheet = async () => {
     if (!database || !ctx) return;
     const items = (await new ItemRepo(database).list(ctx)).filter(TRACKED_ONLY);
-    const onHand = await new InventoryRepo(database).onHand(ctx);
+    const onHand = godownId
+      ? new Map(
+          (await new GodownRepo(database).stock(ctx))
+            .filter((r) => r.godownId === godownId)
+            .map((r) => [r.itemId, r.onHandMicros]),
+        )
+      : await new InventoryRepo(database).onHand(ctx);
     const csv = countSheetTemplate(
       items.map((i) => ({
         sku: String(i['sku'] ?? ''),
@@ -254,14 +339,15 @@ export function AdjustSheet({
       })),
       qtyText,
     );
-    downloadText(`count-sheet_${date}.csv`, csv);
+    const godownName = godowns.find((g) => g.id === godownId)?.name;
+    downloadText(`count-sheet_${godownName ? `${godownName}_` : ''}${date}.csv`, csv);
   };
 
   const readFile = async (file: File) => {
     if (!database || !ctx) return;
     setError(null);
     const read = parseCountSheet(await file.text());
-    const match = await new InventoryRepo(database).matchCount(ctx, read.rows);
+    const match = await new InventoryRepo(database).matchCount(ctx, read.rows, { godownId });
     setSheet({ read, match });
   };
 
@@ -272,6 +358,7 @@ export function AdjustSheet({
     try {
       const done = await new InventoryRepo(database).applyCount(ctx, {
         date,
+        godownId,
         ...(note.trim() ? { note } : {}),
         counts: sheet.match.matched.map((m) => ({
           itemId: m.itemId,
@@ -332,6 +419,26 @@ export function AdjustSheet({
               </Select>
             </div>
           )}
+          {godowns.length > 1 && (
+            <div className="text-sm">
+              <span className="block pb-1 text-fg-muted">{t('inventory.adjust.godown')}</span>
+              <Select value={godownOrDefault ?? ''} onValueChange={(v) => setGodownId(v)}>
+                <SelectTrigger
+                  aria-label={t('inventory.adjust.godown')}
+                  data-testid="adjust-godown"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {godowns.map((g) => (
+                    <SelectItem key={g.id} value={g.id}>
+                      {g.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <label className="text-sm sm:col-span-1">
             <span className="block pb-1 text-fg-muted">{t('inventory.adjust.note')}</span>
             <Input
@@ -383,7 +490,27 @@ export function AdjustSheet({
                     key={r.key}
                     className="grid grid-cols-[minmax(0,1fr)_8rem_7rem] items-start gap-2"
                   >
-                    <ItemLookup row={r} index={i} onPick={(item) => patch(r.key, { item })} />
+                    <div className="flex flex-col gap-1">
+                      <ItemLookup row={r} index={i} onPick={(item) => patch(r.key, { item })} />
+                      {r.item?.trackingMode === 'batch' && (
+                        <BatchPick
+                          itemId={r.item.id}
+                          godownId={godownOrDefault}
+                          value={r.batchId}
+                          index={i}
+                          onChange={(batchId) => patch(r.key, { batchId })}
+                        />
+                      )}
+                      {r.item?.trackingMode === 'serial' && (
+                        <Input
+                          value={r.serials}
+                          placeholder={t('inventory.adjust.serials')}
+                          aria-label={t('inventory.adjust.serials')}
+                          data-testid={`adjust-row-${i}-serials`}
+                          onChange={(e) => patch(r.key, { serials: e.target.value })}
+                        />
+                      )}
+                    </div>
                     <div>
                       <Input
                         inputMode="decimal"

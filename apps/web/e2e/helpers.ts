@@ -10,13 +10,18 @@ import { expect, type Locator, type Page } from '@playwright/test';
 export async function openSeeded(
   page: Page,
   path = '/books/dashboard',
-  opts: { heavy?: boolean } = {},
+  opts: { heavy?: boolean; pharma?: boolean } = {},
 ) {
   const join = path.includes('?') ? '&' : '?';
-  await page.goto(`${path}${join}demo=1${opts.heavy ? '&heavy=1' : ''}`);
-  await expect(page.getByTestId('badge-documents')).toHaveText(opts.heavy ? '700' : '500', {
-    timeout: 30_000,
-  });
+  await page.goto(
+    `${path}${join}demo=1${opts.heavy ? '&heavy=1' : ''}${opts.pharma ? '&pharma=1' : ''}`,
+  );
+  // the pharma seed runs after the demo and ends with a sixth document of its own; a navigation
+  // before it is done would cut it short, so wait for that last one
+  await expect(page.getByTestId('badge-documents')).toHaveText(
+    opts.heavy ? '700' : opts.pharma ? '506' : '500',
+    { timeout: 60_000 },
+  );
 }
 
 export async function openCommandBar(page: Page) {

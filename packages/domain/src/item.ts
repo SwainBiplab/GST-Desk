@@ -23,6 +23,10 @@ export interface ItemFields {
   /** Primary units in one secondary unit, in micro-units. */
   secondary_factor_micros?: number | null;
   track_stock?: boolean | null;
+  /** none, batch or serial (prompt 51). */
+  tracking_mode?: string | null;
+  expiry_required?: boolean | null;
+  default_godown_id?: string | null;
   opening_stock_micros?: number | null;
   opening_stock_value_paise?: number | null;
   min_stock_micros?: number | null;
@@ -49,7 +53,10 @@ export type ItemErrorCode =
   | 'secondary_factor'
   | 'service_stock'
   | 'opening_qty'
-  | 'opening_value';
+  | 'opening_value'
+  | 'tracking_mode'
+  | 'tracking_change'
+  | 'godown';
 
 export type ItemWarningCode =
   'gst_overridden' | 'sale_above_mrp' | 'sale_below_purchase' | 'no_hsn';
@@ -95,6 +102,10 @@ export function validateItemInput(i: ItemFields): Partial<Record<keyof ItemField
   }
 
   if (i.kind === 'service' && i.track_stock) e.track_stock = 'service_stock';
+  const mode = i.tracking_mode ?? 'none';
+  if (!['none', 'batch', 'serial'].includes(mode)) e.tracking_mode = 'tracking_mode';
+  else if (mode !== 'none' && !i.track_stock) e.tracking_mode = 'tracking_mode';
+  if (i.expiry_required && mode !== 'batch') e.expiry_required = 'tracking_mode';
   if (present(i.min_stock_micros) && !isCount(i.min_stock_micros))
     e.min_stock_micros = 'opening_qty';
   if (present(i.opening_stock_micros) && !isCount(i.opening_stock_micros))

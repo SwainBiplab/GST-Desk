@@ -28,9 +28,17 @@ export const TABLES_TAX = ['tax_challans', 'tax_deductions', 'tds_receivable'] a
 export const TABLES_AI = ['hsn_embeddings'] as const;
 /** The journal, recurring journal and year-end tables (prompt 50): their guards are in `9009_extras_ledger`. */
 export const TABLES_LEDGER = ['recurring_journals', 'journal_vouchers', 'fiscal_years'] as const;
+/** The serial, transfer and godown-level tables (prompt 51): their guards are in `9010_extras_inventory`. */
+export const TABLES_INVENTORY = [
+  'serials',
+  'stock_transfers',
+  'stock_transfer_lines',
+  'godown_levels',
+] as const;
 const later = (t: string) =>
   (TABLES_AFTER_V1 as readonly string[]).includes(t) ||
   (TABLES_LEDGER as readonly string[]).includes(t) ||
+  (TABLES_INVENTORY as readonly string[]).includes(t) ||
   (TABLES_AI as readonly string[]).includes(t) ||
   (TABLES_TAX as readonly string[]).includes(t) ||
   (TABLES_RECON as readonly string[]).includes(t) ||
@@ -250,6 +258,8 @@ export const aiExtrasSql = (dialect: Dialect): string =>
 /** The same guards for the TDS and TCS tables. */
 export const taxExtrasSql = (dialect: Dialect): string => guardsSql(dialect, TABLES_TAX);
 export const ledgerExtrasSql = (dialect: Dialect): string => guardsSql(dialect, TABLES_LEDGER);
+export const inventoryExtrasSql = (dialect: Dialect): string =>
+  guardsSql(dialect, TABLES_INVENTORY);
 
 /**
  * SQLite drops a table's triggers when a migration rebuilds it (0011 rebuilt `number_reservations` to drop a

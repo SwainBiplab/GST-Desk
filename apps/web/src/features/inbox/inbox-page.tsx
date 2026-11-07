@@ -74,6 +74,7 @@ const KIND_TONE: Record<string, 'info' | 'warning' | 'danger' | 'neutral' | 'acc
   rate_change: 'accent',
   reminder_due: 'accent',
   low_stock: 'warning',
+  expiry_due: 'warning',
   draft_stale: 'neutral',
   backup_failed: 'danger',
   prefiling_issue: 'warning',

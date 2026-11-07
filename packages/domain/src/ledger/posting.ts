@@ -29,6 +29,9 @@ export type AccountKey =
   | 'tdsReceivable'
   | 'discountAllowed'
   | 'discountReceived'
+  /** Stock on hand at cost, and the P&L line it moves through (prompt 51). */
+  | 'inventory'
+  | 'stockChange'
   | `output${TaxHead}`
   | `input${TaxHead}`;
 
@@ -149,6 +152,46 @@ export function postDocument(doc: PostableDocument): LedgerLine[] {
     }
   }
 
+  assertBalanced(lines);
+  return lines;
+}
+
+/** What a stock movement is set against in the books. */
+export type StockAgainst = 'stockChange' | 'adjustments' | 'openingEquity';
+
+export interface PostableStock {
+  direction: 'in' | 'out';
+  /** The cost of the goods moved (never negative). */
+  costPaise: bigint;
+  /**
+   * Goods bought or sold move through Changes in Inventory (Purchases plus this line is the cost of
+   * goods sold); an adjustment through Adjustments; opening stock through Opening Balance Equity.
+   */
+  against: StockAgainst;
+  narration: string;
+}
+
+/**
+ * Goods in at cost debit Inventory; goods out credit it for what they cost. Nothing posts for a zero
+ * cost. A transfer between godowns is not a posting: the stock is the business's either way.
+ */
+export function postStock(p: PostableStock): LedgerLine[] {
+  if (p.costPaise < 0n) throw new PostingError('negative stock cost');
+  if (p.costPaise === 0n) return [];
+  const dr = (account: AccountKey): LedgerLine => ({
+    account,
+    debitPaise: p.costPaise,
+    creditPaise: 0n,
+    narration: p.narration,
+  });
+  const cr = (account: AccountKey): LedgerLine => ({
+    account,
+    debitPaise: 0n,
+    creditPaise: p.costPaise,
+    narration: p.narration,
+  });
+  const lines =
+    p.direction === 'in' ? [dr('inventory'), cr(p.against)] : [dr(p.against), cr('inventory')];
   assertBalanced(lines);
   return lines;
 }

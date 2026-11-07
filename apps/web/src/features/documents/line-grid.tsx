@@ -1,5 +1,11 @@
 import type { Row } from '@gst/db';
-import { isBlankLine, type BuiltDocument, type DraftDocument, type DraftIssue } from '@gst/domain';
+import {
+  isBlankLine,
+  type BuiltDocument,
+  type DraftDocument,
+  type DraftIssue,
+  type DraftLine,
+} from '@gst/domain';
 import {
   Button,
   CompactSelection,
@@ -55,6 +61,7 @@ const WIDTH: Record<GridColumn, number> = {
   taxRate: 76,
   tax: 100,
   total: 120,
+  stock: 150,
   note: 180,
 };
 const NUMERIC: ReadonlySet<GridColumn> = new Set([
@@ -94,18 +101,35 @@ const LineGridInner = forwardRef<
     onPickItem: (row: number, typed?: string) => void;
     onTrace: (lineKey: string) => void;
     onToggleColumn: (col: GridColumn) => void;
+    /** Enter or a double click on the stock column: choose the batch, serials and godown. */
+    onStockDetails?: (row: number) => void;
+    /** The text of the stock column (prompt 51). */
+    stockText?: (l: DraftLine) => string;
   }
 >(function LineGrid(
-  { draft, built, issues, units, hidden, readOnly, onChange, onPickItem, onTrace, onToggleColumn },
+  {
+    draft,
+    built,
+    issues,
+    units,
+    hidden,
+    readOnly,
+    onChange,
+    onPickItem,
+    onTrace,
+    onToggleColumn,
+    onStockDetails,
+    stockText,
+  },
   ref,
 ) {
   const { t } = useTranslation();
   const grid = useRef<DataEditorRef>(null);
   // the parent's handlers change every render; the grid reads the latest through this, so it can skip
   // redrawing while its own data stays the same
-  const handlers = useRef({ onChange, onPickItem, onTrace, onToggleColumn });
+  const handlers = useRef({ onChange, onPickItem, onTrace, onToggleColumn, onStockDetails });
   useEffect(() => {
-    handlers.current = { onChange, onPickItem, onTrace, onToggleColumn };
+    handlers.current = { onChange, onPickItem, onTrace, onToggleColumn, onStockDetails };
   });
   const [selection, setSelection] = useState<GridSelection>({
     columns: CompactSelection.empty(),
@@ -191,6 +215,7 @@ const LineGridInner = forwardRef<
         units: unitCodes,
         discountMode: draft.discountMode,
         built: builtByKey.get(line.key),
+        ...(stockText ? { stockText } : {}),
       });
       // the item column is picked from a list, not typed into: Enter, a double click or a letter opens it
       const editable =
@@ -208,7 +233,7 @@ const LineGridInner = forwardRef<
         ...(COMPUTED.has(col) ? { themeOverride: muted } : {}),
       }));
     },
-    [visible, draft.lines, draft.discountMode, unitCodes, builtByKey, readOnly, muted],
+    [visible, draft.lines, draft.discountMode, unitCodes, builtByKey, readOnly, muted, stockText],
   );
 
   const onCellEdited = useCallback(
@@ -262,7 +287,9 @@ const LineGridInner = forwardRef<
   useEffect(() => {
     itemKey.current = (e) => {
       const cell = selection.current?.cell;
-      if (!cell || readOnly || visible[cell[0]] !== 'item') return;
+      if (!cell || readOnly) return;
+      const col = visible[cell[0]];
+      if (col !== 'item' && col !== 'stock') return;
       if (e.ctrlKey || e.metaKey || e.altKey || e.defaultPrevented) return;
       if (document.querySelector('[role="dialog"], [role="alertdialog"], [role="listbox"]')) return;
       const focus = document.activeElement;
@@ -270,6 +297,13 @@ const LineGridInner = forwardRef<
       if (!inside) return;
       const typed = e.key.length === 1 && e.key !== ' ';
       if (e.key !== 'Enter' && !typed) return;
+      if (col === 'stock') {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        e.stopPropagation();
+        handlers.current.onStockDetails?.(cell[1]);
+        return;
+      }
       e.preventDefault();
       e.stopPropagation();
       handlers.current.onPickItem(cell[1], typed ? e.key : undefined);
@@ -341,6 +375,7 @@ const LineGridInner = forwardRef<
           onCellActivated={([c, r]) => {
             // a double click (Enter and Space are handled above, before Glide sees them)
             if (!readOnly && visible[c] === 'item') handlers.current.onPickItem(r);
+            if (!readOnly && visible[c] === 'stock') handlers.current.onStockDetails?.(r);
           }}
           onFinishedEditing={(value, movement) => {
             // Enter after a quantity goes to the next line's item, ready to pick the next item
@@ -417,5 +452,6 @@ export const LineGrid = memo(
     sameIssues(a.issues, b.issues) &&
     a.units === b.units &&
     a.hidden === b.hidden &&
-    a.readOnly === b.readOnly,
+    a.readOnly === b.readOnly &&
+    a.stockText === b.stockText,
 );

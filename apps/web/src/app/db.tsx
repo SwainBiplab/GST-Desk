@@ -3,6 +3,7 @@
  * `useLiveQuery` hook that refetches when repositories commit writes to the tables it reads.
  */
 import { announce, listBusinesses, onChange, type Ctx, type Database, type Row } from '@gst/db';
+import { today } from '@gst/domain';
 import { useQuery, useQueryClient, type QueryKey } from '@tanstack/react-query';
 import {
   createContext,
@@ -45,6 +46,9 @@ const Context = createContext<AppDbValue | null>(null);
 /** Read once at load: router redirects drop the query string. */
 export const DEMO_REQUESTED =
   new URLSearchParams(typeof location === 'undefined' ? '' : location.search).get('demo') === '1';
+/** `?demo=1&pharma=1` also adds batch-, expiry- and serial-tracked stock in two godowns, valued FIFO (prompt 51). */
+const PHARMA_REQUESTED =
+  new URLSearchParams(typeof location === 'undefined' ? '' : location.search).get('pharma') === '1';
 /** `?demo=1&heavy=1` also adds one party with 200 invoices, for scale checks. */
 const HEAVY_REQUESTED =
   new URLSearchParams(typeof location === 'undefined' ? '' : location.search).get('heavy') === '1';
@@ -184,6 +188,10 @@ export function AppDbProvider({ children }: { children: ReactNode }) {
       ...(HEAVY_REQUESTED ? { heavyParty: 200 } : {}),
       ...(INBOX_REQUESTED > 0 ? { inboxItems: INBOX_REQUESTED } : {}),
     });
+    if (PHARMA_REQUESTED) {
+      const { seedPharma } = await import('@gst/db/seed-pharma');
+      await seedPharma(database, seeded, { today: today(() => new Date()), method: 'fifo' });
+    }
     announce(database, TABLES_ALL);
     setBusinessId(seeded.businessId);
   }, [database, setBusinessId]);

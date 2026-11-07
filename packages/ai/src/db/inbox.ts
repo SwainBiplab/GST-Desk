@@ -10,6 +10,7 @@
 import {
   AttachmentRepo,
   BaseRepo,
+  BatchRepo,
   BusinessRepo,
   DocumentFlowRepo,
   GstrRepo,
@@ -29,9 +30,11 @@ import { draftToRows, emptyDraft, emptyDraftLine, type DraftDocument } from '@gs
 import { isLanguage, languageOfState, reminderText, type PrintLanguage } from '@gst/i18n';
 
 import {
+  EXPIRY_HORIZON_DAYS,
   detectBackupFailure,
   detectDuplicateItems,
   detectDuplicateParties,
+  detectExpiry,
   detectHsnSuggestions,
   detectLowStock,
   detectPrefilingIssues,
@@ -239,6 +242,14 @@ async function doRun(db: Database, ctx: Ctx, opts: Tier0Options): Promise<Tier0R
         now,
       ),
     );
+
+  if (want.has('expiry_due') && opts.inventoryEnabled) {
+    const day = new Date(now + IST).toISOString().slice(0, 10);
+    add(
+      'expiry_due',
+      detectExpiry(await new BatchRepo(db).expiring(ctx, day, EXPIRY_HORIZON_DAYS), now),
+    );
+  }
 
   if (want.has('prefiling_issue')) {
     // the GST return check for last month and this month (nothing if the business does not file)

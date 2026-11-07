@@ -44,6 +44,7 @@ import { useAppDb, useLiveQuery } from '@/app/db';
 import { useAppNavigate } from '@/app/hooks';
 import type { Shell } from '@/app/store';
 import { editorPath } from '@/features/documents/editor-page';
+import { useGodowns } from '@/features/inventory/hooks';
 import { track } from '@/features/telemetry/telemetry';
 import { dyn } from '@/lib/dyn-key';
 import { useTerm } from '@/lib/terms';
@@ -62,6 +63,34 @@ const widthOf = (key: string, kind: string): string =>
         : key === 'description'
           ? 'minmax(10rem,2fr)'
           : '8rem';
+
+/** Stock reports: one godown, or all of them. */
+function GodownFilter({
+  godownId,
+  onChange,
+}: {
+  godownId: string | null;
+  onChange: (id: string | null) => void;
+}) {
+  const { t } = useTranslation();
+  const godowns = useGodowns(true).data ?? [];
+  if (godowns.length < 2) return null;
+  return (
+    <Select value={godownId ?? 'all'} onValueChange={(v) => onChange(v === 'all' ? null : v)}>
+      <SelectTrigger className="w-44" aria-label={t('reports.godown')} data-testid="report-godown">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all">{t('reports.allGodowns')}</SelectItem>
+        {godowns.map((g) => (
+          <SelectItem key={g.id} value={g.id}>
+            {g.name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
 
 function PartyFilter({
   partyId,
@@ -359,6 +388,9 @@ export function ReportView({
         {def.filters.includes('party') && (
           <PartyFilter partyId={state.partyId} onChange={(id) => go({ partyId: id })} />
         )}
+        {def.filters.includes('godown') && (
+          <GodownFilter godownId={state.godownId} onChange={(id) => go({ godownId: id })} />
+        )}
         {def.typeOptions && (
           <Select
             value={state.type ?? 'all'}
@@ -374,14 +406,14 @@ export function ReportView({
             <SelectContent>
               {state.id !== 'gst_summary' && (
                 <SelectItem value="all">
-                  {state.id === 'stock_summary' ? t('reports.allItems') : t('reports.allTypes')}
+                  {def.section === 'stock' ? t('reports.allItems') : t('reports.allTypes')}
                 </SelectItem>
               )}
               {def.typeOptions.map((o) => (
                 <SelectItem key={o} value={o}>
                   {state.id === 'gst_summary'
                     ? t(dyn(`reports.side.${o}`))
-                    : state.id === 'stock_summary'
+                    : def.section === 'stock'
                       ? t(dyn(`reports.stockFilter.${o}`))
                       : t(`docs.types.${o}`, { defaultValue: o })}
                 </SelectItem>

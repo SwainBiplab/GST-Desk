@@ -214,6 +214,11 @@ export function draftFromRows(
         cessBp: Number(l['cess_bp'] ?? 0),
         taxability: (str(l['taxability'], 'taxable') as Taxability) || 'taxable',
         note: str(l['note']),
+        godownId: (l['godown_id'] as string | null) ?? null,
+        batchId: (l['batch_id'] as string | null) ?? null,
+        serials: Array.isArray(l['serials_json'])
+          ? (l['serials_json'] as unknown[]).filter((x): x is string => typeof x === 'string')
+          : [],
       })),
   };
 }

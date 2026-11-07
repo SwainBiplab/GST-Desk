@@ -32,6 +32,8 @@ export interface ReportState {
   from: string;
   to: string;
   partyId: string | null;
+  /** Stock reports: one godown. */
+  godownId: string | null;
   type: string | null;
   side: 'all' | 'receivable' | 'payable';
   book: 'all' | 'cash' | 'bank';
@@ -81,6 +83,7 @@ export function readReportState(
     from: fromOk <= toOk ? fromOk : toOk,
     to: fromOk <= toOk ? toOk : fromOk,
     partyId: str(search['party']),
+    godownId: str(search['godown']),
     // the first type option is the default when a report has options that cannot be combined
     type: type && (!def.typeOptions || def.typeOptions.includes(type)) ? type : defaultType(def),
     side: side === 'all' || side === 'payable' ? side : 'receivable',
@@ -105,6 +108,7 @@ export function writeReportState(s: ReportState): Record<string, string> {
     out['to'] = s.to;
   }
   if (s.partyId) out['party'] = s.partyId;
+  if (s.godownId) out['godown'] = s.godownId;
   if (s.type && s.type !== defaultType(def)) out['type'] = s.type;
   if (s.side !== 'receivable') out['side'] = s.side;
   if (s.book !== 'all') out['book'] = s.book;
@@ -117,6 +121,7 @@ export function writeReportState(s: ReportState): Record<string, string> {
 export function toParams(s: ReportState, today: string): ReportParams {
   const p: ReportParams = { from: s.from, to: s.to, today };
   if (s.partyId) p.partyId = s.partyId;
+  if (s.godownId) p.godownId = s.godownId;
   if (s.type) p.type = s.type;
   p.side = s.side;
   p.book = s.book;

@@ -44,6 +44,10 @@ export interface ItemDraft {
   /** Primary units in one secondary unit, as typed: "12". */
   secondaryFactor: string;
   trackStock: boolean;
+  /** none, batch or serial (prompt 51). */
+  trackingMode: 'none' | 'batch' | 'serial';
+  expiryRequired: boolean;
+  defaultGodownId: string;
   openingQty: string;
   openingValue: string;
   reorder: string;
@@ -72,6 +76,9 @@ export const emptyItemDraft = (over: Partial<ItemDraft> = {}): ItemDraft => ({
   secondaryUnitId: '',
   secondaryFactor: '',
   trackStock: false,
+  trackingMode: 'none',
+  expiryRequired: false,
+  defaultGodownId: '',
   openingQty: '',
   openingValue: '',
   reorder: '',
@@ -96,6 +103,9 @@ const FORM_FIELD: Record<string, keyof ItemDraft> = {
   secondary_unit_id: 'secondaryUnitId',
   secondary_factor_micros: 'secondaryFactor',
   track_stock: 'trackStock',
+  tracking_mode: 'trackingMode',
+  expiry_required: 'expiryRequired',
+  default_godown_id: 'defaultGodownId',
   opening_stock_micros: 'openingQty',
   opening_stock_value_paise: 'openingValue',
   opening_stock_value: 'openingValue',
@@ -168,6 +178,9 @@ export function parseDraft(d: ItemDraft): Parsed {
     secondary_unit_id: d.secondaryUnitId || null,
     secondary_factor_micros: d.secondaryUnitId ? factor : null,
     track_stock: d.trackStock,
+    tracking_mode: d.trackStock ? d.trackingMode : 'none',
+    expiry_required: d.trackStock && d.trackingMode === 'batch' ? d.expiryRequired : false,
+    default_godown_id: d.defaultGodownId || null,
     opening_stock_micros: openQty,
     opening_stock_value_paise: openValue,
     min_stock_micros: reorder,
@@ -207,6 +220,9 @@ export function draftToValues(d: ItemDraft): Record<string, unknown> {
     gst_rate_bp: fields.gst_rate_bp ?? 0,
     cess_bp: fields.cess_bp ?? 0,
     track_stock: d.kind === 'service' ? false : d.trackStock,
+    tracking_mode: fields.tracking_mode ?? 'none',
+    expiry_required: fields.expiry_required ?? false,
+    default_godown_id: fields.default_godown_id ?? null,
     min_stock_micros: fields.min_stock_micros ?? 0,
     opening_stock_micros: fields.opening_stock_micros ?? 0,
     opening_stock_value_paise: fields.opening_stock_value_paise ?? 0,
@@ -250,6 +266,11 @@ export function rowToDraft(r: Row): ItemDraft {
       ? trimZeros(text(r['secondary_factor_micros'], 6))
       : '',
     trackStock: !!r['track_stock'],
+    trackingMode: (['batch', 'serial'].includes(String(r['tracking_mode']))
+      ? r['tracking_mode']
+      : 'none') as ItemDraft['trackingMode'],
+    expiryRequired: !!r['expiry_required'],
+    defaultGodownId: r['default_godown_id'] ?? '',
     openingQty: r['opening_stock_micros'] ? trimZeros(text(r['opening_stock_micros'], 6)) : '',
     openingValue: text(r['opening_stock_value_paise']),
     reorder: r['min_stock_micros'] ? trimZeros(text(r['min_stock_micros'], 6)) : '',

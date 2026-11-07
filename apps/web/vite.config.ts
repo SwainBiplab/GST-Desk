@@ -99,6 +99,7 @@ export default defineConfig({
       { find: /^@gst\/print\/fonts\.web$/, replacement: root('print/src/fonts.web.ts') },
       { find: /^@gst\/db\/node$/, replacement: root('db/src/node.ts') },
       { find: /^@gst\/db\/seed$/, replacement: root('db/src/seed.ts') },
+      { find: /^@gst\/db\/seed-pharma$/, replacement: root('db/src/seed-pharma.ts') },
       { find: /^@gst\/(domain|db|ui|ai|i18n|print)$/, replacement: root('$1/src/index.ts') },
     ],
   },

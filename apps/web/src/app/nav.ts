@@ -17,6 +17,7 @@ import {
   ShoppingCart,
   Users,
   Wallet,
+  Warehouse,
   type LucideProps,
 } from '@gst/ui/icons';
 import type { ComponentType } from 'react';
@@ -30,6 +31,7 @@ export type PageId =
   | 'payments'
   | 'reports'
   | 'ledger'
+  | 'stock'
   | 'gst'
   | 'einvoice'
   | 'caboard'
@@ -48,6 +50,7 @@ export const PAGE_IDS: PageId[] = [
   'payments',
   'reports',
   'ledger',
+  'stock',
   'gst',
   'einvoice',
   'caboard',
@@ -135,7 +138,10 @@ export const BOOKS_NAV: NavSection[] = [
   {
     id: 'items',
     label: 'nav.sections.items',
-    items: [item('items', Boxes, { badge: 'items', hint: 'G I' })],
+    items: [
+      item('items', Boxes, { badge: 'items', hint: 'G I' }),
+      item('stock', Warehouse, { hint: 'G T', flag: 'inventory' }),
+    ],
   },
   {
     id: 'money',

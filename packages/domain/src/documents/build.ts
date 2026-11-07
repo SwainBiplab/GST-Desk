@@ -37,6 +37,12 @@ export interface DraftLine {
   cessBp: number;
   taxability: Taxability;
   note: string;
+  /** Where the goods come from or go to; null means the item's (then the business's) default godown. */
+  godownId: string | null;
+  /** A batch-tracked item: the batch chosen; null on a sale means first expiry, first out. */
+  batchId: string | null;
+  /** A serial-tracked item: one serial per unit. */
+  serials: string[];
 }
 
 export interface DraftDocument {
@@ -99,6 +105,9 @@ export const emptyDraftLine = (key: string): DraftLine => ({
   cessBp: 0,
   taxability: 'taxable',
   note: '',
+  godownId: null,
+  batchId: null,
+  serials: [],
 });
 
 export const emptyDraft = (
@@ -207,6 +216,9 @@ export interface LineRow {
   price_includes_tax: boolean;
   taxability: Taxability;
   note: string | null;
+  godown_id: string | null;
+  batch_id: string | null;
+  serials_json: string[] | null;
 }
 
 /** Plain-number totals, shaped like the money columns of a `documents` row. */
@@ -277,6 +289,9 @@ function rowOf(l: DraftLine, r: LineResult, lineNo: number, mode: LineDiscountMo
     price_includes_tax: l.inclusive,
     taxability: l.taxability,
     note: l.note.trim() || null,
+    godown_id: l.godownId,
+    batch_id: l.batchId,
+    serials_json: l.serials.length > 0 ? [...l.serials] : null,
   };
 }
 

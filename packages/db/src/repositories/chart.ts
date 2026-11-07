@@ -30,6 +30,10 @@ export const ACCOUNTS: Record<AccountKey, [string, string, string]> = {
   tdsReceivable: ['1400', 'TDS Receivable', 'asset'],
   discountAllowed: ['5500', 'Discount Allowed', 'expense'],
   discountReceived: ['4100', 'Discount Received', 'income'],
+  // stock at cost and the P&L line it moves through (prompt 51): Purchases plus Changes in Inventory
+  // is the cost of goods sold
+  inventory: ['1250', 'Inventory', 'asset'],
+  stockChange: ['5050', 'Changes in Inventory', 'expense'],
   // one ledger per tax head (prompt 50); businesses from before carry the old aggregate ledgers
   // (`LEGACY_TAX_ACCOUNTS`) until the year-end screen reclassifies them
   outputCgst: ['2110', 'Output CGST', 'liability'],
@@ -52,6 +56,7 @@ export const SYSTEM_SUB_GROUPS: Record<string, string> = {
   '1000': 'cash',
   '1100': 'bank',
   '1200': 'receivables',
+  '1250': 'current_assets',
   '1300': 'duties_taxes',
   '1310': 'duties_taxes',
   '1320': 'duties_taxes',
@@ -74,6 +79,7 @@ export const SYSTEM_SUB_GROUPS: Record<string, string> = {
   '4000': 'sales',
   '4100': 'other_income',
   '5000': 'purchases',
+  '5050': 'purchases',
   '5100': 'indirect_expenses',
   '5200': 'indirect_expenses',
   '5300': 'indirect_expenses',
@@ -111,6 +117,31 @@ export const toMeta = (r: Row): ChartAccount => ({
 });
 
 /* ------------------------------------------------------------------------------------- chart */
+
+/** The id of a system account by key, made (with its group) the first time it is needed. */
+export async function accountIdByKeyIn(
+  d: Database,
+  tx: any,
+  ctx: Ctx,
+  key: AccountKey,
+): Promise<string> {
+  const [code, name, type] = ACCOUNTS[key];
+  const t = d.schema.ledger_accounts;
+  const [row]: Row[] = await tx
+    .select({ id: t.id })
+    .from(t)
+    .where(and(eq(t.business_id, ctx.businessId), eq(t.code, code), isNull(t.deleted_at)))
+    .limit(1);
+  if (row) return String(row['id']);
+  const made = await (new ChartRepo(d) as any).createIn(tx, ctx, {
+    code,
+    name,
+    type,
+    sub_group: SYSTEM_SUB_GROUPS[code] ?? null,
+    is_system: true,
+  });
+  return String(made['id']);
+}
 
 export class ChartRepo extends BaseRepo {
   constructor(d: Database) {

@@ -8,16 +8,21 @@ import {
   POSTS_TO_LEDGER,
   canIssue,
   cancelBlocker,
+  checkSerials,
   classifyEdit,
   formatDocumentNumber,
   fyOf,
   isProvisional,
+  parseSerials,
+  pickFefo,
   postDocument,
   provisionalNumber,
+  serialCountMatches,
   stockEffectOf,
   takeNext,
   type AccountKey,
   type DocumentType,
+  type TrackingMode,
 } from '@gst/domain';
 import { and, desc, eq, gte, isNull, lte, ne } from 'drizzle-orm';
 
@@ -34,11 +39,20 @@ import {
   runInTx,
   type Ctx,
 } from './base';
-import { ACCOUNTS } from './chart';
-import { InsufficientStockError, checkIssueIn } from './inventory';
+import {
+  batchAvailabilityIn,
+  batchOnHandIn,
+  jsonList,
+  placeSerialsIn,
+  serialStatesIn,
+} from './batches';
+import { ACCOUNTS, SYSTEM_SUB_GROUPS } from './chart';
+import { defaultGodownIdIn } from './godowns';
+import { InsufficientStockError, checkIssueIn, stockPolicyIn } from './inventory';
 import { consistencyValidator } from './line-math';
 import { NumberingRepo, type ShellName } from './numbering';
 import { PeriodLockRepo, type LockOverride } from './period-lock';
+import { postDocumentStockIn, stockLines, valuationIn, valueItemIn } from './stock-ledger';
 
 const DEFAULT_PREFIX: Record<string, string> = {
   tax_invoice: 'INV/{FY}/',
@@ -319,6 +333,7 @@ export class DocumentFlowRepo extends BaseRepo {
       code,
       name,
       type,
+      sub_group: SYSTEM_SUB_GROUPS[code] ?? null,
       is_system: true,
     });
     return made['id'];
@@ -758,6 +773,7 @@ export class DocumentFlowRepo extends BaseRepo {
       )
         return;
     }
+    const policy = await stockPolicyIn(tx, ctx, this.d);
     if (effect === 'out') {
       const { decision } = await checkIssueIn(
         this.d,
@@ -775,30 +791,173 @@ export class DocumentFlowRepo extends BaseRepo {
     const itemIds = [...new Set(lines.map((l) => l['item_id']).filter((x): x is string => !!x))];
     if (itemIds.length === 0) return;
     const items = this.d.schema.items;
-    const tracked: Row[] = await tx
-      .select({ id: items.id, track: items.track_stock })
+    const itemRows: Row[] = await tx
+      .select()
       .from(items)
       .where(and(eq(items.business_id, ctx.businessId), isNull(items.deleted_at)));
-    const trackedIds = new Set(tracked.filter((i) => i['track']).map((i) => i['id']));
-    const g = this.d.schema.godowns;
-    const [godown]: Row[] = await tx
-      .select({ id: g.id })
-      .from(g)
-      .where(and(eq(g.business_id, ctx.businessId), eq(g.is_default, true), isNull(g.deleted_at)))
-      .limit(1);
+    const tracked = new Map(
+      itemRows.filter((i) => i['track_stock']).map((i) => [String(i['id']), i]),
+    );
+    const defaultGodown = await defaultGodownIdIn(this.d, tx, ctx);
+    const valuation = await valuationIn(this.d, tx, ctx);
+    const date = String(doc['date']);
+    const label = `${doc['type']} ${doc['number']}`;
+    const purchase = doc['type'] === 'purchase_bill';
+    const written: { id: string; itemId: string; version: number }[] = [];
+
     for (const l of lines) {
-      if (!l['item_id'] || !trackedIds.has(l['item_id'])) continue;
+      const item = l['item_id'] ? tracked.get(String(l['item_id'])) : undefined;
+      if (!item) continue;
+      const itemId = String(item['id']);
+      const name = String(item['name']);
       const qty = Number(l['qty_micros']);
-      await (this.movements as any).createIn(tx, ctx, {
-        item_id: l['item_id'],
-        godown_id: godown?.['id'] ?? null,
-        kind: effect,
-        qty_micros: effect === 'out' ? -qty : qty,
-        rate_paise: Number(l['rate_paise']),
-        document_id: doc['id'],
-        date: doc['date'],
-        note: `${doc['type']} ${doc['number']}`,
-      });
+      const mode = (String(item['tracking_mode'] ?? 'none') || 'none') as TrackingMode;
+      const godownId =
+        (l['godown_id'] as string | null) ??
+        (item['default_godown_id'] as string | null) ??
+        defaultGodown;
+      // how the line's quantity splits over batches (one part, unless FEFO picks several)
+      const parts: { batchId: string | null; qtyMicros: number; serials: string[] }[] = [];
+      if (mode === 'serial') {
+        const serials = parseSerials(jsonList(l['serials_json']).join('\n')).serials;
+        if (!serialCountMatches(serials, qty))
+          throw new RuleError(
+            `${name}: list one serial number per unit (${serials.length} given for ${qty / 1e6}).`,
+          );
+        const states = await serialStatesIn(
+          this.d,
+          tx,
+          ctx,
+          itemId,
+          serials,
+          effect === 'out' ? godownId : null,
+        );
+        const check = checkSerials(serials, states, effect);
+        if (check.unavailable.length > 0)
+          throw new RuleError(
+            `${name}: not in stock: ${check.unavailable.slice(0, 5).join(', ')}${check.unavailable.length > 5 ? ', …' : ''}`,
+          );
+        if (check.alreadyIn.length > 0)
+          throw new RuleError(
+            `${name}: already in stock: ${check.alreadyIn.slice(0, 5).join(', ')}${check.alreadyIn.length > 5 ? ', …' : ''}`,
+          );
+        parts.push({ batchId: (l['batch_id'] as string | null) ?? null, qtyMicros: qty, serials });
+      } else if (mode === 'batch') {
+        const chosen = (l['batch_id'] as string | null) ?? null;
+        if (chosen) {
+          const b = this.d.schema.batches;
+          const [batch]: Row[] = await tx
+            .select()
+            .from(b)
+            .where(and(eq(b.id, chosen), eq(b.business_id, ctx.businessId), isNull(b.deleted_at)))
+            .limit(1);
+          if (!batch || batch['item_id'] !== itemId)
+            throw new RuleError(`${name}: the batch chosen is not one of its batches.`);
+          if (effect === 'in' && item['expiry_required'] && !batch['expiry_date'])
+            throw new RuleError(`${name}: batch ${batch['batch_no']} needs an expiry date.`);
+          if (effect === 'out') {
+            const have =
+              (await batchOnHandIn(this.d, tx, ctx, { itemIds: [itemId], godownId })).get(
+                `${itemId}|${chosen}`,
+              ) ?? 0;
+            if (have < qty && policy === 'block')
+              throw new InsufficientStockError([
+                {
+                  itemId,
+                  name: `${name} (batch ${batch['batch_no']})`,
+                  onHandMicros: have,
+                  needMicros: qty,
+                  afterMicros: have - qty,
+                },
+              ]);
+          }
+          parts.push({ batchId: chosen, qtyMicros: qty, serials: [] });
+        } else if (effect === 'in') {
+          throw new RuleError(`${name}: give the batch the goods belong to.`);
+        } else {
+          // nobody chose: first expiry, first out across the batches in this godown
+          const avail = await batchAvailabilityIn(this.d, tx, ctx, itemId, godownId);
+          const picked = pickFefo(avail, qty, { today: date });
+          if (picked.shortMicros > 0 && policy === 'block') {
+            const have = avail.reduce((t, b) => t + Math.max(0, b.availableMicros), 0);
+            throw new InsufficientStockError([
+              {
+                itemId,
+                name: `${name} (batches)`,
+                onHandMicros: have,
+                needMicros: qty,
+                afterMicros: have - qty,
+              },
+            ]);
+          }
+          for (const pk of picked.picks)
+            parts.push({ batchId: pk.batchId, qtyMicros: pk.qtyMicros, serials: [] });
+          if (picked.shortMicros > 0)
+            parts.push({ batchId: null, qtyMicros: picked.shortMicros, serials: [] });
+        }
+      } else {
+        parts.push({ batchId: null, qtyMicros: qty, serials: [] });
+      }
+
+      const taxable = Number(l['taxable_paise'] ?? 0);
+      for (const part of parts) {
+        // a purchase brings goods in at what they cost (the line's taxable value, in proportion)
+        const cost =
+          effect === 'in' && purchase ? Math.round((taxable * part.qtyMicros) / qty) : null;
+        const row = await (this.movements as any).createIn(tx, ctx, {
+          item_id: itemId,
+          godown_id: godownId,
+          batch_id: part.batchId,
+          kind: effect,
+          qty_micros: effect === 'out' ? -part.qtyMicros : part.qtyMicros,
+          rate_paise: Number(l['rate_paise']),
+          cost_paise: cost,
+          serials_json: part.serials.length > 0 ? part.serials : null,
+          document_id: doc['id'],
+          date,
+          note: label,
+        });
+        if (part.serials.length > 0)
+          await placeSerialsIn(this.d, tx, ctx, {
+            itemId,
+            serials: part.serials,
+            godownId,
+            batchId: part.batchId,
+            status: effect === 'in' ? 'in_stock' : 'out',
+            movementId: String(row['id']),
+          });
+        written.push({ id: String(row['id']), itemId, version: Number(row['version']) });
+      }
+    }
+
+    if (valuation && written.length > 0) {
+      // cost of goods sold (or stock in at cost) under the business's method, posted with the document
+      let total = 0n;
+      for (const itemId of new Set(written.map((w) => w.itemId))) {
+        const r = await valueItemIn(this.d, tx, ctx, itemId, valuation.method);
+        for (const w of written.filter((x) => x.itemId === itemId)) {
+          const cost = r.costs.get(w.id) ?? 0n;
+          total += cost;
+          await (this.movements as any).updateIn(
+            tx,
+            ctx,
+            w.id,
+            { cost_paise: Number(cost) },
+            w.version,
+          );
+        }
+      }
+      const narration =
+        effect === 'out'
+          ? `Cost of goods sold: ${doc['number']}`
+          : `Stock in at cost: ${doc['number']}`;
+      await postDocumentStockIn(
+        this.d,
+        tx,
+        ctx,
+        doc,
+        stockLines(effect, total, 'stockChange', narration),
+      );
     }
   }
 
@@ -963,7 +1122,7 @@ export class DocumentFlowRepo extends BaseRepo {
     }
   }
 
-  /** Put back the stock a document moved: one opposite movement per item and godown for the net. */
+  /** Put back the stock a document moved: one opposite movement per item, godown and batch for the net. */
   private async reverseStockIn(
     tx: any,
     ctx: Ctx,
@@ -980,31 +1139,66 @@ export class DocumentFlowRepo extends BaseRepo {
       );
     const net = new Map<
       string,
-      { item: string; godown: string | null; qty: number; rate: number }
+      {
+        item: string;
+        godown: string | null;
+        batch: string | null;
+        qty: number;
+        rate: number;
+        /** Signed like the quantity; null once any part of it had no cost. */
+        cost: bigint | null;
+        serials: Map<string, number>;
+      }
     >();
     for (const r of rows) {
-      const key = `${r['item_id']}|${r['godown_id'] ?? ''}`;
+      const key = `${r['item_id']}|${r['godown_id'] ?? ''}|${r['batch_id'] ?? ''}`;
       const cur = net.get(key) ?? {
         item: r['item_id'],
         godown: (r['godown_id'] as string | null) ?? null,
+        batch: (r['batch_id'] as string | null) ?? null,
         qty: 0,
         rate: Number(r['rate_paise'] ?? 0),
+        cost: 0n,
+        serials: new Map<string, number>(),
       };
-      cur.qty += Number(r['qty_micros']);
+      const q = Number(r['qty_micros']);
+      cur.qty += q;
+      if (cur.cost !== null)
+        cur.cost =
+          r['cost_paise'] == null
+            ? null
+            : cur.cost + (q < 0 ? -1n : 1n) * BigInt(Math.round(Number(r['cost_paise'])));
+      for (const sn of jsonList(r['serials_json']))
+        cur.serials.set(sn, (cur.serials.get(sn) ?? 0) + (q < 0 ? -1 : 1));
       net.set(key, cur);
     }
     for (const n of net.values()) {
       if (n.qty === 0) continue;
-      await (this.movements as any).createIn(tx, ctx, {
+      const serials = [...n.serials.entries()].filter(([, v]) => v !== 0).map(([sn]) => sn);
+      const row = await (this.movements as any).createIn(tx, ctx, {
         item_id: n.item,
         godown_id: n.godown,
+        batch_id: n.batch,
         kind: n.qty < 0 ? 'in' : 'out',
         qty_micros: -n.qty,
         rate_paise: n.rate,
+        // what went out at a cost comes back at that cost, and the other way round
+        cost_paise: n.cost === null ? null : Number(n.cost < 0n ? -n.cost : n.cost),
+        cost_fixed: n.cost !== null,
+        serials_json: serials.length > 0 ? serials : null,
         document_id: doc['id'],
         date,
         note,
       });
+      if (serials.length > 0)
+        await placeSerialsIn(this.d, tx, ctx, {
+          itemId: String(n.item),
+          serials,
+          godownId: n.godown,
+          batchId: n.batch,
+          status: n.qty < 0 ? 'in_stock' : 'out',
+          movementId: String(row['id']),
+        });
     }
     return rows.length > 0;
   }

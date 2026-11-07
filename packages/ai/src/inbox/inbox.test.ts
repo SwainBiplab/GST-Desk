@@ -8,6 +8,7 @@ import {
   detectDuplicateItems,
   detectDuplicateParties,
   detectHsnSuggestions,
+  detectExpiry,
   detectLowStock,
   detectRateChanges,
   detectReminders,
@@ -172,6 +173,52 @@ describe('time based detectors', () => {
       NOW,
     );
     expect(f.map((x) => x.key)).toEqual(['low_stock:a:2026-06']);
+  });
+
+  it('flags a batch with stock inside the expiry horizon, or expired, once a month per batch', () => {
+    const now = Date.UTC(2026, 5, 15);
+    const rows = [
+      {
+        batchId: 'b1',
+        itemId: 'i',
+        itemName: 'Amox',
+        batchNo: 'A',
+        expiryDate: '2026-07-01',
+        onHandMicros: 5e6,
+        daysLeft: 16,
+      },
+      {
+        batchId: 'b2',
+        itemId: 'i',
+        itemName: 'Amox',
+        batchNo: 'B',
+        expiryDate: '2027-07-01',
+        onHandMicros: 5e6,
+        daysLeft: 381,
+      },
+      {
+        batchId: 'b3',
+        itemId: 'i',
+        itemName: 'Amox',
+        batchNo: 'C',
+        expiryDate: '2026-05-01',
+        onHandMicros: 0,
+        daysLeft: -45,
+      },
+      {
+        batchId: 'b4',
+        itemId: 'i',
+        itemName: 'Amox',
+        batchNo: 'D',
+        expiryDate: '2026-05-01',
+        onHandMicros: 1e6,
+        daysLeft: -45,
+      },
+    ];
+    const f = detectExpiry(rows, now);
+    expect(f.map((x) => x.key)).toEqual(['expiry_due:b1:2026-06', 'expiry_due:b4:2026-06']);
+    expect(f[1]!.suggestion.daysLeft).toBe(-45);
+    expect(detectExpiry(rows, now, 10).map((x) => x.key)).toEqual(['expiry_due:b4:2026-06']);
   });
   it('rate changes only when already in force; backup failure by its time', () => {
     const base = { hsn: '1', oldRateBp: 500, newRateBp: 1200, oldCessBp: 0, newCessBp: 0 };

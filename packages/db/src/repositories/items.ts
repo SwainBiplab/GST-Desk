@@ -32,6 +32,8 @@ import {
   type Ctx,
 } from './base';
 import { loadHsnResolver, lookupHsn, type HsnResolver } from './hsn-master';
+import { onHandIn } from './inventory';
+import { postStockVoucherIn, stockLines, valuationIn } from './stock-ledger';
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -236,6 +238,34 @@ export class ItemRepo extends BaseRepo {
       if (await this.unitsMissingIn(tx, ctx, [merged['unit_id'], merged['secondary_unit_id']]))
         errors['unit_id'] = 'unit';
     }
+    // how units are told apart (prompt 51): batches or serials need stock tracking, expiry needs batches
+    const mode = String(merged['tracking_mode'] ?? 'none') || 'none';
+    if (!['none', 'batch', 'serial'].includes(mode)) errors['tracking_mode'] = 'tracking_mode';
+    else if (mode !== 'none' && !merged['track_stock']) errors['tracking_mode'] = 'tracking_mode';
+    if (merged['expiry_required'] && mode !== 'batch') errors['expiry_required'] = 'tracking_mode';
+    if (patch && 'tracking_mode' in patch && ignoreId) {
+      const before = await this.getIn(tx, ctx, ignoreId);
+      const was = String(before?.['tracking_mode'] ?? 'none') || 'none';
+      if (before && was !== mode) {
+        const onHand = (await onHandIn(this.d, tx, ctx, [ignoreId])).get(ignoreId) ?? 0;
+        if (onHand !== 0) errors['tracking_mode'] = 'tracking_change';
+      }
+    }
+    if (merged['default_godown_id']) {
+      const g = this.d.schema.godowns;
+      const [godown]: Row[] = await tx
+        .select({ id: g.id })
+        .from(g)
+        .where(
+          and(
+            eq(g.id, String(merged['default_godown_id'])),
+            eq(g.business_id, ctx.businessId),
+            isNull(g.deleted_at),
+          ),
+        )
+        .limit(1);
+      if (!godown) errors['default_godown_id'] = 'godown';
+    }
     if (Object.keys(errors).length > 0) throw new ItemValidationError(errors);
 
     const out: NewRow = patch ? { ...patch } : { ...merged };
@@ -289,20 +319,41 @@ export class ItemRepo extends BaseRepo {
       .from(g)
       .where(and(eq(g.business_id, ctx.businessId), eq(g.is_default, true), isNull(g.deleted_at)))
       .limit(1);
+    const valuation = await valuationIn(this.d, tx, ctx);
+    const written: { id: string; version: number }[] = [];
+    let total = 0n;
     for (const i of opening) {
       const qty = BigInt(i['opening_stock_micros']);
       const value = BigInt(i['opening_stock_value_paise'] ?? 0);
       const rate =
         value > 0n ? divRound(value * 1_000_000n, qty) : BigInt(i['purchase_rate_paise'] ?? 0);
-      await (this.movements as any).createIn(tx, ctx, {
+      const cost = value > 0n ? value : divRound(rate * qty, 1_000_000n);
+      const row = await (this.movements as any).createIn(tx, ctx, {
         item_id: i['id'],
-        godown_id: godown?.['id'] ?? null,
+        godown_id: i['default_godown_id'] ?? godown?.['id'] ?? null,
         kind: 'in',
         qty_micros: Number(qty),
         rate_paise: Number(rate),
+        cost_paise: Number(cost),
         date,
         note: 'Opening stock',
       });
+      written.push({ id: String(row['id']), version: Number(row['version']) });
+      total += cost;
+    }
+    if (valuation && total > 0n) {
+      // opening stock is the owner's, so it balances through Opening Balance Equity
+      const narration = `Opening stock: ${opening
+        .map((i) => i['name'])
+        .slice(0, 3)
+        .join(', ')}${opening.length > 3 ? ', …' : ''}`;
+      const voucherId = await postStockVoucherIn(this.d, tx, ctx, {
+        date,
+        narration,
+        lines: stockLines('in', total, 'openingEquity', narration),
+      });
+      for (const w of written)
+        await (this.movements as any).updateIn(tx, ctx, w.id, { voucher_id: voucherId }, w.version);
     }
   }
 

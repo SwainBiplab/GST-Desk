@@ -31,6 +31,7 @@ import { ItemImages } from './item-images';
 
 import { useUnsavedGuard } from '@/app/unsaved';
 import { TranslitInput } from '@/features/i18n/translit-input';
+import { useGodowns } from '@/features/inventory/hooks';
 import { Field } from '@/features/onboarding/field';
 
 const NONE = '-';
@@ -65,6 +66,7 @@ export function ItemForm({
   const dirty = JSON.stringify(draft) !== JSON.stringify(start);
   useUnsavedGuard(dirty && !busy);
   const units = useUnits().data ?? [];
+  const godowns = useGodowns().data ?? [];
   const master = useHsnEntry(draft.hsn).data ?? null;
   const shown: Errors = { ...serverErrors, ...errors };
 
@@ -342,6 +344,63 @@ export function ItemForm({
           </label>
           {draft.trackStock && (
             <div className="grid gap-4 sm:grid-cols-3">
+              <Field label={t('items.form.trackingMode')} error={shown['trackingMode']}>
+                {(c) => (
+                  <Select
+                    value={draft.trackingMode}
+                    onValueChange={(v) => change({ trackingMode: v as ItemDraft['trackingMode'] })}
+                  >
+                    <SelectTrigger {...c} data-testid="item-tracking">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(['none', 'batch', 'serial'] as const).map((m) => (
+                        <SelectItem key={m} value={m} data-testid={`item-tracking-${m}`}>
+                          {t(`items.form.tracking.${m}`)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </Field>
+              {draft.trackingMode === 'batch' && (
+                <label
+                  className="flex items-center gap-2 self-end pb-2 text-sm"
+                  htmlFor="item-expiry"
+                >
+                  <Checkbox
+                    id="item-expiry"
+                    data-testid="item-expiry-required"
+                    checked={draft.expiryRequired}
+                    onCheckedChange={(v) => change({ expiryRequired: v === true })}
+                  />
+                  {t('items.form.expiryRequired')}
+                </label>
+              )}
+              {godowns.length > 1 && (
+                <Field label={t('items.form.defaultGodown')} error={shown['defaultGodownId']}>
+                  {(c) => (
+                    <Select
+                      value={draft.defaultGodownId || NONE}
+                      onValueChange={(v) => change({ defaultGodownId: v === NONE ? '' : v })}
+                    >
+                      <SelectTrigger {...c} data-testid="item-godown">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={NONE}>
+                          {t('items.form.businessDefaultGodown')}
+                        </SelectItem>
+                        {godowns.map((g) => (
+                          <SelectItem key={g.id} value={g.id}>
+                            {g.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </Field>
+              )}
               <Field
                 label={t('items.form.openingQty')}
                 error={shown['openingQty']}

@@ -10,6 +10,7 @@
       "@gst/db": ["../../packages/db/src/index.ts"],
       "@gst/db/node": ["../../packages/db/src/node.ts"],
       "@gst/db/seed": ["../../packages/db/src/seed.ts"],
+      "@gst/db/seed-pharma": ["../../packages/db/src/seed-pharma.ts"],
       "@gst/ui": ["../../packages/ui/src/index.ts"],
       "@gst/ui/icons": ["../../packages/ui/src/icons.ts"],
       "@gst/ai": ["../../packages/ai/src/index.ts"],

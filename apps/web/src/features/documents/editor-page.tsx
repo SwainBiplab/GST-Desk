@@ -67,6 +67,7 @@ import { useConfirm } from '@/app/components/confirm';
 import { useRightPanel } from '@/app/components/panel';
 import { useAppDb, useLiveQuery } from '@/app/db';
 import type { Shell } from '@/app/store';
+import { useFeatureFlags } from '@/features/business/hooks';
 import type { MessageKind } from '@/features/cloud/client';
 import { CollectItems, CollectOverlay, useLivePayLink } from '@/features/collect/collect-dialog';
 import {
@@ -76,6 +77,8 @@ import {
 } from '@/features/dispatch/document-messages';
 import { useDocPortal } from '@/features/einvoice/hooks';
 import { EinvoicePanel } from '@/features/einvoice/panel';
+import { useGodowns, useStockLabels, useStockText } from '@/features/inventory/hooks';
+import { StockDetailsDialog } from '@/features/inventory/stock-details';
 import { useUnits } from '@/features/items/hooks';
 import { ItemEditor } from '@/features/items/item-editor';
 import { useLockOverride } from '@/features/numbering/lock-override';
@@ -138,6 +141,9 @@ const COLUMNS_KEY = 'documents.hidden_columns';
  */
 const SHOP_HIDDEN_SET: ReadonlySet<GridColumn> = new Set(SHOP_HIDDEN);
 const NO_ISSUES: DraftIssue[] = [];
+/** Without inventory there is nothing to choose for a line, so the stock column stays out of the way. */
+const withoutStock = (hidden: ReadonlySet<GridColumn>): ReadonlySet<GridColumn> =>
+  hidden.has('stock') ? hidden : new Set([...hidden, 'stock']);
 
 type Side = 'preview' | 'attachment' | 'history' | 'einvoice';
 
@@ -191,6 +197,7 @@ export function EditorPage({
   const [trace, setTrace] = useState<TraceTarget | null>(null);
   const [showIssues, setShowIssues] = useState(false);
   const [picker, setPicker] = useState<{ row: number; typed?: string } | null>(null);
+  const [stockRow, setStockRow] = useState<number | null>(null);
   const [creating, setCreating] = useState<{ name: string; key: string } | null>(null);
   const [dismissed, setDismissed] = useState<ReadonlySet<string>>(new Set());
   const [convertTo, setConvertTo] = useState<DocumentType | null>(null);
@@ -248,7 +255,19 @@ export function EditorPage({
       if (Array.isArray(v)) setHidden(new Set(v.filter((c) => GRID_COLUMNS.includes(c))));
     });
   }, [database, ctx, simple]);
-  const hiddenNow = simple ? SHOP_HIDDEN_SET : hidden;
+  const flags = useFeatureFlags();
+  const hiddenWithStock = useMemo(
+    () => (flags.inventory ? hidden : withoutStock(hidden)),
+    [flags.inventory, hidden],
+  );
+  const hiddenNow = simple ? SHOP_HIDDEN_SET : hiddenWithStock;
+  const stockLabels = useStockLabels(draft);
+  const godownList = useGodowns().data;
+  const defaultGodownId = useMemo(
+    () => godownList?.find((g) => g.isDefault)?.id ?? null,
+    [godownList],
+  );
+  const stockText = useStockText(flags.inventory ? stockLabels.data : undefined, defaultGodownId);
   const toggleColumn = (col: GridColumn) => {
     const next = new Set(hidden);
     if (next.has(col)) next.delete(col);
@@ -945,6 +964,10 @@ export function EditorPage({
             }
             onTrace={(key) => setTrace({ kind: 'line', key })}
             onToggleColumn={toggleColumn}
+            onStockDetails={(row) => {
+              if (draft.lines[row]?.itemId) setStockRow(row);
+            }}
+            stockText={stockText}
           />
 
           {unlinked && !readOnly && (
@@ -1060,6 +1083,21 @@ export function EditorPage({
           </aside>
         )}
       </div>
+
+      {stockRow !== null && draft.lines[stockRow] && (
+        <StockDetailsDialog
+          line={draft.lines[stockRow]!}
+          type={draft.type}
+          reduceStock={draft.reduceStock}
+          onClose={() => setStockRow(null)}
+          onApply={(patch) => {
+            const key = draft.lines[stockRow]?.key;
+            setStockRow(null);
+            if (!key) return;
+            editor.setDraft((d) => updateLine(d, key, (l) => ({ ...l, ...patch })));
+          }}
+        />
+      )}
 
       {picker && (
         <ItemPicker

@@ -34,6 +34,7 @@ export const GRID_COLUMNS = [
   'taxRate',
   'tax',
   'total',
+  'stock',
   'note',
 ] as const;
 export type GridColumn = (typeof GRID_COLUMNS)[number];
@@ -97,6 +98,10 @@ export function applyItem(line: DraftLine, item: Row, type: DocumentType): Draft
     gstRateBp: Number(item['gst_rate_bp'] ?? 0),
     cessBp: Number(item['cess_bp'] ?? 0),
     taxability: 'taxable',
+    // a different item: its batch, serials and godown start afresh
+    godownId: null,
+    batchId: null,
+    serials: [],
   };
 }
 
@@ -144,6 +149,8 @@ export interface CellContext {
   units: ReadonlyMap<string, string>;
   discountMode: DraftDocument['discountMode'];
   built: BuiltLine | undefined;
+  /** The batch, serials and godown of a line, as the stock column shows them (prompt 51). */
+  stockText?: (l: DraftLine) => string;
 }
 
 /** The text a grid cell shows. */
@@ -178,6 +185,8 @@ export function cellText(l: DraftLine, col: GridColumn, c: CellContext): string 
       return r ? paiseText(r.taxPaise) : '';
     case 'total':
       return r ? paiseText(r.totalPaise) : '';
+    case 'stock':
+      return blank || !c.stockText ? '' : c.stockText(l);
     case 'note':
       return l.note;
   }
@@ -244,6 +253,9 @@ export function setCell(
     }
     case 'note':
       return { line: { ...l, note: trim(text) } };
+    case 'stock':
+      // chosen in the stock details dialog, never typed
+      return { line: l };
     case 'taxable':
     case 'tax':
     case 'total':

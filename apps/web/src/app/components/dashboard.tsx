@@ -21,6 +21,7 @@ import { EinvoicePage } from '@/features/einvoice/einvoice-page';
 import { CaBoardPage } from '@/features/gst/ca-board';
 import { GstPage } from '@/features/gst/gst-page';
 import { InboxPage } from '@/features/inbox/inbox-page';
+import { StockPage } from '@/features/inventory/stock-page';
 import { ItemsPage } from '@/features/items/items-page';
 import { LedgerPage } from '@/features/ledger/ledger-page';
 import { MigratePage } from '@/features/migrate/migrate-page';
@@ -165,6 +166,13 @@ export function PlaceholderPage({ page, shell }: { page: PageId; shell: Shell })
     return (
       <div data-shell={shell} className="h-full overflow-auto">
         <LedgerPage shell={shell} />
+      </div>
+    );
+  }
+  if (page === 'stock' && ctx) {
+    return (
+      <div data-shell={shell} className="h-full overflow-auto">
+        <StockPage shell={shell} />
       </div>
     );
   }

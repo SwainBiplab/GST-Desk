@@ -19,12 +19,14 @@ import {
   AGEING_BUCKETS,
   ageInto,
   daysPastDue,
+  daysUntil,
   divRound,
   emptyAgeing,
   filingCalendar,
   resolvePeriod,
   returnsUqc,
   sameDaysLastMonth,
+  valueAt,
   type AgeingBucket,
   type AgeingRow,
   type FilingDue,
@@ -34,6 +36,10 @@ import { sql, type SQL } from 'drizzle-orm';
 import { queryRows, type Database } from '../database';
 
 import { runInTx, type Ctx } from './base';
+import { BatchRepo, jsonList } from './batches';
+import { defaultGodownIdIn } from './godowns';
+import { valuationIn, valueItemIn } from './stock-ledger';
+import { ValuationRepo } from './valuation';
 
 /* ------------------------------------------------------------------ definitions */
 
@@ -63,6 +69,11 @@ export const REPORT_IDS = [
   'receipts_payments',
   'day_book',
   'stock_summary',
+  'stock_value',
+  'expiry',
+  'dead_stock',
+  'stock_ageing',
+  'movement_register',
   'party_sales',
   'item_sales',
 ] as const;
@@ -70,7 +81,7 @@ export type ReportId = (typeof REPORT_IDS)[number];
 export const isReportId = (v: string): v is ReportId =>
   (REPORT_IDS as readonly string[]).includes(v);
 
-export type ReportFilter = 'period' | 'party' | 'type' | 'side' | 'book' | 'asOf';
+export type ReportFilter = 'period' | 'party' | 'type' | 'side' | 'book' | 'asOf' | 'godown';
 
 export interface ReportDef {
   id: ReportId;
@@ -292,7 +303,7 @@ export const REPORTS: Record<ReportId, ReportDef> = {
     paged: false,
     drill: null,
     flag: 'inventory',
-    filters: ['period', 'type'],
+    filters: ['period', 'type', 'godown'],
     /** `low`: only the items below their reorder level. */
     typeOptions: ['low'],
     columns: [
@@ -305,6 +316,109 @@ export const REPORTS: Record<ReportId, ReportDef> = {
       { key: 'rate', kind: 'money', hidden: true },
       money('value'),
       { key: 'min', kind: 'qty', hidden: true },
+    ],
+  },
+  /** Stock on hand at the business's valuation method (purchase price when none), at the period's end (prompt 51). */
+  stock_value: {
+    id: 'stock_value',
+    section: 'stock',
+    paged: false,
+    drill: null,
+    flag: 'inventory',
+    filters: ['period', 'type'],
+    /** By item unless split by batch or godown. */
+    typeOptions: ['batch', 'godown'],
+    columns: [
+      text('item', { group: true }),
+      text('sku', { hidden: true }),
+      text('batch'),
+      { key: 'expiry', kind: 'date' },
+      text('godown', { group: true }),
+      { key: 'qty', kind: 'qty', total: true },
+      { key: 'unitCost', kind: 'money' },
+      money('value'),
+    ],
+  },
+  /** Batches with stock that expire by the period's end, or already have. */
+  expiry: {
+    id: 'expiry',
+    section: 'stock',
+    paged: false,
+    drill: null,
+    flag: 'inventory',
+    filters: ['period', 'type'],
+    /** `expired`: only what has already expired. */
+    typeOptions: ['expired'],
+    columns: [
+      text('item', { group: true }),
+      text('sku', { hidden: true }),
+      text('batch'),
+      { key: 'expiry', kind: 'date' },
+      { key: 'daysLeft', kind: 'int' },
+      text('godown'),
+      { key: 'qty', kind: 'qty', total: true },
+      money('value'),
+    ],
+  },
+  /** Items with stock that have not sold in the period. */
+  dead_stock: {
+    id: 'dead_stock',
+    section: 'stock',
+    paged: false,
+    drill: null,
+    flag: 'inventory',
+    filters: ['period'],
+    columns: [
+      text('item'),
+      text('sku', { hidden: true }),
+      { key: 'lastOut', kind: 'date' },
+      { key: 'idleDays', kind: 'int' },
+      { key: 'qty', kind: 'qty', total: true },
+      money('value'),
+    ],
+  },
+  /** How old the stock on hand is, by the day its layer came in, at the period's end. */
+  stock_ageing: {
+    id: 'stock_ageing',
+    section: 'stock',
+    paged: false,
+    drill: null,
+    flag: 'inventory',
+    filters: ['period'],
+    columns: [
+      text('item'),
+      text('sku', { hidden: true }),
+      { key: 'a0_30', kind: 'qty', total: true },
+      { key: 'a31_60', kind: 'qty', total: true },
+      { key: 'a61_90', kind: 'qty', total: true },
+      { key: 'a91_180', kind: 'qty', total: true },
+      { key: 'a180plus', kind: 'qty', total: true },
+      { key: 'qty', kind: 'qty', total: true },
+      money('value'),
+    ],
+  },
+  /** Every movement in the period: documents, adjustments and transfers, with batch and serials. */
+  movement_register: {
+    id: 'movement_register',
+    section: 'stock',
+    paged: false,
+    drill: 'document',
+    flag: 'inventory',
+    filters: ['period', 'type', 'godown'],
+    typeOptions: ['in', 'out', 'adjust', 'transfer'],
+    columns: [
+      { key: 'date', kind: 'date' },
+      text('item', { group: true }),
+      text('sku', { hidden: true }),
+      text('kind', { group: true }),
+      text('number'),
+      text('godown', { group: true }),
+      text('batch'),
+      text('serials', { hidden: true }),
+      { key: 'in', kind: 'qty', total: true },
+      { key: 'out', kind: 'qty', total: true },
+      { key: 'rate', kind: 'money', hidden: true },
+      money('cost'),
     ],
   },
   party_sales: {
@@ -349,6 +463,8 @@ export interface ReportParams {
   type?: string;
   side?: 'all' | 'receivable' | 'payable';
   book?: 'all' | 'cash' | 'bank';
+  /** Stock reports: one godown only. */
+  godownId?: string;
 }
 
 export type ReportRow = Record<string, string | number | null>;
@@ -1209,7 +1325,15 @@ export async function stockRowsIn(
   ctx: Ctx,
   from: string,
   to: string,
+  godownId?: string,
 ): Promise<StockRow[]> {
+  // one godown counts its transfers; the business as a whole does not (they net to nothing)
+  const fallback = godownId ? await defaultGodownIdIn(d, tx, ctx) : null;
+  const scope = godownId
+    ? godownId === fallback
+      ? sql`AND (godown_id = ${godownId} OR godown_id IS NULL)`
+      : sql`AND godown_id = ${godownId}`
+    : sql`AND kind <> 'transfer'`;
   const rows = await queryRows(
     d,
     tx,
@@ -1223,17 +1347,27 @@ export async function stockRowsIn(
                  sum(CASE WHEN date >= ${from} AND qty_micros > 0 THEN qty_micros ELSE 0 END) AS qty_in,
                  sum(CASE WHEN date >= ${from} AND qty_micros < 0 THEN -qty_micros ELSE 0 END) AS qty_out
           FROM stock_movements
-          WHERE business_id = ${ctx.businessId} AND deleted_at IS NULL AND date <= ${to}
+          WHERE business_id = ${ctx.businessId} AND deleted_at IS NULL AND date <= ${to} ${scope}
           GROUP BY item_id
         ) m ON m.item_id = i.id
         WHERE i.business_id = ${ctx.businessId} AND i.deleted_at IS NULL AND i.track_stock = ${true}
         ORDER BY i.name`,
   );
-  return rows.map((r) => {
+  // valued at the business's method when it has one (B-044), else at the purchase price
+  const valuation = await valuationIn(d, tx, ctx);
+  const out: StockRow[] = [];
+  for (const r of rows) {
     // opening stock is itself a movement, so the movements are the whole story
     const opening = n(r['before_qty']);
     const closing = opening + n(r['qty_in']) - n(r['qty_out']);
-    return {
+    let rate = n(r['rate']);
+    let value = Number(divRound(BigInt(closing) * BigInt(rate), 1_000_000n));
+    if (valuation && closing !== 0) {
+      const v = await valueItemIn(d, tx, ctx, s(r['id']), valuation.method, to);
+      rate = Number(v.unitCostPaise);
+      value = godownId ? Number(valueAt(closing, v.unitCostPaise)) : Number(v.valuePaise);
+    }
+    out.push({
       itemId: s(r['id']),
       item: s(r['name']),
       sku: s(r['sku']),
@@ -1242,10 +1376,11 @@ export async function stockRowsIn(
       outMicros: n(r['qty_out']),
       closingMicros: closing,
       minMicros: n(r['min_stock']),
-      ratePaise: n(r['rate']),
-      valuePaise: Number(divRound(BigInt(closing) * BigInt(n(r['rate'])), 1_000_000n)),
-    };
-  });
+      ratePaise: rate,
+      valuePaise: value,
+    });
+  }
+  return out;
 }
 
 async function stockSummary(
@@ -1254,7 +1389,7 @@ async function stockSummary(
   ctx: Ctx,
   p: ReportParams,
 ): Promise<ReportResult> {
-  const all = await stockRowsIn(d, tx, ctx, p.from, p.to);
+  const all = await stockRowsIn(d, tx, ctx, p.from, p.to, p.godownId);
   const rows =
     p.type === 'low' ? all.filter((r) => r.minMicros > 0 && r.closingMicros < r.minMicros) : all;
   return whole(
@@ -1277,6 +1412,242 @@ async function stockSummary(
 /* ------------------------------------------------------------------ entry points */
 
 /** Run one report. Paged reports return `page.limit` rows from `page.offset`; the rest ignore `page`. */
+/* ------------------------------------------------------------------ advanced stock (prompt 51) */
+
+async function godownNamesIn(d: Database, tx: any, ctx: Ctx): Promise<Map<string, string>> {
+  const rows = await queryRows(
+    d,
+    tx,
+    sql`SELECT id, name FROM godowns WHERE business_id = ${ctx.businessId} AND deleted_at IS NULL`,
+  );
+  return new Map(rows.map((r) => [s(r['id']), s(r['name'])]));
+}
+
+async function stockValue(d: Database, tx: any, ctx: Ctx, p: ReportParams): Promise<ReportResult> {
+  const by = p.type === 'batch' || p.type === 'godown' ? p.type : 'item';
+  const repo = new ValuationRepo(d);
+  const rows = await repo.report({ ...ctx, tx }, { asOf: p.to, by });
+  const godowns = await godownNamesIn(d, tx, ctx);
+  return whole(
+    'stock_value',
+    rows
+      .filter((r) => r.qtyMicros !== 0)
+      .map((r) => ({
+        id: r.itemId,
+        item: r.name,
+        sku: r.sku,
+        batch: r.batchNo ?? '',
+        expiry: r.expiryDate,
+        godown: r.godownId ? (godowns.get(r.godownId) ?? '') : '',
+        qty: r.qtyMicros,
+        unitCost: Number(r.unitCostPaise),
+        value: Number(r.valuePaise),
+      })),
+  );
+}
+
+/** Unit cost per item under the method (purchase price when none), as at a date. */
+async function unitCostsIn(
+  d: Database,
+  tx: any,
+  ctx: Ctx,
+  asOf: string,
+): Promise<Map<string, bigint>> {
+  const items = await new ValuationRepo(d).items({ ...ctx, tx }, asOf);
+  return new Map(items.map((i) => [i.itemId, i.unitCostPaise]));
+}
+
+async function expiryReport(
+  d: Database,
+  tx: any,
+  ctx: Ctx,
+  p: ReportParams,
+): Promise<ReportResult> {
+  const horizon = Math.max(0, daysUntil(p.today, p.to));
+  const rows = await new BatchRepo(d).expiring({ ...ctx, tx }, p.today, horizon);
+  const costs = await unitCostsIn(d, tx, ctx, p.today);
+  const byGodown = await batchOnHandByGodownIn(
+    d,
+    tx,
+    ctx,
+    rows.map((r) => r.batchId),
+  );
+  const godowns = await godownNamesIn(d, tx, ctx);
+  const out: ReportRow[] = [];
+  for (const r of rows) {
+    if (p.type === 'expired' && r.daysLeft >= 0) continue;
+    const parts = (byGodown.get(r.batchId) ?? [[null, r.onHandMicros]]).sort((a, b) =>
+      (a[0] ?? '').localeCompare(b[0] ?? ''),
+    );
+    for (const [godownId, qty] of parts) {
+      if (qty <= 0) continue;
+      out.push({
+        id: r.itemId,
+        item: r.itemName,
+        sku: r.sku,
+        batch: r.batchNo,
+        expiry: r.expiryDate,
+        daysLeft: r.daysLeft,
+        godown: godownId ? (godowns.get(godownId) ?? '') : '',
+        qty,
+        value: Number(valueAt(qty, costs.get(r.itemId) ?? 0n)),
+      });
+    }
+  }
+  return whole('expiry', out);
+}
+
+/** Stock of each of the batches, split by godown. */
+async function batchOnHandByGodownIn(
+  d: Database,
+  tx: any,
+  ctx: Ctx,
+  batchIds: readonly string[],
+): Promise<Map<string, [string | null, number][]>> {
+  if (batchIds.length === 0) return new Map();
+  const rows = await queryRows(
+    d,
+    tx,
+    sql`SELECT batch_id, godown_id, sum(qty_micros) AS v FROM stock_movements
+        WHERE business_id = ${ctx.businessId} AND deleted_at IS NULL
+          AND batch_id IN (${sql.join(
+            batchIds.map((b) => sql`${b}`),
+            sql`, `,
+          )})
+        GROUP BY batch_id, godown_id`,
+  );
+  const out = new Map<string, [string | null, number][]>();
+  for (const r of rows) {
+    const list = out.get(s(r['batch_id'])) ?? [];
+    list.push([r['godown_id'] == null ? null : s(r['godown_id']), n(r['v'])]);
+    out.set(s(r['batch_id']), list);
+  }
+  return out;
+}
+
+async function deadStock(d: Database, tx: any, ctx: Ctx, p: ReportParams): Promise<ReportResult> {
+  const rows = await queryRows(
+    d,
+    tx,
+    sql`SELECT i.id, i.name, coalesce(i.sku, '') AS sku, coalesce(h.v, 0) AS on_hand, lo.last_out, fi.first_in
+        FROM items i
+        LEFT JOIN (
+          SELECT item_id, sum(qty_micros) AS v FROM stock_movements
+          WHERE business_id = ${ctx.businessId} AND deleted_at IS NULL AND kind <> 'transfer' AND date <= ${p.to}
+          GROUP BY item_id
+        ) h ON h.item_id = i.id
+        LEFT JOIN (
+          SELECT item_id, max(date) AS last_out FROM stock_movements
+          WHERE business_id = ${ctx.businessId} AND deleted_at IS NULL AND kind = 'out' AND date <= ${p.to}
+          GROUP BY item_id
+        ) lo ON lo.item_id = i.id
+        LEFT JOIN (
+          SELECT item_id, min(date) AS first_in FROM stock_movements
+          WHERE business_id = ${ctx.businessId} AND deleted_at IS NULL AND qty_micros > 0
+          GROUP BY item_id
+        ) fi ON fi.item_id = i.id
+        WHERE i.business_id = ${ctx.businessId} AND i.deleted_at IS NULL AND i.track_stock = ${true}
+        ORDER BY i.name`,
+  );
+  const costs = await unitCostsIn(d, tx, ctx, p.to);
+  const out: ReportRow[] = [];
+  for (const r of rows) {
+    const qty = n(r['on_hand']);
+    const lastOut = r['last_out'] == null ? null : s(r['last_out']);
+    if (qty <= 0) continue;
+    if (lastOut && lastOut >= p.from) continue;
+    const since = lastOut ?? (r['first_in'] == null ? null : s(r['first_in']));
+    out.push({
+      id: s(r['id']),
+      item: s(r['name']),
+      sku: s(r['sku']),
+      lastOut,
+      idleDays: since ? Math.max(0, daysUntil(since, p.to)) : 0,
+      qty,
+      value: Number(valueAt(qty, costs.get(s(r['id'])) ?? 0n)),
+    });
+  }
+  return whole(
+    'dead_stock',
+    out.sort((a, b) => Number(b['idleDays']) - Number(a['idleDays'])),
+  );
+}
+
+async function stockAgeing(d: Database, tx: any, ctx: Ctx, p: ReportParams): Promise<ReportResult> {
+  const rows = await new ValuationRepo(d).ageing({ ...ctx, tx }, p.to);
+  return whole(
+    'stock_ageing',
+    rows.map(({ item, qtyMicros, valuePaise }) => ({
+      id: item.itemId,
+      item: item.name,
+      sku: item.sku,
+      a0_30: qtyMicros[0] ?? 0,
+      a31_60: qtyMicros[1] ?? 0,
+      a61_90: qtyMicros[2] ?? 0,
+      a91_180: qtyMicros[3] ?? 0,
+      a180plus: qtyMicros[4] ?? 0,
+      qty: item.qtyMicros,
+      value: Number(valuePaise.reduce((t, v) => t + v, 0n)),
+    })),
+  );
+}
+
+async function movementRegister(
+  d: Database,
+  tx: any,
+  ctx: Ctx,
+  p: ReportParams,
+): Promise<ReportResult> {
+  const fallback = p.godownId ? await defaultGodownIdIn(d, tx, ctx) : null;
+  const scope = p.godownId
+    ? p.godownId === fallback
+      ? sql`AND (m.godown_id = ${p.godownId} OR m.godown_id IS NULL)`
+      : sql`AND m.godown_id = ${p.godownId}`
+    : sql``;
+  const kind =
+    p.type && ['in', 'out', 'adjust', 'transfer'].includes(p.type)
+      ? sql`AND m.kind = ${p.type}`
+      : sql``;
+  const rows = await queryRows(
+    d,
+    tx,
+    sql`SELECT m.id, m.date, m.kind, m.qty_micros, m.rate_paise, m.cost_paise, m.note, m.document_id,
+               m.serials_json, i.name, coalesce(i.sku, '') AS sku, g.name AS godown, b.batch_no,
+               dc.number AS doc_number, t.number AS transfer_number
+        FROM stock_movements m
+        JOIN items i ON i.id = m.item_id
+        LEFT JOIN godowns g ON g.id = m.godown_id
+        LEFT JOIN batches b ON b.id = m.batch_id
+        LEFT JOIN documents dc ON dc.id = m.document_id
+        LEFT JOIN stock_transfers t ON t.id = m.transfer_id
+        WHERE m.business_id = ${ctx.businessId} AND m.deleted_at IS NULL
+          AND m.date >= ${p.from} AND m.date <= ${p.to} ${scope} ${kind}
+        ORDER BY m.date, m.created_at, m.id`,
+  );
+  return whole(
+    'movement_register',
+    rows.map((r) => {
+      const qty = n(r['qty_micros']);
+      const serials = jsonList(r['serials_json']);
+      return {
+        id: r['document_id'] == null ? null : s(r['document_id']),
+        date: s(r['date']),
+        item: s(r['name']),
+        sku: s(r['sku']),
+        kind: s(r['kind']),
+        number: s(r['doc_number'] ?? r['transfer_number'] ?? r['note']),
+        godown: s(r['godown']),
+        batch: s(r['batch_no']),
+        serials: serials.join(' '),
+        in: qty > 0 ? qty : 0,
+        out: qty < 0 ? -qty : 0,
+        rate: n(r['rate_paise']),
+        cost: r['cost_paise'] == null ? null : n(r['cost_paise']),
+      };
+    }),
+  );
+}
+
 export async function runReport(
   d: Database,
   ctx: Ctx,
@@ -1309,6 +1680,16 @@ export async function runReport(
         return dayBook(d, tx, ctx, params, page);
       case 'stock_summary':
         return stockSummary(d, tx, ctx, params);
+      case 'stock_value':
+        return stockValue(d, tx, ctx, params);
+      case 'expiry':
+        return expiryReport(d, tx, ctx, params);
+      case 'dead_stock':
+        return deadStock(d, tx, ctx, params);
+      case 'stock_ageing':
+        return stockAgeing(d, tx, ctx, params);
+      case 'movement_register':
+        return movementRegister(d, tx, ctx, params);
       case 'party_sales':
         return partySales(d, tx, ctx, params);
       case 'item_sales':

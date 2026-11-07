@@ -20,6 +20,7 @@ export const INBOX_KINDS = [
   'portal_question',
   'reminder_due',
   'low_stock',
+  'expiry_due',
   'draft_stale',
   'backup_failed',
   'rate_change',
@@ -34,6 +35,7 @@ export const TIER0_KINDS = [
   'hsn_suggestion',
   'reminder_due',
   'low_stock',
+  'expiry_due',
   'draft_stale',
   'backup_failed',
   'rate_change',
@@ -107,6 +109,19 @@ export const lowStockItem = z.object({
   minMicros: z.number(),
 });
 export type LowStockItem = z.infer<typeof lowStockItem>;
+
+/** A batch with stock that is about to expire, or has (prompt 51). */
+export const expiryDueItem = z.object({
+  itemId: z.string(),
+  itemName: z.string(),
+  batchId: z.string(),
+  batchNo: z.string(),
+  expiryDate: z.string(),
+  onHandMicros: z.number(),
+  /** Negative once expired. */
+  daysLeft: z.number().int(),
+});
+export type ExpiryDueItem = z.infer<typeof expiryDueItem>;
 
 export const backupFailedItem = z.object({
   failedAt: z.number(),
@@ -300,6 +315,7 @@ export const INBOX_SCHEMAS = {
   reminder_due: reminderDueItem,
   draft_stale: draftStaleItem,
   low_stock: lowStockItem,
+  expiry_due: expiryDueItem,
   backup_failed: backupFailedItem,
   ai_extraction: aiExtractionItem,
   prefiling_issue: prefilingIssueItem,
@@ -409,6 +425,7 @@ export const KIND_INFO: Record<InboxKind, KindInfo> = {
   },
   reminder_due: { label: 'Payment reminder', informational: false, bulk: false, opens: 'party' },
   low_stock: { label: 'Low stock', informational: true, bulk: false, opens: 'item' },
+  expiry_due: { label: 'Expiring stock', informational: true, bulk: false, opens: 'item' },
   draft_stale: { label: 'Old draft', informational: true, bulk: false, opens: 'document' },
   backup_failed: { label: 'Backup failed', informational: true, bulk: false, opens: 'settings' },
   rate_change: { label: 'GST rate changed', informational: false, bulk: true, opens: 'item' },

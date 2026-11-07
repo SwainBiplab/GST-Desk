@@ -57,6 +57,7 @@ export function openTarget(r: InboxRow): OpenTarget | null {
     case 'hsn_suggestion':
     case 'rate_change':
     case 'low_stock':
+    case 'expiry_due':
       return { to: 'items', search: { edit: s['itemId'] } };
     case 'draft_stale':
       return { to: 'document', search: { id: s['documentId'] } };
@@ -166,6 +167,15 @@ export function describeArgs(r: InboxRow): Record<string, unknown> {
       };
     case 'low_stock':
       return { item: s['itemName'], onHand: units(s['onHandMicros']), min: units(s['minMicros']) };
+    case 'expiry_due':
+      return {
+        item: s['itemName'],
+        batch: s['batchNo'],
+        date: s['expiryDate'],
+        qty: units(s['onHandMicros']),
+        days: Math.abs(Number(s['daysLeft'] ?? 0)),
+        expired: Number(s['daysLeft'] ?? 0) < 0,
+      };
     case 'draft_stale':
       return { label: s['label'], days: s['ageDays'] };
     case 'ai_extraction': {
