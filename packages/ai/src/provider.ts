@@ -28,10 +28,20 @@ export interface AiAudio {
   mime: string;
 }
 
+export interface AiToolCall {
+  id: string;
+  name: string;
+  arguments: unknown;
+}
+
 export interface AiMessage {
   role: 'system' | 'user' | 'assistant' | 'tool';
   content: string;
   name?: string;
+  /** An assistant turn that asked for tools (prompt 48): the calls, so the next turn can answer them. */
+  toolCalls?: AiToolCall[];
+  /** A tool turn: which call this answers. */
+  toolCallId?: string;
 }
 
 export interface AiTool {
@@ -47,7 +57,11 @@ export type AiErrorCode =
   | 'cloud_not_allowed'
   | 'cancelled'
   | 'rule_failed'
-  | 'no_provider';
+  | 'no_provider'
+  /** The cloud model declined the request (prompt 48); the next tier answers instead. */
+  | 'refused'
+  /** The organisation's monthly cloud tokens are used up. */
+  | 'quota';
 
 export interface AiError {
   code: AiErrorCode;
@@ -59,6 +73,9 @@ export interface AiError {
 export interface AiUsage {
   inputTokens?: number;
   outputTokens?: number;
+  /** Prompt tokens served from the provider's cache (prompt 48). */
+  cacheReadTokens?: number;
+  cacheWriteTokens?: number;
 }
 
 export type AiResult<T> =
@@ -90,7 +107,7 @@ export type ExtractOpts = CallOpts;
 
 export type AiChatEvent =
   | { type: 'text'; delta: string }
-  | { type: 'tool_call'; name: string; arguments: unknown }
+  | { type: 'tool_call'; id: string; name: string; arguments: unknown }
   | { type: 'done'; usage?: AiUsage }
   | { type: 'error'; error: AiError };
 

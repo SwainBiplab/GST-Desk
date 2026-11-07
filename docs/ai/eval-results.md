@@ -128,3 +128,22 @@ Real, anonymised scans go in `packages/ai/fixtures/bills/real/` with the same JS
 supplier name, GSTIN (keep the state prefix and a valid check character), phone and address before
 adding one; keep the layout. Target: 140 real scans across printed, dot-matrix and handwritten-total
 bills, so the set reaches 200.
+
+## Tier 2 (`anthropic`, prompt 48): not run
+
+No Anthropic API key was available in this environment, so the golden set has not been run against the cloud model.
+`pnpm ai:eval --provider anthropic [--model claude-opus-5-5|claude-sonnet-5-5|claude-haiku-5-5] --markdown` runs it
+(the key from `ANTHROPIC_API_KEY`) and prints the same field tables; paste them here with the date, the model and the
+cost. The acceptance bar (prompt 48) is above 95% of fields on clean printed bills with the default route, and a
+chartered accountant spot-checks twenty extractions. Until a run shows no loss, every route uses `claude-opus-5-5`
+(`AI_ROUTE_MODELS` is empty).
+
+Estimated cost per bill before the run, from the synthetic set's size (about 900 characters of bill text, the cached
+prefix of about 600 tokens, and an answer of about 250 tokens) at list prices: about $0.007 on Opus 5.5
+($4 and $20 per million tokens), $0.0035 on Sonnet 5.5, $0.0002 on Haiku 5.5; a batch halves these. The PRD's
+rough figure ($0.024 on Opus) assumed an image per bill; sending the text the device read is the cheaper path and the
+default in the app.
+
+What the provider tests do cover (`packages/ai/test/cloud.test.ts`, HTTP mocked): the request shape (structured
+output, cache breakpoints, fallbacks, no forced tool choice), redaction before and after, schema misses and refusals
+as `ok: false`, strict tools and a tool round-trip, citations, and the batch path.

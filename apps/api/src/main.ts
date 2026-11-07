@@ -1,7 +1,11 @@
 /** The process: configuration, telemetry, database, auth, queues, the app, the HTTP server. */
+import { AnthropicProvider, type CorpusIndex } from '@gst/ai';
+import corpus from '@gst/ai/data/gst-corpus.json';
 import { MockGspAdapter, VendorXAdapter } from '@gst/gsp';
 import { serve } from '@hono/node-server';
 
+import { AiGatewayService } from './ai/service';
+import { batchEnqueuer, startAiWorkers } from './ai/worker';
 import { createApp } from './app';
 import { makeAuth } from './auth/auth';
 import { mirrorInto } from './auth/mirror';
@@ -137,6 +141,21 @@ const portals = {
   }),
   packs: packService,
 };
+const aiService = new AiGatewayService({
+  db,
+  provider: config.ai
+    ? new AnthropicProvider({
+        apiKey: config.ai.apiKey,
+        baseUrl: config.ai.baseUrl,
+        model: config.ai.model,
+        routes: config.ai.routes,
+      })
+    : null,
+  corpus: corpus as CorpusIndex,
+  log,
+  enqueue: batchEnqueuer(jobs),
+});
+if (jobs) startAiWorkers(jobs, aiService);
 mountRoutes(app, {
   db,
   auth,
@@ -149,6 +168,7 @@ mountRoutes(app, {
   payments: paymentsService,
   filing: filingService,
   portals,
+  ai: aiService,
 });
 
 const server = serve({ fetch: app.fetch, port: config.port, hostname: '0.0.0.0' }, (info) => {

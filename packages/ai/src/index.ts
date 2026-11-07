@@ -12,3 +12,4 @@ export * from './eval/harness';
 export * from './diff';
 export * from './inbox';
 export * from './local';
+export * from './cloud';

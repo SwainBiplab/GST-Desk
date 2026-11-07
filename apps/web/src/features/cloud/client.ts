@@ -455,6 +455,93 @@ export interface PortalStatementPage {
   expiresAt: number;
 }
 export type PortalPage = PortalDocumentPage | PortalStatementPage;
+/* the cloud AI gateway (prompt 48) */
+export interface AiQuota {
+  enabled: boolean;
+  configured: boolean;
+  used: number;
+  limit: number;
+  warning: boolean;
+}
+export interface AiUsageView {
+  inputTokens?: number;
+  outputTokens?: number;
+  cacheReadTokens?: number;
+  cacheWriteTokens?: number;
+}
+export interface AiMeta {
+  model: string;
+  usage: AiUsageView;
+  latencyMs: number;
+  quota: { used: number; limit: number; warning: boolean };
+}
+export interface AiBill {
+  supplierName: string;
+  supplierGstin: string | null;
+  invoiceNumber: string;
+  date: string;
+  lines: {
+    description: string;
+    hsn: string | null;
+    qty: number;
+    ratePaise: number;
+    gstRateBp: number;
+  }[];
+  totalPaise: number;
+}
+export interface AiExtraction extends AiMeta {
+  bill: AiBill;
+  supplier: { partyId: string | null; confidence: number };
+  lineMatches: { itemId: string | null; confidence: number }[];
+  checks: Record<string, unknown>;
+  fieldConfidence: Record<string, number>;
+}
+export interface AiExplanation extends AiMeta {
+  explanation: string;
+  likelyCause: string;
+  suggestedAction: string;
+  confidence: number;
+}
+export interface AiNoticeSummary extends AiMeta {
+  noticeType: string;
+  form: string | null;
+  issuedBy: string | null;
+  referenceNumber: string | null;
+  dateIssued: string | null;
+  dueDate: string | null;
+  demandPaise: number | null;
+  summary: string;
+  actions: string[];
+  references: string[];
+  needsProfessional: boolean;
+}
+export interface AiBooksAnswer {
+  answer: string;
+  toolCalls: { name: string; arguments: unknown }[];
+  model: string;
+  usage: AiUsageView;
+  latencyMs: number;
+  quota: { used: number; limit: number; warning: boolean };
+}
+export interface AiGstAnswer {
+  answer: string;
+  sources: { title: string; heading: string; source: string; date: string; quote: string }[];
+  disclaimer: string;
+  covered: boolean;
+  model: string | null;
+  quota: { used: number; limit: number; warning: boolean };
+}
+export interface AiBatch {
+  id: string;
+  kind: string;
+  status: 'queued' | 'submitted' | 'done' | 'failed';
+  items: number;
+  counts: Record<string, number> | null;
+  results: unknown[] | null;
+  error: string | null;
+  createdAt: number;
+  finishedAt: number | null;
+}
 
 export class CloudError extends Error {
   constructor(
@@ -1047,6 +1134,73 @@ export class CloudClient {
   revokePortalLink(orgId: string, id: string): Promise<PortalLink> {
     return this.call(`/v1/orgs/${orgId}/portal/links/${id}`, { method: 'DELETE' });
   }
+  /* ------------------------------------------------------------------- the cloud AI gateway (prompt 48) */
+  private ai(orgId: string, path: string) {
+    return `/v1/orgs/${orgId}/ai${path}`;
+  }
+  aiStatus(orgId: string): Promise<AiQuota> {
+    return this.call(this.ai(orgId, '/status'));
+  }
+  aiExtractBill(
+    orgId: string,
+    b: { businessId: string; text?: string; file?: { name: string; mime: string; base64: string } },
+  ): Promise<AiExtraction> {
+    return this.call(this.ai(orgId, '/extract-bill'), { method: 'POST', body: JSON.stringify(b) });
+  }
+  aiExplainMismatch(
+    orgId: string,
+    b: { businessId: string; row: unknown },
+  ): Promise<AiExplanation> {
+    return this.call(this.ai(orgId, '/explain-mismatch'), {
+      method: 'POST',
+      body: JSON.stringify(b),
+    });
+  }
+  aiSummariseNotice(
+    orgId: string,
+    b: { businessId: string; text?: string; file?: { name: string; mime: string; base64: string } },
+  ): Promise<AiNoticeSummary> {
+    return this.call(this.ai(orgId, '/summarise-notice'), {
+      method: 'POST',
+      body: JSON.stringify(b),
+    });
+  }
+  aiAskBooks(
+    orgId: string,
+    b: {
+      businessId: string;
+      question: string;
+      history?: { role: 'user' | 'assistant'; content: string }[];
+    },
+  ): Promise<AiBooksAnswer> {
+    return this.call(this.ai(orgId, '/ask-books'), { method: 'POST', body: JSON.stringify(b) });
+  }
+  aiGstQa(orgId: string, b: { businessId: string; question: string }): Promise<AiGstAnswer> {
+    return this.call(this.ai(orgId, '/gst-qa'), { method: 'POST', body: JSON.stringify(b) });
+  }
+  aiDraftMessage(
+    orgId: string,
+    b: { businessId: string; kind: string; language: string; context: Record<string, unknown> },
+  ): Promise<{ text: string; language: string } & AiMeta> {
+    return this.call(this.ai(orgId, '/draft-message'), { method: 'POST', body: JSON.stringify(b) });
+  }
+  aiBatches(orgId: string, businessId: string): Promise<AiBatch[]> {
+    return this.call(this.ai(orgId, `/batches?businessId=${businessId}`));
+  }
+  aiCreateBatch(
+    orgId: string,
+    b: {
+      businessId: string;
+      kind: 'extract_bills' | 'categorise_statement';
+      items: { id: string; text?: string; input?: Record<string, unknown> }[];
+    },
+  ): Promise<AiBatch> {
+    return this.call(this.ai(orgId, '/batches'), { method: 'POST', body: JSON.stringify(b) });
+  }
+  aiBatch(orgId: string, id: string): Promise<AiBatch> {
+    return this.call(this.ai(orgId, `/batches/${id}`));
+  }
+
   /* the customer's public page: no session */
   portalPage(token: string): Promise<PortalPage> {
     return this.call(`/v1/p/${token}`);

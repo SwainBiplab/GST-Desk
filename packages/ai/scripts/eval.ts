@@ -1,14 +1,16 @@
 /**
- * pnpm ai:eval --provider mock|rules|ollama|llama [--schema purchaseBill] [--model name] [--url http://...]
+ * pnpm ai:eval --provider mock|rules|ollama|llama|anthropic [--schema purchaseBill] [--model name] [--url http://...]
  *              [--accepted file.sqlite] [--markdown]
  * Runs a provider over the fixtures and prints field-level accuracy and latency. Always exits 0 unless the
  * arguments are invalid. `ollama` and `llama` need a server already running at `--url`; nothing is started.
+ * `anthropic` (prompt 48) needs ANTHROPIC_API_KEY and spends money: one call per case.
  */
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 
 import {
+  AnthropicProvider,
   InMemoryHsnLookup,
   LocalLlamaProvider,
   MockProvider,
@@ -120,6 +122,15 @@ for (const name of names) {
     );
     provider = withTier0Local(new RulesProvider({ hsn: new InMemoryHsnLookup(hsn) }), {
       rateForHsn: (code) => rateByCode.get(code) ?? null,
+    });
+  } else if (providerName === 'anthropic') {
+    if (!process.env['ANTHROPIC_API_KEY']) {
+      console.error('anthropic needs ANTHROPIC_API_KEY in the environment');
+      process.exit(2);
+    }
+    provider = new AnthropicProvider({
+      ...(args.get('model') ? { model: args.get('model')! } : {}),
+      ...(args.get('url') ? { baseUrl: args.get('url')! } : {}),
     });
   } else if (providerName === 'ollama') {
     provider = new OllamaProvider({

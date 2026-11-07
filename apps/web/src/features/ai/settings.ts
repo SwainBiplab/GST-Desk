@@ -7,6 +7,15 @@ import { SettingsRepo, type Ctx, type Database } from '@gst/db';
 import { useLiveQuery } from '@/app/db';
 
 export type Tier1Choice = 'off' | 'builtin' | 'ollama' | 'webllm';
+/** Tier 2 (prompt 48): through our gateway on the cloud plan, or the person's own key on the desktop. */
+export type CloudMode = 'gateway' | 'byok';
+export interface CloudSettings {
+  /** Off by default: nothing leaves the device until the business opts in. */
+  enabled: boolean;
+  mode: CloudMode;
+  /** Ask before each scan or question, rather than send whenever cloud AI is on. */
+  askEachTime: boolean;
+}
 export type OcrChoice = 'auto' | 'sidecar' | 'tesseract';
 
 export interface AiSettings {
@@ -25,6 +34,7 @@ export interface AiSettings {
   watchFolder: string | null;
   /** Languages the OCR engine should expect. */
   ocrLanguages: string[];
+  cloud: CloudSettings;
 }
 
 export const AI_SETTINGS_KEY = 'ai.settings';
@@ -41,12 +51,16 @@ export const DEFAULT_AI_SETTINGS: AiSettings = {
   ocr: 'auto',
   watchFolder: null,
   ocrLanguages: ['eng', 'hin'],
+  cloud: { enabled: false, mode: 'gateway', askEachTime: true },
 };
 
 export async function readAiSettings(d: Database, c: Ctx): Promise<AiSettings> {
+  const stored =
+    (await new SettingsRepo(d).getValue<Partial<AiSettings>>(c, AI_SETTINGS_KEY)) ?? {};
   return {
     ...DEFAULT_AI_SETTINGS,
-    ...((await new SettingsRepo(d).getValue<Partial<AiSettings>>(c, AI_SETTINGS_KEY)) ?? {}),
+    ...stored,
+    cloud: { ...DEFAULT_AI_SETTINGS.cloud, ...(stored.cloud ?? {}) },
   };
 }
 

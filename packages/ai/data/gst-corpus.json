@@ -1,0 +1,358 @@
+{
+  "version": 1,
+  "builtAt": "2026-11-07",
+  "chunks": [
+    {
+      "id": "composition-scheme-s10#1",
+      "title": "Composition scheme: eligibility, rates and returns (section 10, rules 3 to 7, 62)",
+      "heading": "Who may opt in",
+      "source": "https://cbic-gst.gov.in/CGST-Act.html",
+      "date": "2024-07-10",
+      "text": "A registered person whose aggregate turnover in the preceding financial year did not exceed one and a half crore rupees (seventy-five lakh rupees in Arunachal Pradesh, Manipur, Meghalaya, Mizoram, Nagaland, Sikkim, Tripura and Uttarakhand) may pay tax under the composition scheme instead of the regular scheme. The person must not supply goods or services not taxable under the Act, make inter-state outward supplies, supply through an e-commerce operator who collects tax at source (relaxed for goods from 1 October 2023), be a manufacturer of notified goods (ice cream, pan masala, tobacco, aerated water, fly ash bricks and building bricks), or be a casual or non-resident taxable person. A supplier of goods may also supply services up to ten per cent of turnover or five lakh rupees, whichever is higher. A separate scheme under section 10(2A) covers service providers with turnover up to fifty lakh rupees."
+    },
+    {
+      "id": "composition-scheme-s10#2",
+      "title": "Composition scheme: eligibility, rates and returns (section 10, rules 3 to 7, 62)",
+      "heading": "Rates",
+      "source": "https://cbic-gst.gov.in/CGST-Act.html",
+      "date": "2024-07-10",
+      "text": "Manufacturers pay one per cent of turnover in the state (half under the central law and half under the state law); restaurants not serving alcohol pay five per cent; other suppliers (traders) pay one per cent of turnover of taxable supplies of goods and services; service providers under section 10(2A) pay six per cent. A composition taxpayer cannot collect tax from customers, cannot take input tax credit, issues a bill of supply rather than a tax invoice, and must mention the composition status on the bill and at the place of business."
+    },
+    {
+      "id": "composition-scheme-s10#3",
+      "title": "Composition scheme: eligibility, rates and returns (section 10, rules 3 to 7, 62)",
+      "heading": "Returns and payment",
+      "source": "https://cbic-gst.gov.in/CGST-Act.html",
+      "date": "2024-07-10",
+      "text": "A composition taxpayer pays tax quarterly through form CMP-08 by the eighteenth day of the month following the quarter, and furnishes the annual return GSTR-4 for the financial year by the thirtieth day of June following that year (thirtieth of April for years up to 2023-24). Reverse charge tax is paid at the regular rates in addition."
+    },
+    {
+      "id": "composition-scheme-s10#4",
+      "title": "Composition scheme: eligibility, rates and returns (section 10, rules 3 to 7, 62)",
+      "heading": "Opting in and out",
+      "source": "https://cbic-gst.gov.in/CGST-Act.html",
+      "date": "2024-07-10",
+      "text": "The option is taken for a financial year in form CMP-02 before the year begins (or at registration), and lapses from the day the turnover crosses the limit, when the person files CMP-04 within seven days. A person moving to the regular scheme may take credit on stock held, by a statement in ITC-01 within thirty days."
+    },
+    {
+      "id": "credit-debit-notes-s34#1",
+      "title": "Credit notes and debit notes (section 34, rule 53)",
+      "heading": "When a credit note is issued",
+      "source": "https://cbic-gst.gov.in/CGST-Act.html",
+      "date": "2022-10-01",
+      "text": "Where a tax invoice has been issued and the taxable value or the tax charged in it is found to exceed the taxable value or tax payable for the supply, or the goods are returned by the recipient, or the goods or services are found to be deficient, the supplier may issue one or more credit notes to the recipient for the supplies made in a financial year. Credit notes against several invoices of a financial year may be issued together."
+    },
+    {
+      "id": "credit-debit-notes-s34#2",
+      "title": "Credit notes and debit notes (section 34, rule 53)",
+      "heading": "Time limit for a credit note",
+      "source": "https://cbic-gst.gov.in/CGST-Act.html",
+      "date": "2022-10-01",
+      "text": "The supplier declares the credit note in the return for the month in which it is issued, and the tax liability is adjusted accordingly, but a credit note cannot be declared later than the thirtieth day of November following the end of the financial year in which the supply was made, or the date of furnishing the annual return for that year, whichever is earlier. No reduction in the output tax liability of the supplier is allowed if the incidence of tax and interest on the supply has been passed on to another person."
+    },
+    {
+      "id": "credit-debit-notes-s34#3",
+      "title": "Credit notes and debit notes (section 34, rule 53)",
+      "heading": "Debit notes",
+      "source": "https://cbic-gst.gov.in/CGST-Act.html",
+      "date": "2022-10-01",
+      "text": "Where the taxable value or tax charged in a tax invoice is found to be less than the taxable value or tax payable, the supplier issues one or more debit notes. A debit note is declared in the return for the month in which it is issued; since 1 January 2021 a debit note need not be linked to a specific invoice, and the recipient's time limit for taking credit on it runs from the debit note's date."
+    },
+    {
+      "id": "credit-debit-notes-s34#4",
+      "title": "Credit notes and debit notes (section 34, rule 53)",
+      "heading": "What a credit or debit note must contain (rule 53)",
+      "source": "https://cbic-gst.gov.in/CGST-Act.html",
+      "date": "2022-10-01",
+      "text": "The name, address and GSTIN of the supplier; the nature of the document; a consecutive serial number of up to sixteen characters unique for a financial year; the date of issue; the recipient's name, address and GSTIN or UIN when registered, or name, address and state otherwise; the serial number and date of the corresponding tax invoice or bill of supply, where the note is linked to one; the value of the taxable supply, the rate of tax and the amount of tax credited or debited; and the signature or digital signature."
+    },
+    {
+      "id": "e-invoice-threshold-rule-48#1",
+      "title": "e-Invoicing: who must generate an IRN and from when (rule 48(4), notification 13/2020 and its amendments)",
+      "heading": "Who must issue e-invoices",
+      "source": "https://cbic-gst.gov.in/CGST-rules.html",
+      "date": "2023-08-01",
+      "text": "A registered person (other than a special economic zone unit, an insurer, a bank or financial institution, a goods transport agency, a passenger transport service, a multiplex cinema, a government department or local authority) whose aggregate turnover in any financial year from 2017-18 onwards exceeded the notified limit must prepare invoices for supplies to registered persons (B2B), exports and supplies to SEZ by uploading them to an invoice registration portal and obtaining an invoice reference number (IRN) and quick response code. The limit was lowered in steps: five hundred crore rupees from 1 October 2020, one hundred crore from 1 January 2021, fifty crore from 1 April 2021, twenty crore from 1 April 2022, ten crore from 1 October 2022, and five crore rupees from 1 August 2023 (notification 10/2023 central tax dated 10 May 2023)."
+    },
+    {
+      "id": "e-invoice-threshold-rule-48#2",
+      "title": "e-Invoicing: who must generate an IRN and from when (rule 48(4), notification 13/2020 and its amendments)",
+      "heading": "An invoice without an IRN is not an invoice",
+      "source": "https://cbic-gst.gov.in/CGST-rules.html",
+      "date": "2023-08-01",
+      "text": "For a person to whom e-invoicing applies, a document issued without the IRN is not treated as an invoice (rule 48(5)), and the recipient cannot take credit on it. The e-invoice is sent to the recipient after registration, carrying the QR code; a separate physical signature is not required."
+    },
+    {
+      "id": "e-invoice-threshold-rule-48#3",
+      "title": "e-Invoicing: who must generate an IRN and from when (rule 48(4), notification 13/2020 and its amendments)",
+      "heading": "Time limit for reporting",
+      "source": "https://cbic-gst.gov.in/CGST-rules.html",
+      "date": "2023-08-01",
+      "text": "Invoices must be reported to the invoice registration portal within thirty days of the invoice date for taxpayers with aggregate turnover of one hundred crore rupees or more (from 1 November 2023) and of ten crore rupees or more (from 1 April 2025). Beyond that window the portal rejects the invoice."
+    },
+    {
+      "id": "e-invoice-threshold-rule-48#4",
+      "title": "e-Invoicing: who must generate an IRN and from when (rule 48(4), notification 13/2020 and its amendments)",
+      "heading": "Supplies outside e-invoicing",
+      "source": "https://cbic-gst.gov.in/CGST-rules.html",
+      "date": "2023-08-01",
+      "text": "e-Invoicing does not apply to supplies to unregistered persons (B2C), to nil-rated or exempt supplies, to bills of supply, to delivery challans, or to import bills of entry. A B2C invoice of a person with turnover above five hundred crore rupees must carry a dynamic QR code for payment."
+    },
+    {
+      "id": "e-way-bill-rule-138#1",
+      "title": "e-Way bill: when it is needed and how long it lasts (rule 138)",
+      "heading": "When an e-way bill is needed",
+      "source": "https://cbic-gst.gov.in/CGST-rules.html",
+      "date": "2021-01-01",
+      "text": "Before the movement of goods of consignment value exceeding fifty thousand rupees, in relation to a supply, for reasons other than supply (a job work, a transfer between branches) or an inward supply from an unregistered person, the registered person causing the movement furnishes the details in part A of form GST EWB-01 on the e-way bill portal and, when the goods move by road, part B with the vehicle number. An e-way bill is required regardless of value for goods sent by a principal to a job worker in another state and for handicraft goods moved inter-state by an exempt person. The consignor, the consignee or the transporter may generate it. Several states lower the intra-state threshold or exempt certain goods; the state's own notification applies within the state."
+    },
+    {
+      "id": "e-way-bill-rule-138#2",
+      "title": "e-Way bill: when it is needed and how long it lasts (rule 138)",
+      "heading": "Validity (rule 138(10))",
+      "source": "https://cbic-gst.gov.in/CGST-rules.html",
+      "date": "2021-01-01",
+      "text": "From 1 January 2021 an e-way bill is valid for one day for every two hundred kilometres or part of it (one day for every twenty kilometres for over-dimensional cargo and multimodal shipments involving ship). The day counts from the time of generation until the end of the next day. The validity may be extended by the transporter within eight hours before or after expiry for exceptional reasons, with the reason recorded."
+    },
+    {
+      "id": "e-way-bill-rule-138#3",
+      "title": "e-Way bill: when it is needed and how long it lasts (rule 138)",
+      "heading": "Cancellation and changes",
+      "source": "https://cbic-gst.gov.in/CGST-rules.html",
+      "date": "2021-01-01",
+      "text": "An e-way bill may be cancelled within twenty-four hours of generation if the goods are not transported or the details are wrong, but not after it has been verified in transit. Part B (the vehicle) may be updated during the journey. A consignee may reject an e-way bill generated against them within seventy-two hours, after which it is deemed accepted."
+    },
+    {
+      "id": "e-way-bill-rule-138#4",
+      "title": "e-Way bill: when it is needed and how long it lasts (rule 138)",
+      "heading": "Exemptions (rule 138(14))",
+      "source": "https://cbic-gst.gov.in/CGST-rules.html",
+      "date": "2021-01-01",
+      "text": "No e-way bill is needed for goods in the exempt list (including specified household goods, kerosene, LPG for households, jewellery, currency, used personal effects), goods moved by non-motorised conveyance, goods moved from a port or airport to an inland container depot for customs clearance, movement within a notified area, goods treated as no supply under schedule III, and empty cargo containers, among others."
+    },
+    {
+      "id": "gstr-2b-reconciliation#1",
+      "title": "GSTR-2B and GSTR-2A: what the statements are and how credit is matched (section 38, rule 60)",
+      "heading": "GSTR-2B",
+      "source": "https://tutorial.gst.gov.in/userguide/returns/",
+      "date": "2022-01-01",
+      "text": "GSTR-2B is an auto-drafted, static statement of input tax credit generated for a recipient on the fourteenth day of each month from the GSTR-1, IFF, GSTR-5 and GSTR-6 filed by suppliers between the previous month's filing cut-off and this one. It lists credit as available or not available, with reasons (the supplier's return filed late, the recipient's state differing from the place of supply, the invoice dated more than a year before, or credit blocked under section 16(4)), and it does not change once generated. Since 1 January 2022 credit may be taken only on invoices appearing in it (section 16(2)(aa), rule 36(4))."
+    },
+    {
+      "id": "gstr-2b-reconciliation#2",
+      "title": "GSTR-2B and GSTR-2A: what the statements are and how credit is matched (section 38, rule 60)",
+      "heading": "GSTR-2A",
+      "source": "https://tutorial.gst.gov.in/userguide/returns/",
+      "date": "2022-01-01",
+      "text": "GSTR-2A is a dynamic view of the same supplier filings, updated as suppliers file or amend. It is for reference: a supplier's later filing shows there, and the invoice then appears in the next month's GSTR-2B."
+    },
+    {
+      "id": "gstr-2b-reconciliation#3",
+      "title": "GSTR-2B and GSTR-2A: what the statements are and how credit is matched (section 38, rule 60)",
+      "heading": "Common reasons the books and GSTR-2B disagree",
+      "source": "https://tutorial.gst.gov.in/userguide/returns/",
+      "date": "2022-01-01",
+      "text": "The supplier has not filed GSTR-1, or filed it after the cut-off, so the invoice will appear in a later month (credit waits). The supplier reported the invoice in a different period (credit is taken in the month it appears). The invoice number or date differ by a typo on one side (match by value and GSTIN, then fix the book entry or ask the supplier to amend). The amount or tax differs (the supplier may have amended; take credit at the reported amount and resolve the difference with the supplier). The supplier used the wrong GSTIN of the recipient, so the invoice appears in another registration's statement. The supply is marked as reverse charge, so the credit is through table 4(A)(3), not from the supplier's filing. The place of supply differs from the recipient's state and the credit is marked unavailable. The invoice was cancelled by the supplier through a credit note, which appears separately."
+    },
+    {
+      "id": "gstr-2b-reconciliation#4",
+      "title": "GSTR-2B and GSTR-2A: what the statements are and how credit is matched (section 38, rule 60)",
+      "heading": "What to do with each class",
+      "source": "https://tutorial.gst.gov.in/userguide/returns/",
+      "date": "2022-01-01",
+      "text": "Matched entries are taken as credit. Entries only in GSTR-2B with no book bill are checked against the supplier (a missing purchase in the books, or a wrong GSTIN at the supplier's end). Book bills not in GSTR-2B are deferred: the credit is not taken until the entry appears, and the supplier is reminded to file. Differences in value are taken at the lower of the two until resolved. Entries marked as credit not available are reversed in table 4(B)."
+    },
+    {
+      "id": "itc-conditions-s16#1",
+      "title": "Input tax credit: conditions, blocked credits and time limits (sections 16, 17, rule 36)",
+      "heading": "Conditions for taking input tax credit (section 16(2))",
+      "source": "https://cbic-gst.gov.in/CGST-Act.html",
+      "date": "2024-07-10",
+      "text": "A registered person may take credit of input tax on a supply only if all of these hold: the person has a tax invoice, debit note or other prescribed document; the supplier has furnished the details of that invoice or debit note in their statement of outward supplies (GSTR-1 or the invoice furnishing facility) and the details have been communicated to the recipient in GSTR-2B; the goods or services have been received (goods delivered to a third person on the recipient's direction count as received, and goods received in lots are credited on the last lot); the credit is not restricted in GSTR-2B under section 38; the tax charged has actually been paid to the government; and the recipient has furnished the return under section 39. Input credit is therefore decided against GSTR-2B: an invoice the supplier has not reported, or has reported in a later period, is not available until it appears there."
+    },
+    {
+      "id": "itc-conditions-s16#2",
+      "title": "Input tax credit: conditions, blocked credits and time limits (sections 16, 17, rule 36)",
+      "heading": "Payment to the supplier within 180 days",
+      "source": "https://cbic-gst.gov.in/CGST-Act.html",
+      "date": "2024-07-10",
+      "text": "Where the recipient fails to pay the supplier the value of the supply along with the tax within one hundred and eighty days of the date of the invoice, an amount equal to the credit taken is added to the recipient's output tax liability with interest (rule 37). The credit may be taken again once the payment is made. This does not apply to supplies taxed on reverse charge or where the value is not paid because of a scheme of the tax law."
+    },
+    {
+      "id": "itc-conditions-s16#3",
+      "title": "Input tax credit: conditions, blocked credits and time limits (sections 16, 17, rule 36)",
+      "heading": "Time limit for taking credit (section 16(4))",
+      "source": "https://cbic-gst.gov.in/CGST-Act.html",
+      "date": "2024-07-10",
+      "text": "Credit on an invoice or debit note for a financial year cannot be taken after the thirtieth day of November following the end of that financial year or the furnishing of the relevant annual return, whichever is earlier. For invoices of the years 2017-18 to 2020-21 a one-time relaxation allowed credit in any return filed up to 30 November 2021 (section 16(5), inserted by the Finance (No. 2) Act, 2024)."
+    },
+    {
+      "id": "itc-conditions-s16#4",
+      "title": "Input tax credit: conditions, blocked credits and time limits (sections 16, 17, rule 36)",
+      "heading": "Blocked credits (section 17(5))",
+      "source": "https://cbic-gst.gov.in/CGST-Act.html",
+      "date": "2024-07-10",
+      "text": "No credit is available on motor vehicles for carrying persons with seating capacity up to thirteen (including the driver) unless used for further supply, passenger transport or driving training; on vessels and aircraft with similar exceptions; on food and beverages, outdoor catering, beauty treatment, health services, cosmetic and plastic surgery, club memberships, health and fitness centres, travel benefits to employees on vacation, and life and health insurance, unless the supply is used for making an outward supply of the same category or is obligatory for an employer under a law; on works contract services for construction of immovable property (other than plant and machinery) except when it is an input for further works contract; on goods or services received for construction of immovable property on own account; on goods or services on which composition tax was paid; on goods lost, stolen, destroyed, written off or given as gifts or free samples; on goods or services used for personal consumption; and on any tax paid as penalty or on account of fraud."
+    },
+    {
+      "id": "itc-conditions-s16#5",
+      "title": "Input tax credit: conditions, blocked credits and time limits (sections 16, 17, rule 36)",
+      "heading": "Documents for credit (rule 36)",
+      "source": "https://cbic-gst.gov.in/CGST-Act.html",
+      "date": "2024-07-10",
+      "text": "Credit is taken on a tax invoice, a debit note, a bill of entry, an ISD invoice, or a self-invoice for a reverse-charge supply, carrying the prescribed particulars. Credit on invoices not furnished by the supplier in GSTR-1 and not communicated in GSTR-2B is not available (rule 36(4), as substituted from 1 January 2022)."
+    },
+    {
+      "id": "place-of-supply-basics#1",
+      "title": "Place of supply for goods and services (IGST Act sections 10 and 12)",
+      "heading": "Why it matters",
+      "source": "https://cbic-gst.gov.in/IGST-Act.html",
+      "date": "2023-10-01",
+      "text": "A supply within a state attracts central and state (or union territory) tax; a supply from one state to another attracts integrated tax. The place of supply, with the location of the supplier, decides which."
+    },
+    {
+      "id": "place-of-supply-basics#2",
+      "title": "Place of supply for goods and services (IGST Act sections 10 and 12)",
+      "heading": "Goods (section 10)",
+      "source": "https://cbic-gst.gov.in/IGST-Act.html",
+      "date": "2023-10-01",
+      "text": "Where the supply involves movement of goods, the place of supply is the location of the goods when the movement ends for delivery to the recipient. Where goods are delivered to a third person on the direction of the buyer (a bill-to-ship-to supply), the buyer's principal place of business is the place of supply. Where there is no movement, it is the location of the goods at delivery. Goods assembled or installed at a site are supplied at that site; goods supplied on board a conveyance are supplied where the goods were taken on board. For a supply to an unregistered person where the address on the invoice is recorded, the address on the invoice is the place of supply (from 1 October 2023)."
+    },
+    {
+      "id": "place-of-supply-basics#3",
+      "title": "Place of supply for goods and services (IGST Act sections 10 and 12)",
+      "heading": "Services, the general rule (section 12(2))",
+      "source": "https://cbic-gst.gov.in/IGST-Act.html",
+      "date": "2023-10-01",
+      "text": "A service supplied to a registered person is supplied at the recipient's location; a service to an unregistered person is supplied at the recipient's address on record, or else at the supplier's location."
+    },
+    {
+      "id": "place-of-supply-basics#4",
+      "title": "Place of supply for goods and services (IGST Act sections 10 and 12)",
+      "heading": "Services with their own rules (section 12(3) to (14))",
+      "source": "https://cbic-gst.gov.in/IGST-Act.html",
+      "date": "2023-10-01",
+      "text": "Services relating to immovable property (architects, estate agents, hotels, construction) are supplied where the property is; restaurant, personal grooming, fitness and health services where they are performed; training and performance appraisal to an unregistered person where performed; admission to events where the event is held; organisation of events to an unregistered person where held; transportation of goods to an unregistered person where the goods are handed over (and, from 1 October 2023, the recipient's location for a registered person); passenger transport where the passenger embarks; services on board a conveyance at the first scheduled departure; telecommunication by the address of the fixed line or the billing address; banking and financial services at the recipient's address on record; insurance at the recipient's location when registered, else the address on record; and advertisement services to the government by the state covered."
+    },
+    {
+      "id": "return-due-dates-late-fee#1",
+      "title": "GSTR-1, GSTR-3B and annual return due dates; late fee and interest (sections 37, 39, 44, 47, 50)",
+      "heading": "GSTR-1 (statement of outward supplies, section 37)",
+      "source": "https://cbic-gst.gov.in/CGST-Act.html",
+      "date": "2024-07-10",
+      "text": "A monthly filer furnishes GSTR-1 for a month by the eleventh day of the following month. A person under the quarterly return monthly payment (QRMP) scheme furnishes GSTR-1 for a quarter by the thirteenth day of the month following the quarter, and may report B2B invoices, credit notes and debit notes for the first and second months of the quarter through the invoice furnishing facility (IFF) by the thirteenth of the following month, up to fifty lakh rupees of value per month. GSTR-1 cannot be furnished if the GSTR-1 of an earlier period is pending. Since 1 August 2024 an amendment statement, GSTR-1A, allows additions or amendments for the same period before GSTR-3B is filed."
+    },
+    {
+      "id": "return-due-dates-late-fee#2",
+      "title": "GSTR-1, GSTR-3B and annual return due dates; late fee and interest (sections 37, 39, 44, 47, 50)",
+      "heading": "GSTR-3B (return, section 39)",
+      "source": "https://cbic-gst.gov.in/CGST-Act.html",
+      "date": "2024-07-10",
+      "text": "A monthly filer furnishes GSTR-3B and pays the tax by the twentieth day of the following month. A QRMP filer furnishes GSTR-3B for the quarter by the twenty-second day of the month following the quarter for the states and union territories of the southern and western group (Chhattisgarh, Madhya Pradesh, Gujarat, Maharashtra, Karnataka, Goa, Kerala, Tamil Nadu, Telangana, Andhra Pradesh, Daman and Diu, Dadra and Nagar Haveli, Puducherry, Andaman and Nicobar Islands, Lakshadweep) and by the twenty-fourth day for the rest, and pays tax for the first two months of the quarter by the twenty-fifth of the following month in form PMT-06. GSTR-3B cannot be furnished if the GSTR-3B of an earlier period, or the GSTR-1 for the same period, is pending. A return filed after three years from its due date is barred (sections 37(5), 39(11), inserted by the Finance Act, 2023, effective 1 October 2023)."
+    },
+    {
+      "id": "return-due-dates-late-fee#3",
+      "title": "GSTR-1, GSTR-3B and annual return due dates; late fee and interest (sections 37, 39, 44, 47, 50)",
+      "heading": "Annual return (section 44)",
+      "source": "https://cbic-gst.gov.in/CGST-Act.html",
+      "date": "2024-07-10",
+      "text": "Every registered person other than an input service distributor, a person deducting or collecting tax at source, a casual taxable person and a non-resident taxable person furnishes the annual return GSTR-9 for a financial year by the thirty-first day of December following that year. The requirement is waived for a financial year for persons with aggregate turnover up to two crore rupees (by notification, year by year). The reconciliation statement GSTR-9C is furnished with it by persons with aggregate turnover above five crore rupees."
+    },
+    {
+      "id": "return-due-dates-late-fee#4",
+      "title": "GSTR-1, GSTR-3B and annual return due dates; late fee and interest (sections 37, 39, 44, 47, 50)",
+      "heading": "Late fee (section 47, notifications 19/2021, 20/2021 central tax)",
+      "source": "https://cbic-gst.gov.in/CGST-Act.html",
+      "date": "2024-07-10",
+      "text": "The late fee under the Act is one hundred rupees per day under the central law and the same under the state law, capped at five thousand rupees each. The notifications reduce it: for GSTR-3B and GSTR-1 from the June 2021 period, twenty-five rupees per day under each law (ten rupees per day for a nil return), capped per return at two hundred and fifty rupees each (nil), one thousand rupees each (aggregate turnover up to one and a half crore rupees), two thousand five hundred rupees each (turnover above one and a half and up to five crore rupees), and five thousand rupees each above that. The annual return's late fee is one hundred rupees per day under each law, capped at a quarter per cent of turnover in the state or union territory, with lower rates notified for turnover up to twenty crore rupees from 2022-23."
+    },
+    {
+      "id": "return-due-dates-late-fee#5",
+      "title": "GSTR-1, GSTR-3B and annual return due dates; late fee and interest (sections 37, 39, 44, 47, 50)",
+      "heading": "Interest on late payment (section 50)",
+      "source": "https://cbic-gst.gov.in/CGST-Act.html",
+      "date": "2024-07-10",
+      "text": "Interest at eighteen per cent per annum is payable on tax paid after the due date, computed on the net tax liability paid through the electronic cash ledger (for returns filed late other than after proceedings under sections 73 or 74). Interest at twenty-four per cent applies to credit wrongly availed and utilised."
+    },
+    {
+      "id": "reverse-charge-s9-3#1",
+      "title": "Reverse charge: when the recipient pays the tax (sections 9(3), 9(4), 31(3)(f); notifications 13/2017 and 4/2017 central tax (rate))",
+      "heading": "Services on which the recipient pays (section 9(3), notification 13/2017 central tax (rate))",
+      "source": "https://cbic-gst.gov.in/gst-goods-services-rates.html",
+      "date": "2024-10-10",
+      "text": "The recipient pays the tax, rather than the supplier, on services of a goods transport agency to a registered business (unless the agency opts to pay at twelve per cent), legal services by an advocate or firm of advocates to a business, services of an arbitral tribunal, sponsorship services to a body corporate or partnership, specified services of the central or state government or a local authority to a business (other than renting of immovable property to a registered person, which is also reverse charge, and a few others), services of a director to the company, services of an insurance agent, recovery agent, music composer or author of copyright, security services by a person other than a body corporate to a registered person, renting of a motor vehicle designed to carry passengers by a non-body corporate charging five per cent to a body corporate, lending of securities, renting of commercial property by an unregistered person to a registered person (from 10 October 2024), and import of services from outside India (section 5(3) of the IGST Act)."
+    },
+    {
+      "id": "reverse-charge-s9-3#2",
+      "title": "Reverse charge: when the recipient pays the tax (sections 9(3), 9(4), 31(3)(f); notifications 13/2017 and 4/2017 central tax (rate))",
+      "heading": "Goods on which the recipient pays (notification 4/2017 central tax (rate))",
+      "source": "https://cbic-gst.gov.in/gst-goods-services-rates.html",
+      "date": "2024-10-10",
+      "text": "Cashew nuts not shelled, bidi wrapper leaves, tobacco leaves, silk yarn, raw cotton, and supply of lottery by the state, among others, when supplied by an agriculturist or other specified supplier to a registered person; used vehicles, seized goods and scrap sold by the government to a registered person; and metal scrap from an unregistered supplier to a registered person (from 10 October 2024)."
+    },
+    {
+      "id": "reverse-charge-s9-3#3",
+      "title": "Reverse charge: when the recipient pays the tax (sections 9(3), 9(4), 31(3)(f); notifications 13/2017 and 4/2017 central tax (rate))",
+      "heading": "Purchases from unregistered persons (section 9(4))",
+      "source": "https://cbic-gst.gov.in/gst-goods-services-rates.html",
+      "date": "2024-10-10",
+      "text": "The general reverse charge on every purchase from an unregistered supplier was withdrawn; from 1 April 2019 it applies only to notified recipients, namely promoters of real estate projects on cement, capital goods and the shortfall of inputs below eighty per cent from registered suppliers."
+    },
+    {
+      "id": "reverse-charge-s9-3#4",
+      "title": "Reverse charge: when the recipient pays the tax (sections 9(3), 9(4), 31(3)(f); notifications 13/2017 and 4/2017 central tax (rate))",
+      "heading": "Self-invoice and credit",
+      "source": "https://cbic-gst.gov.in/gst-goods-services-rates.html",
+      "date": "2024-10-10",
+      "text": "The recipient paying tax under reverse charge issues an invoice themselves (section 31(3)(f)) within thirty days of receipt of the supply (rule 47A, from 1 November 2024) and a payment voucher when paying the supplier. The tax is paid in cash (not through credit) and, once paid, can be taken as input tax credit subject to the usual conditions, in the same month. The reverse charge liability is reported in table 3.1(d) of GSTR-3B and the credit in table 4(A)(3)."
+    },
+    {
+      "id": "tax-invoice-rule-46#1",
+      "title": "Tax invoice: when to issue it and what it must contain (section 31, rules 46, 46A, 49)",
+      "heading": "When a tax invoice is issued (section 31)",
+      "source": "https://cbic-gst.gov.in/CGST-rules.html",
+      "date": "2024-07-10",
+      "text": "A registered person supplying taxable goods issues the tax invoice before or at the time of removal of the goods (where the supply involves movement) or their delivery or making available to the recipient. For services the invoice is issued within thirty days of the supply of the service (forty-five days for banks, insurers and financial institutions). A supplier of exempt goods or services, and a person paying tax under the composition scheme, issues a bill of supply instead of a tax invoice."
+    },
+    {
+      "id": "tax-invoice-rule-46#2",
+      "title": "Tax invoice: when to issue it and what it must contain (section 31, rules 46, 46A, 49)",
+      "heading": "What a tax invoice must contain (rule 46)",
+      "source": "https://cbic-gst.gov.in/CGST-rules.html",
+      "date": "2024-07-10",
+      "text": "The name, address and GSTIN of the supplier; a consecutive serial number of up to sixteen characters, unique for a financial year, containing only letters, numerals and the characters hyphen, dash and slash; the date of issue; the name, address and GSTIN or UIN of the recipient when registered; for an unregistered recipient and a value of fifty thousand rupees or more, the recipient's name, address, delivery address and state with its code; the HSN code of the goods or the SAC of the services; the description, quantity and unit of the goods; the total value; the taxable value after discount or abatement; the rate of tax (central, state or union territory, integrated, cess); the amount of tax charged; the place of supply with the name of the state for an inter-state supply; the delivery address when it differs from the place of supply; whether tax is payable on reverse charge; and the signature or digital signature of the supplier or an authorised representative. An e-invoice carries the quick response code with the invoice reference number instead of the signature."
+    },
+    {
+      "id": "tax-invoice-rule-46#3",
+      "title": "Tax invoice: when to issue it and what it must contain (section 31, rules 46, 46A, 49)",
+      "heading": "HSN digits on invoices (notification 78/2020 central tax)",
+      "source": "https://cbic-gst.gov.in/CGST-rules.html",
+      "date": "2024-07-10",
+      "text": "From 1 April 2021 a registered person with aggregate turnover up to five crore rupees in the preceding financial year shows four digits of HSN on invoices to registered persons (optional for supplies to unregistered persons), and one with turnover above five crore rupees shows six digits on every invoice. Eight digits apply to the goods notified for export and chemicals."
+    },
+    {
+      "id": "tax-invoice-rule-46#4",
+      "title": "Tax invoice: when to issue it and what it must contain (section 31, rules 46, 46A, 49)",
+      "heading": "Invoice-cum-bill of supply (rule 46A)",
+      "source": "https://cbic-gst.gov.in/CGST-rules.html",
+      "date": "2024-07-10",
+      "text": "Where a registered person supplies taxable and exempt goods or services to an unregistered person in one transaction, a single invoice-cum-bill of supply may be issued for all the supplies."
+    },
+    {
+      "id": "tax-invoice-rule-46#5",
+      "title": "Tax invoice: when to issue it and what it must contain (section 31, rules 46, 46A, 49)",
+      "heading": "Bill of supply (rule 49)",
+      "source": "https://cbic-gst.gov.in/CGST-rules.html",
+      "date": "2024-07-10",
+      "text": "A bill of supply carries the supplier's name, address and GSTIN, a consecutive serial number, the date, the recipient's details when registered, the HSN or SAC, the description, the value after discount and the signature. A composition supplier prints the words \"composition taxable person, not eligible to collect tax on supplies\" on it."
+    },
+    {
+      "id": "tax-invoice-rule-46#6",
+      "title": "Tax invoice: when to issue it and what it must contain (section 31, rules 46, 46A, 49)",
+      "heading": "Small invoices (rule 46, fourth proviso)",
+      "source": "https://cbic-gst.gov.in/CGST-rules.html",
+      "date": "2024-07-10",
+      "text": "A registered person need not issue a tax invoice for a supply valued at less than two hundred rupees to an unregistered recipient who does not ask for one, and may issue one consolidated invoice for such supplies at the end of each day."
+    }
+  ]
+}

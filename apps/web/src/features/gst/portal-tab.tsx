@@ -45,6 +45,8 @@ export function PortalLogin() {
     if (!m) return;
     void m.client.filingStatus(m.orgId, m.businessId).then(
       (s) => {
+        // an answer without a session (an older server, a stub) is treated as "not set up"
+        if (!s?.session || !s.entitlement) return;
         setSt(s);
         setUser((u) => u || s.session.username || '');
       },

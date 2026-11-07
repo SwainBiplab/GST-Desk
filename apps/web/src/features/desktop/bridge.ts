@@ -56,6 +56,11 @@ export const lanReply = (id: number, status: number, body: string) =>
 
 /** Offline AI (prompt 36): model files under the data folder, and the sidecar servers. All `ai_*`
  * commands answer `not_built` when the app was built without the `ai` cargo feature. */
+/** Secrets in the operating system's keychain (prompt 48): a person's own cloud AI key, never in the database. */
+export const secretSet = (name: string, value: string) =>
+  invoke<null>('secret_set', { name, value });
+export const secretGet = (name: string) => invoke<string | null>('secret_get', { name });
+export const secretDelete = (name: string) => invoke<null>('secret_delete', { name });
 export const aiModelsDir = () => invoke<string>('ai_models_dir');
 export const aiFileSize = (file: string) => invoke<number | null>('ai_file_size', { file });
 export const aiAppend = (file: string, base64: string) =>

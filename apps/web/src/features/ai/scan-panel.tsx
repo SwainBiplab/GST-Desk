@@ -2,7 +2,7 @@
  * "Scan a bill": choose or drop a photo or PDF (the camera on a phone), watch the steps, and find the
  * result in the inbox. Without an OCR engine the panel says how to enable offline AI instead of failing.
  */
-import { Button, Card, toast } from '@gst/ui';
+import { Button, Card, Checkbox, toast } from '@gst/ui';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -11,6 +11,7 @@ import { useAiRouter } from './router';
 import { scanFile, ScanError, type ScanStep } from './scan';
 import { useAiSettings } from './settings';
 
+import { useConfirm } from '@/app/components/confirm';
 import { DEMO_REQUESTED, useAppDb } from '@/app/db';
 import { useAppNavigate, useLocationInfo } from '@/app/hooks';
 import { useAppStore } from '@/app/store';
@@ -39,7 +40,12 @@ export function ScanPanel({ onScanned }: { onScanned?: (reviewItemId: string) =>
   const [step, setStep] = useState<ScanStep | null>(null);
   const [queue, setQueue] = useState<{ done: number; total: number }>({ done: 0, total: 0 });
   const [error, setError] = useState<string | null>(null);
+  const [useCloud, setUseCloud] = useState<boolean | null>(null);
+  const confirm = useConfirm();
   const input = useRef<HTMLInputElement>(null);
+  // the cloud tier (prompt 48): offered only when the business opted in and a backend is reachable
+  const cloudReady = !!built?.tier2 && built.router.cloudAvailable('extract');
+  const cloudOn = cloudReady && (useCloud ?? true);
   // the demo flag is read once at start; the address loses it after the seed
   const demo = DEMO_REQUESTED || search['demo'] === '1';
   const ocr = settings.data ? chooseOcrEngine(settings.data, demo) : null;
@@ -52,6 +58,12 @@ export function ScanPanel({ onScanned }: { onScanned?: (reviewItemId: string) =>
       return;
     }
     setError(null);
+    if (
+      cloudOn &&
+      settings.data.cloud.askEachTime &&
+      !(await confirm({ title: t('ai.cloud.askTitle'), description: t('ai.cloud.askBody') }))
+    )
+      return;
     setQueue({ done: 0, total: files.length });
     let last: string | null = null;
     for (const f of files) {
@@ -65,6 +77,7 @@ export function ScanPanel({ onScanned }: { onScanned?: (reviewItemId: string) =>
             ocr: ocr.engine,
             router: built?.router ?? null,
             languages: settings.data.ocrLanguages,
+            ...(cloudReady ? { allowCloud: cloudOn } : {}),
             onStep: setStep,
           },
         );
@@ -96,7 +109,17 @@ export function ScanPanel({ onScanned }: { onScanned?: (reviewItemId: string) =>
           <h2 className="font-medium">{t('ai.scan.title')}</h2>
           <p className="text-sm text-fg-muted">{t('ai.scan.intro')}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-3">
+          {cloudReady && (
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox
+                checked={cloudOn}
+                onCheckedChange={(v) => setUseCloud(v === true)}
+                data-testid="scan-cloud"
+              />
+              {t('ai.scan.useCloud')}
+            </label>
+          )}
           <input
             ref={input}
             type="file"

@@ -17,6 +17,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1164.0",
     "@aws-sdk/s3-request-presigner": "^3.1164.0",
+    "@gst/ai": "workspace:*",
     "@gst/db": "workspace:*",
     "@gst/domain": "workspace:*",
     "@gst/gsp": "workspace:*",

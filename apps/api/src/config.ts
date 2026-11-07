@@ -71,6 +71,11 @@ const schema = z.object({
   GSP_SANDBOX: z.enum(['true', 'false']).default('true'),
   GSP_PRACTICE: z.enum(['true', 'false']).default('false'),
   RESEND_FROM: z.string().optional(),
+  /** The cloud AI gateway (prompt 48): the platform's Anthropic key, the default model and per-route overrides as JSON. */
+  ANTHROPIC_API_KEY: z.string().optional(),
+  ANTHROPIC_BASE_URL: z.string().url().optional(),
+  AI_MODEL: z.string().default('claude-opus-5-5'),
+  AI_ROUTE_MODELS: z.string().optional(),
   RESEND_WEBHOOK_SECRET: z.string().optional(),
 });
 
@@ -130,8 +135,36 @@ export interface Config {
   resend: { apiKey: string; from: string; webhookSecret: string } | null;
   /** Seals each business's payment gateway secrets (prompt 45). */
   secretsKey: string | null;
+  /** The cloud AI gateway (prompt 48); null without a key. */
+  ai: {
+    apiKey: string;
+    baseUrl: string | undefined;
+    model: string;
+    routes: Record<
+      string,
+      { model?: string; effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max' }
+    >;
+  } | null;
   /** The GSP for GST filing: a vendor's address, the practice portal, or none. */
   gsp: { kind: 'vendor'; baseUrl: string; sandbox: boolean } | { kind: 'practice' } | null;
+}
+
+/** `{"bill_extract":{"model":"claude-sonnet-5-5","effort":"high"}}`; a bad value is refused at start. */
+function parseRoutes(
+  raw: string | undefined,
+): Record<string, { model?: string; effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max' }> {
+  if (!raw) return {};
+  const parsed = z
+    .record(
+      z.string(),
+      z.object({
+        model: z.string().optional(),
+        effort: z.enum(['low', 'medium', 'high', 'xhigh', 'max']).optional(),
+      }),
+    )
+    .safeParse(JSON.parse(raw));
+  if (!parsed.success) throw new Error('AI_ROUTE_MODELS must map route names to {model, effort}');
+  return parsed.data as never;
 }
 
 function parseServiceAccount(raw: string | undefined) {
@@ -254,6 +287,14 @@ export function loadConfig(raw: NodeJS.ProcessEnv): Config {
       : e.GSP_PRACTICE === 'true' && e.NODE_ENV !== 'production'
         ? { kind: 'practice' }
         : null,
+    ai: e.ANTHROPIC_API_KEY
+      ? {
+          apiKey: e.ANTHROPIC_API_KEY,
+          baseUrl: e.ANTHROPIC_BASE_URL,
+          model: e.AI_MODEL,
+          routes: parseRoutes(e.AI_ROUTE_MODELS),
+        }
+      : null,
     resend:
       e.RESEND_API_KEY && e.RESEND_FROM && e.RESEND_WEBHOOK_SECRET
         ? { apiKey: e.RESEND_API_KEY, from: e.RESEND_FROM, webhookSecret: e.RESEND_WEBHOOK_SECRET }

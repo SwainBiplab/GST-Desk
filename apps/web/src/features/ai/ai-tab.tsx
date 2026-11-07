@@ -36,6 +36,7 @@ import { useTranslation } from 'react-i18next';
 
 import { isDesktop } from '../desktop/bridge';
 
+import { CloudAiCard } from './cloud-card';
 import {
   detectHardware,
   deviceClassOf,
@@ -217,6 +218,8 @@ export function AiTab() {
         )}
         <p className="pt-2 text-xs text-fg-muted">{t('ai.backend.privacy')}</p>
       </Card>
+
+      <CloudAiCard s={s} save={save} />
 
       <Card data-testid="ai-models">
         <div className="flex flex-wrap items-center justify-between gap-2">

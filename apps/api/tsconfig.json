@@ -1,5 +1,5 @@
 {
   "extends": "@gst/config/tsconfig.base.json",
-  "compilerOptions": { "noEmit": true, "types": ["node"], "lib": ["ES2023"] },
+  "compilerOptions": { "noEmit": true, "types": ["node"], "lib": ["ES2023", "DOM"] },
   "include": ["src", "test", "scripts", "vitest.config.ts"]
 }

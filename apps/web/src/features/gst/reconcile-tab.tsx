@@ -49,6 +49,7 @@ import {
 } from './recon-model';
 
 import { useAppNavigate } from '@/app/hooks';
+import { ExplainButton } from '@/features/ai/explain';
 import { dyn } from '@/lib/dyn-key';
 
 const TONE: Record<MatchClass, 'success' | 'warning' | 'info' | 'danger' | 'neutral'> = {
@@ -393,6 +394,7 @@ function Row({
         ) : null}
       </TableCell>
       <TableCell>
+        {row.match.cls !== 'matched' && <ExplainButton row={row} />}
         {actions.length > 0 ? (
           <div className="flex items-center gap-1">
             <Button variant="secondary" disabled={busy} onClick={() => onAction(actions[0]!)}>

@@ -5,6 +5,7 @@ mod lan;
 mod launch;
 mod paths;
 mod printers;
+mod secrets;
 mod tray;
 mod update;
 
@@ -57,6 +58,9 @@ pub fn run() {
             paths::move_data,
             paths::remove_restore_dir,
             printers::list_printers,
+            secrets::secret_set,
+            secrets::secret_get,
+            secrets::secret_delete,
             diag::diagnostics_zip,
             update::update_check,
             update::update_download,

@@ -20,7 +20,9 @@ import type { Ctx, Database, Row } from '@gst/db';
 import { useEffect, useState } from 'react';
 
 import { isDesktop } from '../desktop/bridge';
+import { useMessaging } from '../dispatch/use-messaging';
 
+import { GatewayProvider, byokProvider, type GatewayTarget } from './cloud';
 import { detectHardware, modelManager, useModelStates } from './models';
 import { keeperFor } from './runtime';
 import { useAiSettings, type AiSettings } from './settings';
@@ -42,7 +44,27 @@ export function embedderFor(settings: AiSettings): Embedder {
 export interface BuiltRouter {
   router: AiRouter;
   tier1: AiProvider | null;
+  /** The cloud backend (prompt 48), when the business opted in and one is reachable. */
+  tier2: AiProvider | null;
   hsn: HsnLookup;
+}
+
+/** The Tier 2 backend for the settings: our gateway for a cloud business, or the person's own key on the desktop. */
+export async function cloudProvider(
+  settings: AiSettings,
+  business: Row | null,
+  gateway: GatewayTarget | null,
+): Promise<AiProvider | null> {
+  if (!settings.cloud.enabled) return null;
+  if (settings.cloud.mode === 'byok')
+    return byokProvider(
+      business
+        ? {
+            profile: `${String(business['trade_name'] || business['legal_name'] || '')}${business['gstin'] ? `, GSTIN ${business['gstin']}` : ''}, state code ${business['state_code']}, ${business['scheme'] ?? 'regular'} scheme.`,
+          }
+        : undefined,
+    );
+  return gateway ? new GatewayProvider(gateway) : null;
 }
 
 export async function buildRouter(
@@ -50,6 +72,7 @@ export async function buildRouter(
   ctx: Ctx,
   business: Row | null,
   settings: AiSettings,
+  gateway: GatewayTarget | null = null,
 ): Promise<BuiltRouter> {
   const hsn = await hybridHsnLookupFor(db, embedderFor(settings));
   const env = { ...createDbRulesEnv(db, ctx), hsn };
@@ -102,13 +125,19 @@ export async function buildRouter(
     }
   }
   const hw = await detectHardware();
+  const tier2 = await cloudProvider(settings, business, gateway);
   const router = new AiRouter({
-    settings: { tier0: true, tier1: tier1Id, tier2: null, askBeforeCloud: true },
-    providers: tier1 ? [rules, tier1] : [rules],
+    settings: {
+      tier0: true,
+      tier1: tier1Id,
+      tier2: tier2 ? 'anthropic' : null,
+      askBeforeCloud: settings.cloud.askEachTime,
+    },
+    providers: [rules, ...(tier1 ? [tier1] : []), ...(tier2 ? [tier2] : [])],
     hardware: { ramGb: hw.ramGb, cores: hw.cores, gpu: hw.gpu !== 'none' && hw.gpu !== 'unknown' },
     logger: new DbCallLogger(db, ctx),
   });
-  return { router, tier1, hsn };
+  return { router, tier1, tier2, hsn };
 }
 
 /** The app's router for the current business and settings; null until built. */
@@ -119,18 +148,24 @@ export function useAiRouter(
 ): BuiltRouter | null {
   const settings = useAiSettings();
   const states = useModelStates();
+  const cloud = useMessaging();
+  const gateway: GatewayTarget | null =
+    cloud.kind === 'ready'
+      ? { client: cloud.m.client, orgId: cloud.m.orgId, businessId: cloud.m.businessId }
+      : null;
   const [built, setBuilt] = useState<BuiltRouter | null>(null);
   const s = settings.data;
   const key = s ? JSON.stringify(s) : '';
+  const gatewayKey = gateway ? `${gateway.orgId}:${gateway.businessId}` : '';
   useEffect(() => {
     if (!db || !ctx || !s) return;
     let live = true;
-    void buildRouter(db, ctx, business, s).then((b) => live && setBuilt(b));
+    void buildRouter(db, ctx, business, s, gateway).then((b) => live && setBuilt(b));
     return () => {
       live = false;
     };
     // the settings are compared by value; the model states string changes when a download finishes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [db, ctx?.businessId, key, states]);
+  }, [db, ctx?.businessId, key, states, gatewayKey]);
   return built;
 }

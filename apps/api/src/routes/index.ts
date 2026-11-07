@@ -1,4 +1,5 @@
 /** Mount every route group under `/v1`. The auth handler is better-auth's own. */
+import type { AiGatewayService } from '../ai/service';
 import type { App } from '../app';
 import type { Auth } from '../auth/auth';
 import type { OtpSender } from '../auth/auth';
@@ -17,6 +18,7 @@ import type { Notifier } from '../push/notify';
 import type { Storage } from '../storage/s3';
 
 import { adminRoutes } from './admin';
+import { aiRoutes } from './ai';
 import { devRoutes } from './dev';
 import { fileRoutes } from './files';
 import { filingRoutes } from './filing';
@@ -48,6 +50,8 @@ export interface RouteDeps {
   filing?: FilingService;
   /** Sharing with an accountant, the customer's pages and export packs (prompt 47). */
   portals?: { shares: ShareService; links: PortalService; packs: ExportPackService };
+  /** The cloud AI gateway (prompt 48). */
+  ai?: AiGatewayService;
 }
 
 export function mountRoutes(app: App, deps: RouteDeps): void {
@@ -70,6 +74,7 @@ export function mountRoutes(app: App, deps: RouteDeps): void {
   filingRoutes(app, deps);
   sharingRoutes(app, deps);
   portalRoutes(app, deps);
+  aiRoutes(app, deps);
   webhookRoutes(app, deps);
   adminRoutes(app, deps);
   if (deps.config.env !== 'production') devRoutes(app, deps);

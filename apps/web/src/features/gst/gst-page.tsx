@@ -55,6 +55,7 @@ import { ReconcileTab } from './reconcile-tab';
 
 import { useAppNavigate } from '@/app/hooks';
 import type { Shell } from '@/app/store';
+import { AssistantButton } from '@/features/ai/assistant';
 import { dyn } from '@/lib/dyn-key';
 
 const TONE: Record<string, 'neutral' | 'info' | 'accent' | 'success' | 'danger'> = {
@@ -94,21 +95,24 @@ export function GstPage({ shell }: { shell: Shell }) {
         title={t('gst.title')}
         description={t('gst.subtitle')}
         actions={
-          <label className="flex items-center gap-2 text-sm">
-            <span>{t('gst.frequency')}</span>
-            <Select
-              value={kind}
-              onValueChange={(v) => void set(v === 'quarter' ? 'quarter' : 'month')}
-            >
-              <SelectTrigger className="w-44" aria-label={t('gst.frequency')}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="month">{t('gst.monthly')}</SelectItem>
-                <SelectItem value="quarter">{t('gst.quarterly')}</SelectItem>
-              </SelectContent>
-            </Select>
-          </label>
+          <div className="flex flex-wrap items-center gap-3">
+            <AssistantButton />
+            <label className="flex items-center gap-2 text-sm">
+              <span>{t('gst.frequency')}</span>
+              <Select
+                value={kind}
+                onValueChange={(v) => void set(v === 'quarter' ? 'quarter' : 'month')}
+              >
+                <SelectTrigger className="w-44" aria-label={t('gst.frequency')}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="month">{t('gst.monthly')}</SelectItem>
+                  <SelectItem value="quarter">{t('gst.quarterly')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </label>
+          </div>
         }
       />
       <p role="note" className="rounded-md border border-warning bg-warning/10 p-3 text-sm">
