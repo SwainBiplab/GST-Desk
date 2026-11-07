@@ -536,6 +536,15 @@ describe('the customer’s links', () => {
       documentId: invoices['oct'],
     });
     expect((await pubJson(token, '/question', body({ text: '' }))).status).toBe(400);
+    // a link raises at most twenty questions a day
+    for (let i = 0; i < 19; i++)
+      expect((await pubJson(token, '/question', body({ text: `question ${i}` }))).status).toBe(201);
+    expect((await pubJson(token, '/question', body({ text: 'one more' }))).status).toBe(429);
+    expect(
+      (await sql(`SELECT count(*)::int AS n FROM review_items WHERE kind = 'portal_question'`))[0]![
+        'n'
+      ],
+    ).toBe(20);
     await owner.json(`${org()}/portal/settings`, {
       method: 'PUT',
       body: JSON.stringify({ businessId, questions: false }),

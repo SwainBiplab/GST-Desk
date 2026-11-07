@@ -29,6 +29,7 @@ import type { PaymentsService } from '../payments/service';
 
 export const TOKEN_RE = /^[A-Za-z0-9_-]{22}$/;
 export const DEFAULT_LINK_DAYS = 90;
+export const QUESTIONS_PER_DAY = 20;
 const DAY = 86_400_000;
 
 export interface PortalSettings {
@@ -121,7 +122,8 @@ export interface PortalBusiness {
 export class PortalError extends Error {
   constructor(
     message: string,
-    readonly code: 'not_found' | 'gone' | 'disabled' | 'no_payments' | 'nothing_owed' | 'rule',
+    readonly code:
+      'not_found' | 'gone' | 'disabled' | 'no_payments' | 'nothing_owed' | 'rule' | 'limit',
   ) {
     super(message);
   }
@@ -515,6 +517,19 @@ export class PortalService {
       number = (d?.['number'] as string | null) ?? null;
     }
     const key = createHash('sha256').update(`${r.link['id']}:${text}`).digest('hex').slice(0, 24);
+    // a link may raise so many questions a day: the rate limit bounds the minute, this bounds the inbox
+    const [n] = await inOrg(
+      this.o.db,
+      r.orgId,
+      (tx) =>
+        tx`SELECT count(*)::int AS n FROM review_items WHERE business_id = ${businessId} AND kind = 'portal_question'
+           AND payload_json->>'linkId' = ${String(r.link['id'])} AND created_at > ${this.now() - 86_400_000}`,
+    );
+    if (Number(n?.['n'] ?? 0) >= QUESTIONS_PER_DAY)
+      throw new PortalError(
+        'Too many questions from this link today. Call the business instead.',
+        'limit',
+      );
     // the same question twice (a double press, a retry) is one inbox item
     const [dup] = await inOrg(
       this.o.db,

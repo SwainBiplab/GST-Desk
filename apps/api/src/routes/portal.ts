@@ -64,6 +64,7 @@ const STATUS: Record<PortalError['code'], number> = {
   no_payments: 503,
   nothing_owed: 409,
   rule: 422,
+  limit: 429,
 };
 async function run<T>(fn: () => Promise<T>): Promise<T> {
   try {

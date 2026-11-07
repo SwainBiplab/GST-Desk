@@ -414,6 +414,16 @@ describe('the quota', () => {
       .sql`UPDATE plans SET limits_json = jsonb_set(limits_json, '{aiTokens}', '2000000') WHERE id = 'cloud'`;
   });
 
+  it('a mismatch row larger than 32 KB is refused before any call', async () => {
+    const n = calls.length;
+    const r = await owner.json<any>(
+      ai('/explain-mismatch'),
+      body({ businessId, row: { pad: 'x'.repeat(40_000) } }),
+    );
+    expect(r.status).toBe(400);
+    expect(calls.length).toBe(n);
+  });
+
   it('a rate-limited model is a 502 and the offline tiers are the caller’s fallback', async () => {
     answers.push({ status: 429 });
     const r = await owner.json<any>(ai('/explain-mismatch'), body({ businessId, row: {} }));

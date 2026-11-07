@@ -160,7 +160,14 @@ export function aiRoutes(app: App, deps: RouteDeps): void {
           content: {
             'application/json': {
               schema: z
-                .object({ businessId: z.string().uuid(), row: any })
+                .object({
+                  businessId: z.string().uuid(),
+                  // the two sides of one row: a bound on what one call can cost
+                  row: any.refine(
+                    (r) => JSON.stringify(r).length <= 32_000,
+                    'The row is too large.',
+                  ),
+                })
                 .openapi('ExplainMismatchInput'),
             },
           },
