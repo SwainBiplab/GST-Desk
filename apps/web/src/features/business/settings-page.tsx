@@ -52,6 +52,7 @@ import { useLocationInfo } from '@/app/hooks';
 import { useAppStore } from '@/app/store';
 import { useUnsavedGuard } from '@/app/unsaved';
 import { AiTab } from '@/features/ai/ai-tab';
+import { CloudTab } from '@/features/cloud/cloud-tab';
 import { DataTab } from '@/features/data/data-tab';
 import { TrashTab } from '@/features/data/trash-tab';
 import { isDesktop } from '@/features/desktop/bridge';
@@ -466,6 +467,7 @@ const TABS = [
   'desktop',
   'lan',
   'ai',
+  'cloud',
 ] as const;
 
 /** Settings: business profile, images, features, document terms, businesses. Sections follow the feature flags. */
@@ -554,6 +556,9 @@ export function SettingsPage() {
         </TabsContent>
         <TabsContent value="ai">
           <AiTab />
+        </TabsContent>
+        <TabsContent value="cloud">
+          <CloudTab />
         </TabsContent>
         {isDesktop() && (
           <TabsContent value="lan">

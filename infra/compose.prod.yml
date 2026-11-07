@@ -1,0 +1,139 @@
+# A production-shaped stack on one host (any provider with Docker; keep it in an India region for data
+# residency, see infra/env.md). Secrets come from the environment or a `.env` next to this file that is
+# never committed. Postgres, Redis and MinIO can be swapped for managed services by changing the URLs.
+name: gstdesk-prod
+
+services:
+  postgres:
+    image: postgres:16.2-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${PG_OWNER_USER:?set PG_OWNER_USER}
+      POSTGRES_PASSWORD: ${PG_OWNER_PASSWORD:?set PG_OWNER_PASSWORD}
+      POSTGRES_DB: gst
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    command:
+      [
+        'postgres',
+        '-c',
+        'max_connections=200',
+        '-c',
+        'shared_buffers=512MB',
+        '-c',
+        'log_min_duration_statement=500',
+      ]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER -d gst']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command:
+      [
+        'redis-server',
+        '--appendonly',
+        'yes',
+        '--requirepass',
+        '${REDIS_PASSWORD:?set REDIS_PASSWORD}',
+        '--maxmemory',
+        '512mb',
+        '--maxmemory-policy',
+        'noeviction',
+      ]
+    volumes:
+      - redis:/data
+
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: ['server', '/data']
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:?set S3_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:?set S3_SECRET_KEY}
+      # server-side encryption at rest with a key the host keeps (KES or a static key for a single node)
+      MINIO_KMS_SECRET_KEY: ${MINIO_KMS_SECRET_KEY:?set MINIO_KMS_SECRET_KEY as my-key:<base64 32 bytes>}
+    volumes:
+      - minio:/data
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.111.0
+    restart: unless-stopped
+    command: ['--config=/etc/otel/config.yml']
+    volumes:
+      - ./otel-collector.yml:/etc/otel/config.yml:ro
+    environment:
+      OTEL_UPSTREAM: ${OTEL_UPSTREAM:-}
+
+  api:
+    image: ${API_IMAGE:-ghcr.io/leadergroup/gst-api:latest}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: '8787'
+      DATABASE_URL: postgres://${PG_OWNER_USER}:${PG_OWNER_PASSWORD}@postgres:5432/gst
+      APP_DATABASE_URL: postgres://gst_app:${APP_DB_PASSWORD:?set APP_DB_PASSWORD}@postgres:5432/gst
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      S3_BUCKET: gstdesk
+      S3_SSE: AES256
+      AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET to 32+ random characters}
+      BASE_URL: ${BASE_URL:?set BASE_URL, https}
+      TRUSTED_ORIGINS: ${TRUSTED_ORIGINS:?set TRUSTED_ORIGINS}
+      OTP_PROVIDER: msg91
+      MSG91_AUTH_KEY: ${MSG91_AUTH_KEY:?set MSG91_AUTH_KEY}
+      MSG91_TEMPLATE_ID: ${MSG91_TEMPLATE_ID:?set MSG91_TEMPLATE_ID}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      INTERNAL_ORG_ID: ${INTERNAL_ORG_ID:-}
+      LOG_LEVEL: info
+      TRUST_PROXY: 'true'
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1g
+    # put a TLS-terminating proxy (Caddy, nginx, the provider's load balancer) in front; the API speaks plain http inside the network
+    expose:
+      - '8787'
+
+  backup:
+    image: postgres:16.2-alpine
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      PGPASSWORD: ${PG_OWNER_PASSWORD}
+      PG_URL: postgres://${PG_OWNER_USER}:${PG_OWNER_PASSWORD}@postgres:5432/gst
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      S3_BUCKET: gstdesk
+      RETENTION_DAYS: '30'
+    volumes:
+      - ./backup.sh:/backup.sh:ro
+    # every day at 20:30 UTC (02:00 IST), then sleep; the script keeps 30 days
+    entrypoint:
+      [
+        'sh',
+        '-c',
+        'apk add --no-cache curl >/dev/null && while true; do sleep $$(( ( (20*3600+1800) - ( $$(date +%s) % 86400 ) + 86400 ) % 86400 )); sh /backup.sh; done',
+      ]
+
+volumes:
+  postgres:
+  redis:
+  minio:

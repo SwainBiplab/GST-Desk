@@ -120,6 +120,23 @@ export class BusinessRepo {
     );
   }
 
+  /** Every live business of the organisation (the cloud API lists them before a business is chosen). */
+  async list(ctx: Ctx): Promise<Row[]> {
+    return runInTx(
+      this.d,
+      ctx,
+      (tx) => {
+        const t = this.d.schema.businesses;
+        return tx
+          .select()
+          .from(t)
+          .where(and(eq(t.org_id, ctx.orgId), isNull(t.deleted_at)))
+          .orderBy(t.created_at);
+      },
+      { allowNoBusiness: true },
+    );
+  }
+
   /** Archive (soft delete). The last live business of an organisation cannot be archived. */
   async archive(ctx: Ctx, id: string, expectedVersion: number): Promise<Row> {
     return runInTx(this.d, ctx, async (tx) => {

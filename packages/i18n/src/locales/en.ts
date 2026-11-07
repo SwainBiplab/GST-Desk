@@ -2030,6 +2030,7 @@ export const en = {
       desktop: 'Desktop',
       lan: 'Tablets and phones',
       ai: 'AI',
+      cloud: 'Cloud',
       privacy: 'Privacy',
       portal: 'GST portal',
     },
@@ -3110,6 +3111,40 @@ export const en = {
         failed: 'That could not be understood: {{message}}',
       },
     },
+  },
+  cloud: {
+    title: 'Cloud account',
+    intro:
+      'Sign in to the GST Desk cloud to keep an account, an organisation and its businesses on the server. Sync of the books comes next; nothing leaves this computer until you turn that on.',
+    url: 'API address',
+    urlPlaceholder: 'https://api.example.in',
+    badUrl: 'The API address must be https, or http to this machine.',
+    email: 'Email',
+    sendCode: 'Send me a code',
+    code: 'The code you received',
+    devCode: 'Development server: the code is {{code}}.',
+    signIn: 'Sign in',
+    signedIn: 'Signed in.',
+    signedInAs: 'Signed in as {{email}}',
+    signOut: 'Sign out',
+    tokenNote:
+      'Your sign-in token is kept on this device only and is sent only to the address above. Signing out removes it.',
+    orgs: {
+      title: 'Organisations',
+      none: 'You do not belong to an organisation yet. Make one below.',
+      newName: 'New organisation',
+      create: 'Create',
+    },
+    orgCreated: 'Organisation {{name}} created. You are its owner.',
+    businesses: {
+      title: 'Businesses on the server',
+      none: 'No business yet in this organisation.',
+      createFromLocal: 'Create “{{name}}” on the server',
+      syncNote:
+        'Creating the business on the server makes its record there; the books stay here until sync (coming next) is switched on.',
+    },
+    businessCreated: 'Business {{name}} created on the server.',
+    noLocalBusiness: 'Open a business first.',
   },
   lan: {
     title: 'Tablets and phones',

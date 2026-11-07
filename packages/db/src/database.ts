@@ -30,5 +30,7 @@ export async function queryRows(d: Database, tx: any, q: SQL): Promise<Record<st
     }
     return res as Record<string, any>[];
   }
-  return (await tx.execute(q)).rows as Record<string, any>[];
+  // PGlite answers `{ rows }`; postgres.js (the cloud API) answers the row list itself
+  const res = await tx.execute(q);
+  return (Array.isArray(res) ? res : res.rows) as Record<string, any>[];
 }
