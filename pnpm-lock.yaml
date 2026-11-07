@@ -56,6 +56,9 @@ importers:
       '@gst/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
+      '@gst/interop':
+        specifier: workspace:*
+        version: link:../../packages/interop
       '@gst/messaging':
         specifier: workspace:*
         version: link:../../packages/messaging
@@ -101,6 +104,9 @@ importers:
       drizzle-orm:
         specifier: ^0.45.4
         version: 0.45.4(@electric-sql/pglite@0.5.15)(@libsql/client@0.18.0)(@opentelemetry/api@1.10.0)(@prisma/client@5.22.0)(@types/pg@8.23.1)(better-sqlite3@12.11.1)(kysely@0.29.8)(pg@8.23.1)(postgres@4.1.0)(sql.js@1.15.2)
+      fflate:
+        specifier: ^0.8.3
+        version: 0.8.3
       hono:
         specifier: ^4.13.17
         version: 4.13.17

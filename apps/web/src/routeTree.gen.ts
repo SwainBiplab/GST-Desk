@@ -17,6 +17,7 @@ import { Route as BooksIndexRouteImport } from './routes/books/index'
 import { Route as BooksPageRouteImport } from './routes/books/$page'
 import { Route as BooksCrashRouteImport } from './routes/books/[_]crash'
 import { Route as BooksKitRouteImport } from './routes/books/[_]kit'
+import { Route as PTokenRouteImport } from './routes/p/$token'
 import { Route as ShopIndexRouteImport } from './routes/shop/index'
 import { Route as ShopPageRouteImport } from './routes/shop/$page'
 import { Route as BooksDocumentsNewRouteImport } from './routes/books/documents/new'
@@ -61,6 +62,11 @@ const BooksKitRoute = BooksKitRouteImport.update({
   path: '/_kit',
   getParentRoute: () => BooksRouteRoute,
 } as any)
+const PTokenRoute = PTokenRouteImport.update({
+  id: '/p/$token',
+  path: '/p/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ShopIndexRoute = ShopIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -85,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/books/$page': typeof BooksPageRoute
   '/books/_crash': typeof BooksCrashRoute
   '/books/_kit': typeof BooksKitRoute
+  '/p/$token': typeof PTokenRoute
   '/shop/$page': typeof ShopPageRoute
   '/books/': typeof BooksIndexRoute
   '/shop/': typeof ShopIndexRoute
@@ -96,6 +103,7 @@ export interface FileRoutesByTo {
   '/books/$page': typeof BooksPageRoute
   '/books/_crash': typeof BooksCrashRoute
   '/books/_kit': typeof BooksKitRoute
+  '/p/$token': typeof PTokenRoute
   '/shop/$page': typeof ShopPageRoute
   '/books': typeof BooksIndexRoute
   '/shop': typeof ShopIndexRoute
@@ -110,6 +118,7 @@ export interface FileRoutesById {
   '/books/$page': typeof BooksPageRoute
   '/books/_crash': typeof BooksCrashRoute
   '/books/_kit': typeof BooksKitRoute
+  '/p/$token': typeof PTokenRoute
   '/shop/$page': typeof ShopPageRoute
   '/books/': typeof BooksIndexRoute
   '/shop/': typeof ShopIndexRoute
@@ -125,6 +134,7 @@ export interface FileRouteTypes {
     | '/books/$page'
     | '/books/_crash'
     | '/books/_kit'
+    | '/p/$token'
     | '/shop/$page'
     | '/books/'
     | '/shop/'
@@ -136,6 +146,7 @@ export interface FileRouteTypes {
     | '/books/$page'
     | '/books/_crash'
     | '/books/_kit'
+    | '/p/$token'
     | '/shop/$page'
     | '/books'
     | '/shop'
@@ -149,6 +160,7 @@ export interface FileRouteTypes {
     | '/books/$page'
     | '/books/_crash'
     | '/books/_kit'
+    | '/p/$token'
     | '/shop/$page'
     | '/books/'
     | '/shop/'
@@ -160,6 +172,7 @@ export interface RootRouteChildren {
   BooksRouteRoute: typeof BooksRouteRouteWithChildren
   ShopRouteRoute: typeof ShopRouteRouteWithChildren
   WelcomeRoute: typeof WelcomeRoute
+  PTokenRoute: typeof PTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -219,6 +232,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/books/_kit'
       preLoaderRoute: typeof BooksKitRouteImport
       parentRoute: typeof BooksRouteRoute
+    }
+    '/p/$token': {
+      id: '/p/$token'
+      path: '/p/$token'
+      fullPath: '/p/$token'
+      preLoaderRoute: typeof PTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/shop/': {
       id: '/shop/'
@@ -283,6 +303,7 @@ const rootRouteChildren: RootRouteChildren = {
   BooksRouteRoute: BooksRouteRouteWithChildren,
   ShopRouteRoute: ShopRouteRouteWithChildren,
   WelcomeRoute: WelcomeRoute,
+  PTokenRoute: PTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

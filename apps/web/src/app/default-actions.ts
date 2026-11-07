@@ -28,7 +28,8 @@ const KEYWORDS: Record<PageId, string[]> = {
   payments: ['money', 'receipts', 'cash', 'bank'],
   reports: ['ledger', 'summary'],
   gst: ['gst', 'gstr', 'gstr1', 'gstr3b', 'filing', 'return', 'file'],
-  caboard: ['ca', 'board', 'clients', 'filing board', 'heatmap'],
+  caboard: ['ca', 'board', 'filing board', 'heatmap'],
+  clients: ['clients', 'shared', 'accountant', 'ca', 'export pack'],
   einvoice: ['irn', 'e-invoice', 'einvoice', 'eway', 'e-way', 'ewb', 'qr'],
   directtax: [
     'tds',

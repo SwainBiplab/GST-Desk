@@ -10,6 +10,9 @@ import type { providersFrom } from '../messaging/providers';
 import type { MessagingService } from '../messaging/service';
 import { readSession } from '../middleware/session';
 import type { PaymentsService } from '../payments/service';
+import type { ExportPackService } from '../portals/export-pack';
+import type { PortalService } from '../portals/links';
+import type { ShareService } from '../portals/shares';
 import type { Notifier } from '../push/notify';
 import type { Storage } from '../storage/s3';
 
@@ -21,7 +24,9 @@ import { meRoutes } from './me';
 import { messagingRoutes } from './messaging';
 import { orgRoutes } from './orgs';
 import { paymentsRoutes } from './payments';
+import { portalRoutes } from './portal';
 import { pushRoutes } from './push';
+import { sharingRoutes } from './sharing';
 import { syncRoutes } from './sync';
 import { teamRoutes } from './team';
 import { webhookRoutes } from './webhooks';
@@ -41,6 +46,8 @@ export interface RouteDeps {
   payments?: PaymentsService;
   /** GST filing through the GSP: portal login, push, pull, the CA board (prompt 46). */
   filing?: FilingService;
+  /** Sharing with an accountant, the customer's pages and export packs (prompt 47). */
+  portals?: { shares: ShareService; links: PortalService; packs: ExportPackService };
 }
 
 export function mountRoutes(app: App, deps: RouteDeps): void {
@@ -61,6 +68,8 @@ export function mountRoutes(app: App, deps: RouteDeps): void {
   messagingRoutes(app, deps);
   paymentsRoutes(app, deps);
   filingRoutes(app, deps);
+  sharingRoutes(app, deps);
+  portalRoutes(app, deps);
   webhookRoutes(app, deps);
   adminRoutes(app, deps);
   if (deps.config.env !== 'production') devRoutes(app, deps);

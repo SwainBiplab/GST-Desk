@@ -362,6 +362,8 @@ async function applyValue(db: Database, ctx: Ctx, kind: string, value: any): Pro
     case 'recurring_failed':
     case 'payment_attention':
     case 'filing_attention':
+    case 'ca_comment':
+    case 'portal_question':
     case 'draft_stale':
     case 'backup_failed':
     case 'prefiling_issue':

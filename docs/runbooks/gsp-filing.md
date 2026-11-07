@@ -9,7 +9,7 @@
    press Check if filed (the scheduler also asks every 30 minutes while someone is signed in).
 4. Pull GSTR-2B when the portal has made it (it says plainly when not); the job reports what reconciliation found, and the
    GSTR-2B tab has the detail. GSTR-2A is summarised only.
-5. The Filing board (CA) lists every client the account belongs to: overdue returns, problems waiting, and credit not
-   reconciled.
+5. The Filing board (CA) lists every client the account belongs to, and every business shared with it (prompt 47,
+   `docs/runbooks/portals.md`): overdue returns, problems waiting, and credit not reconciled.
 6. Calls count against the plan's `gspCalls`; one past the limit is refused with a plain message.
 7. Never put an OTP, token or invoice number in a ticket; use job ids and periods.

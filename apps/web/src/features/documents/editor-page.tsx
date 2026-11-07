@@ -81,6 +81,7 @@ import { ItemEditor } from '@/features/items/item-editor';
 import { useLockOverride } from '@/features/numbering/lock-override';
 import { useParty } from '@/features/parties/hooks';
 import { ApplyCreditBanner } from '@/features/payments/apply-credit-banner';
+import { CustomerLinkItem, CustomerLinkOverlay } from '@/features/portal/customer-link';
 import {
   downloadBytes,
   emailLink,
@@ -194,7 +195,7 @@ export function EditorPage({
   const [dismissed, setDismissed] = useState<ReadonlySet<string>>(new Set());
   const [convertTo, setConvertTo] = useState<DocumentType | null>(null);
   /** The dialogs of the More menu's cloud items; they sit outside the menu, which unmounts when it closes. */
-  const [overlay, setOverlay] = useState<'link' | 'qr' | 'repeat' | null>(null);
+  const [overlay, setOverlay] = useState<'link' | 'qr' | 'repeat' | 'customer' | null>(null);
   const [busy, setBusy] = useState(false);
   const { setContent: setPanel } = useRightPanel();
   const [hidden, setHidden] = useState<ReadonlySet<GridColumn>>(new Set(DEFAULT_HIDDEN));
@@ -759,6 +760,7 @@ export function EditorPage({
                 {meta.id && meta.status === 'issued' && PAYABLE_TYPES.includes(draft.type) && (
                   <CollectItems onOpen={setOverlay} />
                 )}
+                {meta.id && !isDraft && <CustomerLinkItem onOpen={() => setOverlay('customer')} />}
                 {meta.id && !isDraft && MESSAGE_KIND[draft.type] && (
                   <DocumentMessageItems
                     documentId={meta.id}
@@ -814,6 +816,11 @@ export function EditorPage({
                 <CollectOverlay
                   open={overlay === 'link' || overlay === 'qr' ? overlay : null}
                   documentId={meta.id}
+                  onClose={() => setOverlay(null)}
+                />
+                <CustomerLinkOverlay
+                  open={overlay === 'customer'}
+                  target={{ documentId: meta.id }}
                   onClose={() => setOverlay(null)}
                 />
                 <RepeatOverlay

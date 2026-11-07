@@ -280,6 +280,181 @@ export interface FilingBoard {
   today: string;
   periods: string[];
 }
+export interface SharePerms {
+  read: boolean;
+  gst: boolean;
+  export: boolean;
+  comment: boolean;
+}
+export interface ShareView {
+  id: string;
+  businessId: string;
+  email: string;
+  status: 'pending' | 'active' | 'revoked' | 'declined';
+  from: string;
+  to: string;
+  perms: SharePerms;
+  expiresAt: number | null;
+  note: string | null;
+  createdAt: number;
+  acceptedAt: number | null;
+  revokedAt: number | null;
+}
+export interface ShareInvite {
+  id: string;
+  orgName: string;
+  businessName: string;
+  gstin: string | null;
+  from: string;
+  to: string;
+  perms: SharePerms;
+  note: string | null;
+  createdAt: number;
+}
+export interface ClientRow extends BoardRow {
+  via: 'share' | 'member';
+  share: { id: string; from: string; to: string; perms: SharePerms } | null;
+  stateCode: string;
+  waiting: number;
+  lastSyncAt: number | null;
+  documents: number;
+}
+export interface ClientOverview {
+  business: {
+    id: string;
+    name: string;
+    legalName: string;
+    gstin: string | null;
+    stateCode: string;
+    scheme: string;
+    fyStartMonth: number;
+  };
+  access: {
+    via: 'share' | 'member';
+    from: string | null;
+    to: string | null;
+    perms: SharePerms | null;
+  };
+  cells: BoardCell[];
+  exceptions: BoardRow['exceptions'];
+  counts: { sales: number; purchases: number; notes: number; all: number };
+}
+export interface ClientDocument {
+  id: string;
+  type: string;
+  number: string | null;
+  date: string;
+  partyName: string | null;
+  status: string;
+  totalPaise: number;
+  irn: boolean;
+}
+export interface ClientComment {
+  id: string;
+  documentId: string | null;
+  number: string | null;
+  text: string;
+  by: string;
+  byName: string;
+  status: string;
+  createdAt: number;
+}
+export interface ExportPack {
+  id: string;
+  businessId: string;
+  from: string;
+  to: string;
+  status: 'queued' | 'running' | 'done' | 'failed';
+  sizeBytes: number | null;
+  manifest: {
+    files: { name: string; bytes: number }[];
+    counts: Record<string, number>;
+    warnings: string[];
+  } | null;
+  error: string | null;
+  createdAt: number;
+  finishedAt: number | null;
+}
+export interface PortalSettings {
+  enabled: boolean;
+  linkDays: number;
+  statements: boolean;
+  questions: boolean;
+}
+export interface PortalLink {
+  id: string;
+  kind: 'document' | 'statement';
+  documentId: string | null;
+  partyId: string | null;
+  url: string | null;
+  expiresAt: number;
+  status: 'live' | 'expired' | 'revoked';
+  views: number;
+  lastViewedAt: number | null;
+  createdAt: number;
+}
+export interface PortalLine {
+  description: string;
+  hsn: string | null;
+  qty: string;
+  unit: string | null;
+  ratePaise: number;
+  taxablePaise: number;
+  gstRateBp: number;
+  totalPaise: number;
+}
+export interface PortalBusiness {
+  name: string;
+  gstin: string | null;
+  address: string[];
+  phone: string | null;
+  email: string | null;
+}
+export interface PortalDocumentPage {
+  kind: 'document';
+  business: PortalBusiness;
+  document: {
+    type: string;
+    number: string | null;
+    date: string;
+    dueDate: string | null;
+    partyName: string | null;
+    placeOfSupply: string | null;
+    status: 'issued' | 'cancelled';
+    lines: PortalLine[];
+    taxablePaise: number;
+    taxPaise: number;
+    roundOffPaise: number;
+    totalPaise: number;
+    paidPaise: number;
+    balancePaise: number;
+    payStatus: 'paid' | 'part' | 'unpaid' | 'not_payable';
+    notes: string | null;
+    terms: string | null;
+  };
+  pay: { available: boolean; url: string | null };
+  questions: boolean;
+  expiresAt: number;
+}
+export interface PortalStatementPage {
+  kind: 'statement';
+  business: PortalBusiness;
+  party: { name: string; gstin: string | null };
+  openingPaise: number;
+  closingPaise: number;
+  lines: {
+    date: string;
+    kind: string;
+    ref: string;
+    description: string;
+    debitPaise: number;
+    creditPaise: number;
+    balancePaise: number;
+  }[];
+  questions: boolean;
+  expiresAt: number;
+}
+export type PortalPage = PortalDocumentPage | PortalStatementPage;
 
 export class CloudError extends Error {
   constructor(
@@ -754,6 +929,141 @@ export class CloudClient {
       body: '{}',
     });
   }
+  /* -------------------------------------------------------------- sharing and portals (prompt 47) */
+  shares(orgId: string, businessId: string): Promise<ShareView[]> {
+    return this.call(`/v1/orgs/${orgId}/shares?businessId=${businessId}`);
+  }
+  share(
+    orgId: string,
+    b: {
+      businessId: string;
+      email?: string;
+      phone?: string;
+      fy?: string;
+      from?: string;
+      to?: string;
+      perms: SharePerms;
+      expiresAt?: number | null;
+      note?: string | null;
+    },
+  ): Promise<ShareView> {
+    return this.call(`/v1/orgs/${orgId}/shares`, { method: 'POST', body: JSON.stringify(b) });
+  }
+  revokeShare(orgId: string, id: string): Promise<ShareView> {
+    return this.call(`/v1/orgs/${orgId}/shares/${id}`, { method: 'DELETE' });
+  }
+  shareInvites(): Promise<ShareInvite[]> {
+    return this.call('/v1/me/share-invites');
+  }
+  answerShare(id: string, accept: boolean): Promise<{ orgId: string; businessId: string }> {
+    return this.call(`/v1/share-invites/${id}/${accept ? 'accept' : 'decline'}`, {
+      method: 'POST',
+    });
+  }
+  clients(): Promise<ClientRow[]> {
+    return this.call('/v1/me/clients');
+  }
+  private cl(orgId: string, path: string) {
+    return `/v1/orgs/${orgId}/client${path}`;
+  }
+  clientOverview(orgId: string, businessId: string): Promise<ClientOverview> {
+    return this.call(this.cl(orgId, `/overview?businessId=${businessId}`));
+  }
+  clientDocuments(
+    orgId: string,
+    businessId: string,
+    q: { from?: string; to?: string; type?: string; limit?: number; offset?: number } = {},
+  ): Promise<{ rows: ClientDocument[]; count: number }> {
+    const p = new URLSearchParams({ businessId });
+    for (const [k, v] of Object.entries(q)) if (v !== undefined && v !== '') p.set(k, String(v));
+    return this.call(this.cl(orgId, `/documents?${p.toString()}`));
+  }
+  clientDocument(
+    orgId: string,
+    businessId: string,
+    id: string,
+  ): Promise<{ document: Record<string, unknown>; lines: Record<string, unknown>[] }> {
+    return this.call(this.cl(orgId, `/documents/${id}?businessId=${businessId}`));
+  }
+  clientPdfUrl(orgId: string, businessId: string, id: string): string {
+    return `${this.baseUrl}${this.cl(orgId, `/documents/${id}/pdf?businessId=${businessId}`)}`;
+  }
+  async clientPdf(orgId: string, businessId: string, id: string): Promise<Blob> {
+    const r = await this.fetchFn(this.clientPdfUrl(orgId, businessId, id), {
+      headers: this.headers(),
+    });
+    if (!r.ok) await parse(r);
+    return r.blob();
+  }
+  clientComments(orgId: string, businessId: string): Promise<ClientComment[]> {
+    return this.call(this.cl(orgId, `/comments?businessId=${businessId}`));
+  }
+  addClientComment(
+    orgId: string,
+    b: { businessId: string; documentId: string | null; text: string },
+  ): Promise<ClientComment> {
+    return this.call(this.cl(orgId, '/comments'), { method: 'POST', body: JSON.stringify(b) });
+  }
+  exportPacks(orgId: string, businessId: string): Promise<ExportPack[]> {
+    return this.call(this.cl(orgId, `/export-packs?businessId=${businessId}`));
+  }
+  requestExportPack(
+    orgId: string,
+    b: { businessId: string; from: string; to: string },
+  ): Promise<ExportPack> {
+    return this.call(this.cl(orgId, '/export-packs'), { method: 'POST', body: JSON.stringify(b) });
+  }
+  exportPackDownload(orgId: string, id: string): Promise<{ url: string; expiresAt: number }> {
+    return this.call(this.cl(orgId, `/export-packs/${id}/download`));
+  }
+  portalSettings(orgId: string, businessId: string): Promise<PortalSettings> {
+    return this.call(`/v1/orgs/${orgId}/portal/settings?businessId=${businessId}`);
+  }
+  savePortalSettings(
+    orgId: string,
+    b: { businessId: string } & Partial<PortalSettings>,
+  ): Promise<PortalSettings> {
+    return this.call(`/v1/orgs/${orgId}/portal/settings`, {
+      method: 'PUT',
+      body: JSON.stringify(b),
+    });
+  }
+  portalLinks(
+    orgId: string,
+    businessId: string,
+    q: { documentId?: string; partyId?: string } = {},
+  ): Promise<PortalLink[]> {
+    const p = new URLSearchParams({ businessId });
+    if (q.documentId) p.set('documentId', q.documentId);
+    if (q.partyId) p.set('partyId', q.partyId);
+    return this.call(`/v1/orgs/${orgId}/portal/links?${p.toString()}`);
+  }
+  createPortalLink(
+    orgId: string,
+    b: { businessId: string; documentId?: string; partyId?: string; days?: number },
+  ): Promise<PortalLink & { url: string }> {
+    return this.call(`/v1/orgs/${orgId}/portal/links`, { method: 'POST', body: JSON.stringify(b) });
+  }
+  revokePortalLink(orgId: string, id: string): Promise<PortalLink> {
+    return this.call(`/v1/orgs/${orgId}/portal/links/${id}`, { method: 'DELETE' });
+  }
+  /* the customer's public page: no session */
+  portalPage(token: string): Promise<PortalPage> {
+    return this.call(`/v1/p/${token}`);
+  }
+  portalPdfUrl(token: string): string {
+    return `${this.baseUrl}/v1/p/${token}/pdf`;
+  }
+  portalPay(token: string): Promise<{ url: string; amountPaise: number; expiresAt: number }> {
+    return this.call(`/v1/p/${token}/pay`, { method: 'POST' });
+  }
+  portalQuestion(
+    token: string,
+    b: { name: string | null; contact: string | null; text: string },
+  ): Promise<{ ok: true }> {
+    return this.call(`/v1/p/${token}/question`, { method: 'POST', body: JSON.stringify(b) });
+  }
+
   recurringInvoices(orgId: string): Promise<RecurringInvoice[]> {
     return this.call(`/v1/orgs/${orgId}/recurring-invoices`);
   }

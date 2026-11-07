@@ -68,6 +68,7 @@ import { NumberingTab } from '@/features/numbering/numbering-tab';
 import { Field } from '@/features/onboarding/field';
 import { AccountsTab } from '@/features/payments/accounts-tab';
 import { PrintTab } from '@/features/print/designer';
+import { SharingTab } from '@/features/sharing/sharing-tab';
 import { usePermissions } from '@/features/team/permissions';
 import { TeamTab } from '@/features/team/team-tab';
 import { PrivacyTab } from '@/features/telemetry/privacy-tab';
@@ -476,6 +477,7 @@ const TABS = [
   'team',
   'messages',
   'collect',
+  'sharing',
 ] as const;
 
 /** Settings: business profile, images, features, document terms, businesses. Sections follow the feature flags. */
@@ -581,6 +583,9 @@ export function SettingsPage() {
         </TabsContent>
         <TabsContent value="collect">
           <CollectTab />
+        </TabsContent>
+        <TabsContent value="sharing">
+          <SharingTab />
         </TabsContent>
         {isDesktop() && (
           <TabsContent value="lan">

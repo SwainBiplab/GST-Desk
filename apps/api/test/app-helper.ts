@@ -41,6 +41,7 @@ export function makeTestApp(
     messaging?: RouteDeps['messaging'];
     payments?: RouteDeps['payments'];
     filing?: RouteDeps['filing'];
+    portals?: RouteDeps['portals'];
   } = {},
 ): TestApp {
   const config = loadConfig({
@@ -79,6 +80,7 @@ export function makeTestApp(
     ...(extra.messaging ? { messaging: extra.messaging } : {}),
     ...(extra.payments ? { payments: extra.payments } : {}),
     ...(extra.filing ? { filing: extra.filing } : {}),
+    ...(extra.portals ? { portals: extra.portals } : {}),
   });
 
   const client = (email: string, token: string, cookie: string): Client => {

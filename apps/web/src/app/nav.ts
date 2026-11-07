@@ -3,6 +3,7 @@ import type { FlagKey } from '@gst/domain';
 import {
   BookOpen,
   Boxes,
+  Briefcase,
   FileText,
   Inbox,
   ArrowRightLeft,
@@ -30,6 +31,7 @@ export type PageId =
   | 'gst'
   | 'einvoice'
   | 'caboard'
+  | 'clients'
   | 'directtax'
   | 'migrate'
   | 'inbox'
@@ -46,6 +48,7 @@ export const PAGE_IDS: PageId[] = [
   'gst',
   'einvoice',
   'caboard',
+  'clients',
   'directtax',
   'migrate',
   'inbox',
@@ -148,6 +151,7 @@ export const BOOKS_NAV: NavSection[] = [
       item('gst', Percent, { id: 'gst', label: 'nav.gst' }),
       item('einvoice', ScanLine),
       item('caboard', Users),
+      item('clients', Briefcase),
       item('directtax', Landmark),
     ],
   },

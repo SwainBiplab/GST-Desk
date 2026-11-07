@@ -236,8 +236,13 @@ export function orgRoutes(app: App, deps: RouteDeps): void {
     }),
     async (c) => {
       const ctx = c.get('ctx' as never) as OrgVars['ctx'];
+      const share = (c.get('org' as never) as OrgVars['org']).share;
       const rows = await new BusinessRepo(deps.db).list(ctx);
-      return c.json(rows.map(toBusiness), 200);
+      // an accountant holding a share sees the one business shared with them (prompt 47)
+      return c.json(
+        rows.filter((r) => !share || String(r['id']) === share.businessId).map(toBusiness),
+        200,
+      );
     },
   );
 

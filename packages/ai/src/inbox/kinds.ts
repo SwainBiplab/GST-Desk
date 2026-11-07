@@ -16,6 +16,8 @@ export const INBOX_KINDS = [
   'recurring_failed',
   'payment_attention',
   'filing_attention',
+  'ca_comment',
+  'portal_question',
   'reminder_due',
   'low_stock',
   'draft_stale',
@@ -264,6 +266,29 @@ export const filingAttentionItem = z.object({
 });
 export type FilingAttentionItem = z.infer<typeof filingAttentionItem>;
 
+/** A comment from the accountant the business is shared with (prompt 47), about a document or the books. */
+export const caCommentItem = z.object({
+  documentId: z.string().nullable(),
+  number: z.string().nullable(),
+  text: z.string(),
+  by: z.string(),
+  byName: z.string(),
+  at: z.number(),
+});
+export type CaCommentItem = z.infer<typeof caCommentItem>;
+
+/** A question or dispute a customer sent from their invoice or statement page (prompt 47). */
+export const portalQuestionItem = z.object({
+  documentId: z.string().nullable(),
+  partyId: z.string().nullable(),
+  number: z.string().nullable(),
+  name: z.string().nullable(),
+  contact: z.string().nullable(),
+  text: z.string(),
+  at: z.number(),
+});
+export type PortalQuestionItem = z.infer<typeof portalQuestionItem>;
+
 /** Kinds whose owner has not shipped yet: the card shows what it holds, Accept stays off. */
 export const genericItem = z.record(z.string(), z.unknown());
 
@@ -285,6 +310,8 @@ export const INBOX_SCHEMAS = {
   recurring_failed: recurringFailedItem,
   payment_attention: paymentAttentionItem,
   filing_attention: filingAttentionItem,
+  ca_comment: caCommentItem,
+  portal_question: portalQuestionItem,
 } as const satisfies Record<InboxKind, z.ZodType>;
 
 export function schemaFor(kind: string): z.ZodType<Record<string, unknown>> {
@@ -361,6 +388,18 @@ export const KIND_INFO: Record<InboxKind, KindInfo> = {
     informational: true,
     bulk: false,
     opens: 'gst',
+  },
+  ca_comment: {
+    label: 'Comment from your accountant',
+    informational: true,
+    bulk: false,
+    opens: 'document',
+  },
+  portal_question: {
+    label: 'Question from a customer',
+    informational: true,
+    bulk: false,
+    opens: 'document',
   },
   payment_attention: {
     label: 'Payment to check',

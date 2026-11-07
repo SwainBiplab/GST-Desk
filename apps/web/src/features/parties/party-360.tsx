@@ -43,6 +43,7 @@ import type { Shell } from '@/app/store';
 import { PartyMessaging } from '@/features/dispatch/document-messages';
 import { usePositions } from '@/features/payments/hooks';
 import { PayStatusBadge } from '@/features/payments/status-badge';
+import { StatementLinkButton } from '@/features/portal/customer-link';
 import { dyn } from '@/lib/dyn-key';
 
 const BUCKETS = ['current', 'd0_30', 'd31_60', 'd61_90', 'd90plus'] as const;
@@ -118,6 +119,7 @@ function LedgerTab({ party }: { party: Row }) {
         <Button variant="outline" data-testid="statement-print" onClick={() => window.print()}>
           {t('parties.ledger.print')}
         </Button>
+        <StatementLinkButton partyId={String(party['id'])} />
       </div>
       <div className="print-area" data-testid="statement">
         <div className="hidden pb-2 print:block">

@@ -13,6 +13,7 @@ import type { Shell } from '../store';
 import { useConfirm } from './confirm';
 
 import { SettingsPage } from '@/features/business/settings-page';
+import { ClientsPage } from '@/features/clients/clients-page';
 import { DirectTaxPage } from '@/features/direct-tax/direct-tax-page';
 import { DocumentsPage } from '@/features/documents/documents-page';
 import { EditorRoute } from '@/features/documents/editor-route';
@@ -170,6 +171,13 @@ export function PlaceholderPage({ page, shell }: { page: PageId; shell: Shell })
     return (
       <div data-shell={shell} className="h-full overflow-auto">
         <CaBoardPage />
+      </div>
+    );
+  }
+  if (page === 'clients') {
+    return (
+      <div data-shell={shell} className="h-full overflow-auto">
+        <ClientsPage />
       </div>
     );
   }

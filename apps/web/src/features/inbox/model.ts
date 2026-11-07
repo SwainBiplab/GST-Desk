@@ -67,7 +67,14 @@ export function openTarget(r: InboxRow): OpenTarget | null {
     case 'filing_attention':
       return { to: 'gst', search: {} };
     case 'payment_attention':
+    case 'ca_comment':
       return s['documentId'] ? { to: 'document', search: { id: s['documentId'] } } : null;
+    case 'portal_question':
+      return s['documentId']
+        ? { to: 'document', search: { id: s['documentId'] } }
+        : s['partyId']
+          ? { to: 'parties', search: { open: s['partyId'] } }
+          : null;
     case 'sync_conflict':
     case 'approval_request':
       return s['table'] === 'documents' ? { to: 'document', search: { id: s['rowId'] } } : null;
@@ -184,6 +191,14 @@ export function describeArgs(r: InboxRow): Record<string, unknown> {
     case 'backup_failed':
     case 'filing_attention':
       return { period: s['period'], message: s['message'] };
+    case 'ca_comment':
+      return { name: s['byName'], number: s['number'] ?? '', text: s['text'] };
+    case 'portal_question':
+      return {
+        name: s['name'] || s['contact'] || '',
+        number: s['number'] ?? '',
+        text: s['text'],
+      };
     case 'prefiling_issue':
       return { message: s['message'] };
     case 'gsp_job_stopped':

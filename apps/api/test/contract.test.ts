@@ -38,6 +38,7 @@ const fill = (path: string) =>
   path
     .replace(/\{orgId\}/g, '11111111-1111-4111-8111-111111111111')
     .replace(/\{businessId\}/g, '22222222-2222-4222-8222-222222222222')
+    .replace(/\{(shareId|linkId|packId|documentId)\}/g, '33333333-3333-4333-8333-333333333333')
     .replace(/\{id\}/g, '1');
 
 describe('the OpenAPI contract', () => {
@@ -73,13 +74,24 @@ describe('the OpenAPI contract', () => {
     }
   });
 
-  it('the public operations are only health, readiness, the document, auth and (outside production) the dev code', () => {
+  it('the public operations are only health, readiness, the document, auth, the customer pages (prompt 47) and (outside production) the dev code', () => {
     const open = Object.entries(doc.paths)
       .flatMap(([p, methods]) => Object.entries(methods).map(([m, op]) => ({ p, m, op })))
       .filter(({ op }) => !op.security?.length)
       .map(({ p }) => p)
       .sort();
-    expect(open).toEqual(['/healthz', '/readyz', '/v1/dev/otp'].sort());
+    expect(open).toEqual(
+      [
+        '/healthz',
+        '/readyz',
+        '/v1/dev/otp',
+        // a customer's link: a 128-bit token is the credential, rate limited by address and token
+        '/v1/p/{token}',
+        '/v1/p/{token}/pdf',
+        '/v1/p/{token}/pay',
+        '/v1/p/{token}/question',
+      ].sort(),
+    );
   });
 
   it('a signed-in owner gets the documented shapes back', async () => {

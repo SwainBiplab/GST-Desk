@@ -40,6 +40,10 @@ const schema = z.object({
   INTERNAL_ORG_ID: z.string().optional(),
   RATE_LIMIT_IP_PER_MINUTE: z.coerce.number().int().positive().default(300),
   RATE_LIMIT_ORG_PER_MINUTE: z.coerce.number().int().positive().default(1200),
+  /** Public customer pages (prompt 47): per address and per token, on top of the per-address limit. */
+  RATE_LIMIT_PORTAL_PER_MINUTE: z.coerce.number().int().positive().default(60),
+  /** Where the web app's customer pages live: a link is `${PORTAL_URL}/p/<token>`. */
+  PORTAL_URL: z.string().url().optional(),
   MAX_BODY_BYTES: z.coerce
     .number()
     .int()
@@ -102,7 +106,14 @@ export interface Config {
   sentryDsn: string | undefined;
   logLevel: Env['LOG_LEVEL'];
   internalOrgId: string | undefined;
-  limits: { ipPerMinute: number; orgPerMinute: number; maxBodyBytes: number };
+  limits: {
+    ipPerMinute: number;
+    orgPerMinute: number;
+    portalPerMinute: number;
+    maxBodyBytes: number;
+  };
+  /** Where customer pages live (prompt 47). */
+  portalUrl: string;
   trustProxy: boolean;
   /** Sync is on when both the service address and the token secret are set. */
   sync: { powersyncUrl: string; jwtSecret: string } | null;
@@ -207,9 +218,17 @@ export function loadConfig(raw: NodeJS.ProcessEnv): Config {
     limits: {
       ipPerMinute: e.RATE_LIMIT_IP_PER_MINUTE,
       orgPerMinute: e.RATE_LIMIT_ORG_PER_MINUTE,
+      portalPerMinute: e.RATE_LIMIT_PORTAL_PER_MINUTE,
       maxBodyBytes: e.MAX_BODY_BYTES,
     },
     trustProxy: e.TRUST_PROXY === 'true',
+    portalUrl: (
+      e.PORTAL_URL ??
+      e.TRUSTED_ORIGINS.split(',')
+        .map((o) => o.trim())
+        .find((o) => /^https?:\/\//.test(o)) ??
+      'http://localhost:1420'
+    ).replace(/\/$/, ''),
     sync:
       e.POWERSYNC_URL && e.POWERSYNC_JWT_SECRET
         ? { powersyncUrl: e.POWERSYNC_URL, jwtSecret: e.POWERSYNC_JWT_SECRET }

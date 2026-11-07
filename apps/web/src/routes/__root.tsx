@@ -68,8 +68,13 @@ function FirstRunGuard() {
       cloudBook
     )
       return;
-    // the phone's account screen signs in to a business that syncs down: no local business needed
-    if (pathname.startsWith('/welcome') || (pathname === '/shop/settings' && screen === 'account'))
+    // the phone's account screen signs in to a business that syncs down: no local business needed;
+    // a customer's page (prompt 47) is not this device's book at all
+    if (
+      pathname.startsWith('/welcome') ||
+      pathname.startsWith('/p/') ||
+      (pathname === '/shop/settings' && screen === 'account')
+    )
       return;
     void navigate({ to: '/welcome', replace: true });
   }, [status, businessesReady, businesses.length, pathname, screen, navigate, cloudBook]);

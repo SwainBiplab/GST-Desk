@@ -19,6 +19,10 @@ import { providersFrom } from './messaging/providers';
 import { MessagingService } from './messaging/service';
 import { enqueuer, startMessagingWorkers } from './messaging/worker';
 import { PaymentsService } from './payments/service';
+import { ExportPackService } from './portals/export-pack';
+import { PortalService } from './portals/links';
+import { ShareService } from './portals/shares';
+import { packEnqueuer, startPackWorkers } from './portals/worker';
 import { FcmSender } from './push/fcm';
 import { makeNotifier } from './push/notify';
 import { mountRoutes } from './routes';
@@ -121,6 +125,18 @@ const filingService = new FilingService({
   enqueue: filingEnqueuer(jobs),
 });
 if (jobs) await startFilingWorkers(jobs, filingService, log);
+const packService = new ExportPackService({ db, storage, log, enqueue: packEnqueuer(jobs) });
+if (jobs) startPackWorkers(jobs, packService);
+const portals = {
+  shares: new ShareService(db),
+  links: new PortalService({
+    db,
+    portalUrl: config.portalUrl,
+    secretsKey: config.secretsKey,
+    payments: paymentsService,
+  }),
+  packs: packService,
+};
 mountRoutes(app, {
   db,
   auth,
@@ -132,6 +148,7 @@ mountRoutes(app, {
   messaging: { service: messagingService, providers },
   payments: paymentsService,
   filing: filingService,
+  portals,
 });
 
 const server = serve({ fetch: app.fetch, port: config.port, hostname: '0.0.0.0' }, (info) => {
