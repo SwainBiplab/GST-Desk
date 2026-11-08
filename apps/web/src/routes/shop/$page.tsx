@@ -7,6 +7,7 @@ import { AccountScreen } from '@/features/mobile/account';
 import { MobileBillRoute } from '@/features/mobile/bill';
 import { MobileHome } from '@/features/mobile/home';
 import { MobileMore } from '@/features/mobile/more';
+import { CustomerDisplay } from '@/features/pos/customer-display';
 import { isMobileLayout } from '@/platform';
 
 export const Route = createFileRoute('/shop/$page')({
@@ -18,6 +19,8 @@ export const Route = createFileRoute('/shop/$page')({
     const { page } = Route.useParams();
     const { search } = useLocationInfo();
     if (!isPageId(page)) return null;
+    // the customer's screen on the counter's second display holds no data of its own
+    if (page === 'pos' && String(search['display']) === '1') return <CustomerDisplay />;
     // the phone layout has its own home, bill and More; the other pages are the shop's
     if (isMobileLayout()) {
       if (page === 'dashboard') return <MobileHome />;

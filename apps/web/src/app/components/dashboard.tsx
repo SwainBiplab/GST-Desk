@@ -27,6 +27,7 @@ import { LedgerPage } from '@/features/ledger/ledger-page';
 import { MigratePage } from '@/features/migrate/migrate-page';
 import { PartiesPage } from '@/features/parties/parties-page';
 import { PaymentsPage } from '@/features/payments/payments-page';
+import { PosPage } from '@/features/pos/pos-page';
 import { DashboardCards } from '@/features/reports/dashboard';
 import { ReportsPage } from '@/features/reports/reports-page';
 
@@ -166,6 +167,13 @@ export function PlaceholderPage({ page, shell }: { page: PageId; shell: Shell })
     return (
       <div data-shell={shell} className="h-full overflow-auto">
         <LedgerPage shell={shell} />
+      </div>
+    );
+  }
+  if (page === 'pos' && ctx) {
+    return (
+      <div data-shell={shell} className="h-full overflow-auto">
+        <PosPage shell={shell} />
       </div>
     );
   }

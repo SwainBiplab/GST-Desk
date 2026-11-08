@@ -626,7 +626,11 @@ export class PaymentFlowRepo extends BaseRepo {
   async record(
     ctx: Ctx,
     input: PaymentInput,
-    opts: { lockOverride?: LockOverride } = {},
+    opts: {
+      lockOverride?: LockOverride;
+      /** A counter sale settles its invoice and needs no receipt voucher of its own (prompt 52). */
+      skipVoucher?: boolean;
+    } = {},
   ): Promise<PaymentResult> {
     const run = () =>
       runInTx(this.d, ctx, async (tx) => {
@@ -657,7 +661,7 @@ export class PaymentFlowRepo extends BaseRepo {
 
         let voucher: Row | null = null;
         let saved = payment;
-        if (input.direction === 'received') {
+        if (input.direction === 'received' && !opts.skipVoucher) {
           const numbers = await this.docNumbersIn(
             tx,
             c,
@@ -721,7 +725,14 @@ export class PaymentFlowRepo extends BaseRepo {
    */
   async recordRefund(
     ctx: Ctx,
-    input: { creditNoteId: string; date: string; amountPaise: bigint; reference: string },
+    input: {
+      creditNoteId: string;
+      date: string;
+      amountPaise: bigint;
+      reference: string;
+      /** How the money went back; a bank transfer unless a counter gave cash or reversed a card or UPI payment. */
+      mode?: PayMode;
+    },
   ): Promise<{ payment: Row }> {
     const run = () =>
       runInTx(this.d, ctx, async (tx) => {
@@ -741,7 +752,7 @@ export class PaymentFlowRepo extends BaseRepo {
         const payment: Row = await this.createIn(tx, c, {
           date: input.date,
           direction: 'made',
-          mode: 'bank',
+          mode: input.mode ?? 'bank',
           account_id: null,
           party_id: note.partyId,
           amount_paise: num(input.amountPaise),
@@ -758,7 +769,7 @@ export class PaymentFlowRepo extends BaseRepo {
           kind: 'refund',
           source_document_id: note.id,
         });
-        for (const l of postRefund(input.amountPaise)) {
+        for (const l of postRefund(input.amountPaise, input.mode === 'cash' ? 'cash' : 'bank')) {
           await (this.ledger as any).createIn(tx, c, {
             payment_id: payment['id'],
             party_id: l.account === 'receivables' ? note.partyId : null,

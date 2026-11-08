@@ -297,11 +297,16 @@ export function postGatewayFee(feePaise: bigint): LedgerLine[] {
  * Money paid back to a customer out of a credit note (a gateway refund): the credit note had already taken the
  * amount off what they owe (receivables credited), so paying it out debits receivables again and credits the bank.
  */
-export function postRefund(amountPaise: bigint): LedgerLine[] {
+export function postRefund(amountPaise: bigint, mode: 'cash' | 'bank' = 'bank'): LedgerLine[] {
   if (amountPaise <= 0n) throw new PostingError('refund must be positive');
   const lines: LedgerLine[] = [
     { account: 'receivables', debitPaise: amountPaise, creditPaise: 0n, narration: 'refund' },
-    { account: 'bank', debitPaise: 0n, creditPaise: amountPaise, narration: 'refund' },
+    {
+      account: mode === 'cash' ? 'cash' : 'bank',
+      debitPaise: 0n,
+      creditPaise: amountPaise,
+      narration: 'refund',
+    },
   ];
   assertBalanced(lines);
   return lines;

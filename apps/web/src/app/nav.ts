@@ -17,6 +17,7 @@ import {
   ShoppingCart,
   Users,
   Wallet,
+  ScanBarcode,
   Warehouse,
   type LucideProps,
 } from '@gst/ui/icons';
@@ -32,6 +33,7 @@ export type PageId =
   | 'reports'
   | 'ledger'
   | 'stock'
+  | 'pos'
   | 'gst'
   | 'einvoice'
   | 'caboard'
@@ -51,6 +53,7 @@ export const PAGE_IDS: PageId[] = [
   'reports',
   'ledger',
   'stock',
+  'pos',
   'gst',
   'einvoice',
   'caboard',
@@ -89,6 +92,7 @@ const item = (page: PageId, icon: NavItem['icon'], extra: Partial<NavItem> = {})
 export const SHOP_NAV: NavItem[] = [
   item('dashboard', LayoutDashboard),
   item('sell', ShoppingCart),
+  item('pos', ScanBarcode),
   item('parties', Users, { badge: 'parties' }),
   item('items', Boxes, { badge: 'items' }),
   item('documents', FileText, { badge: 'documents' }),

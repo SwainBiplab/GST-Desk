@@ -58,6 +58,9 @@ function FirstRunGuard() {
       return typeof v === 'string' ? v : null;
     },
   });
+  const display = useRouterState({
+    select: (s) => String((s.location.search as Record<string, unknown>)['display']) === '1',
+  });
   const navigate = useNavigate();
   useEffect(() => {
     // a synced book has no business until the first download lands: the phone layout shows that
@@ -74,11 +77,13 @@ function FirstRunGuard() {
     if (
       pathname.startsWith('/welcome') ||
       pathname.startsWith('/p/') ||
+      // the counter's customer display reads nothing from the book (prompt 52)
+      (pathname === '/shop/pos' && display) ||
       (pathname === '/shop/settings' && screen === 'account')
     )
       return;
     void navigate({ to: '/welcome', replace: true });
-  }, [status, businessesReady, businesses.length, pathname, screen, navigate, cloudBook]);
+  }, [status, businessesReady, businesses.length, pathname, screen, display, navigate, cloudBook]);
   return null;
 }
 

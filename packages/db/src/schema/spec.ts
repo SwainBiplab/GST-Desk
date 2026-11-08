@@ -931,6 +931,83 @@ export const SPEC: TableSpec[] = [
     indexes: [{ cols: ['item_id', 'godown_id'], unique: true, where: 'deleted_at IS NULL' }],
   },
   {
+    /** A till (prompt 52): its own number series, so counters never take each other's numbers. */
+    name: 'pos_counters',
+    kind: 'tenant',
+    cols: {
+      name: c.text().nn,
+      /** The series its bills are numbered from. */
+      series_key: c.text(),
+      document_type: c.text().nn.default('tax_invoice').oneOf(['tax_invoice', 'bill_of_supply']),
+      is_active: c.bool().nn.default(true),
+    },
+  },
+  {
+    /** One cashier's turn at a counter: opened with a float, closed with the cash counted. */
+    name: 'pos_shifts',
+    kind: 'tenant',
+    cols: {
+      counter_id: c.uuid().nn.ref('pos_counters'),
+      cashier: c.text(),
+      opened_at: c.big().nn,
+      opening_float_paise: c.big().nn.default(0),
+      status: c.text().nn.default('open').oneOf(['open', 'closed']),
+      closed_at: c.big(),
+      expected_cash_paise: c.big(),
+      counted_cash_paise: c.big(),
+      /** Counted less expected: negative is short. */
+      variance_paise: c.big(),
+      note: c.text(),
+    },
+    indexes: [{ cols: ['counter_id', 'status'] }],
+  },
+  {
+    name: 'pos_cash_movements',
+    kind: 'tenant',
+    cols: {
+      shift_id: c.uuid().nn.ref('pos_shifts'),
+      kind: c.text().nn.oneOf(['in', 'out']),
+      amount_paise: c.big().nn,
+      reason: c.text(),
+    },
+    indexes: [{ cols: ['shift_id'] }],
+  },
+  {
+    /** The counter's view of an issued bill or a return: which shift, and how it was paid. */
+    name: 'pos_bills',
+    kind: 'tenant',
+    cols: {
+      document_id: c.uuid().nn.ref('documents'),
+      shift_id: c.uuid().nn.ref('pos_shifts'),
+      counter_id: c.uuid().nn.ref('pos_counters'),
+      kind: c.text().nn.default('sale').oneOf(['sale', 'return']),
+      /** What was settled (or given back) by mode: [{ mode, amountPaise, reference }]. */
+      tenders_json: c.json(),
+      /** Cash handed back to the customer on a sale. */
+      change_paise: c.big().nn.default(0),
+      total_paise: c.big().nn,
+      /** The bill a return is against. */
+      source_document_id: c.uuid().ref('documents'),
+      /** Which lines of that bill came back: [{ lineNo, qtyMicros }]. */
+      returned_json: c.json(),
+    },
+    indexes: [{ cols: ['shift_id'] }, { cols: ['document_id'] }, { cols: ['source_document_id'] }],
+  },
+  {
+    /** A bill put aside while the next customer is served. */
+    name: 'pos_held_bills',
+    kind: 'tenant',
+    cols: {
+      counter_id: c.uuid().nn.ref('pos_counters'),
+      label: c.text(),
+      party_id: c.uuid().ref('parties'),
+      /** The cart's lines, as the screen holds them. */
+      cart_json: c.json(),
+      total_paise: c.big().nn.default(0),
+    },
+    indexes: [{ cols: ['counter_id'] }],
+  },
+  {
     name: 'stock_movements',
     kind: 'tenant',
     cols: {

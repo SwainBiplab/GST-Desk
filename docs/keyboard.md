@@ -53,3 +53,17 @@ Open it, then type:
 - anything else: it is offered to the assistant, which is not available until a model is configured (Phase 2).
 
 Use Up and Down to choose, Enter to run, Esc to close.
+
+## The counter (Shop, Counter)
+
+| Key           | What it does                                                |
+| ------------- | ----------------------------------------------------------- |
+| Scanner       | Adds the item; the same item again adds to its line         |
+| Enter (empty) | Goes to payment when there is something on the bill         |
+| 3\*code       | Types a quantity before a code: three of that item          |
+| F2            | Pay                                                         |
+| F3            | Hold the bill                                               |
+| F4            | Recall a held bill                                          |
+| F6            | Return against a bill (or scan the QR on a printed invoice) |
+| F8            | Cash in or out                                              |
+| Esc           | Clear what was typed in the scan box                        |

@@ -74,6 +74,8 @@ export function wrapCols(text: string, cols: number): string[] {
 export interface ReceiptOptions {
   /** Label language; Latin-only printers get English unless a rasterizer is given. */
   language?: PrintLanguage;
+  /** Print the invoice QR (GSTIN, number, date, total) so a return can scan the bill (prompt 52). */
+  billQr?: boolean;
 }
 
 /** Compose the receipt as lines that fit the roll. */
@@ -146,6 +148,10 @@ export function receiptLines(
     add('', {});
     out.push({ text: model.upi.payload, align: 'center', qr: true });
     add(L('scanToPay'), { align: 'center' });
+  }
+  if (opts.billQr && model.qr) {
+    add('');
+    out.push({ text: model.qr, align: 'center', qr: true });
   }
   if (spec.thermal.footer) {
     add('');
@@ -322,6 +328,8 @@ export interface ReceiptBytesOptions {
   cashDrawer?: boolean;
   /** Blank lines after the receipt, before the cut. */
   feedLines?: number;
+  /** Print the invoice QR so a return can scan the bill (prompt 52). */
+  billQr?: boolean;
 }
 
 /** The receipt as ESC/POS bytes. */
@@ -333,7 +341,7 @@ export function receiptBytes(
   const cols = thermalColumns(spec.thermal.widthMm);
   // without a way to draw other scripts, a receipt is printed in English
   const language: PrintLanguage = opts.rasterize ? spec.language : 'en';
-  const lines = receiptLines(model, spec, { language });
+  const lines = receiptLines(model, spec, { language, ...(opts.billQr ? { billQr: true } : {}) });
   const out: number[] = [...CMD.init, ...CMD.codepage437];
   const widthPx = cols * 12;
   for (const l of lines) {

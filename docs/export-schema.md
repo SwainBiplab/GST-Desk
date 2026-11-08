@@ -30,11 +30,9 @@ None of them contains passwords, tokens or PINs: settings whose key starts with 
   "schemaVersion": 5,
   "business": { "id": "…", "legal_name": "…", "gstin": "…" },
   "tables": {
-    "parties": [{ "id": "…", "name": "…" }],
-    "documents": [
-      { "id": "…", "type": "tax_invoice", "number": "INV/25-26/0001", "lines": [{ "id": "…" }] }
-    ],
-    "payments": [{ "id": "…", "allocations": [{ "id": "…" }] }]
+    "parties": [ { "id": "…", "name": "…" } ],
+    "documents": [ { "id": "…", "type": "tax_invoice", "number": "INV/25-26/0001", "lines": [ { "id": "…" } ] } ],
+    "payments": [ { "id": "…", "allocations": [ { "id": "…" } ] } ]
   }
 }
 ```
@@ -47,15 +45,15 @@ The organisation (the account) that owns businesses. Not in a business export.
 
 Kind: shared data. In a backup only.
 
-| Column       | Type                      | Required | Notes          |
-| ------------ | ------------------------- | -------- | -------------- |
-| `id`         | id (text)                 | yes      |                |
-| `version`    | integer                   | yes      | default 1      |
-| `created_at` | time (epoch milliseconds) | yes      |                |
-| `updated_at` | time (epoch milliseconds) | yes      |                |
-| `deleted_at` | time (epoch milliseconds) |          |                |
-| `name`       | text                      | yes      |                |
-| `plan`       | text                      | yes      | default "free" |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `name` | text | yes |  |
+| `plan` | text | yes | default "free" |
 
 ### `users`
 
@@ -63,17 +61,17 @@ People who can sign in. Not in a business export.
 
 Kind: shared data. In a backup only.
 
-| Column       | Type                      | Required | Notes        |
-| ------------ | ------------------------- | -------- | ------------ |
-| `id`         | id (text)                 | yes      |              |
-| `version`    | integer                   | yes      | default 1    |
-| `created_at` | time (epoch milliseconds) | yes      |              |
-| `updated_at` | time (epoch milliseconds) | yes      |              |
-| `deleted_at` | time (epoch milliseconds) |          |              |
-| `email`      | text                      | yes      |              |
-| `name`       | text                      | yes      |              |
-| `phone`      | text                      |          |              |
-| `locale`     | text                      | yes      | default "en" |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `email` | text | yes |  |
+| `name` | text | yes |  |
+| `phone` | text |  |  |
+| `locale` | text | yes | default "en" |
 
 ### `businesses`
 
@@ -81,26 +79,26 @@ The business itself: its name, GSTIN, address, financial-year start and settings
 
 Kind: belongs to an organisation. In a business export.
 
-| Column           | Type                      | Required | Notes                                              |
-| ---------------- | ------------------------- | -------- | -------------------------------------------------- |
-| `id`             | id (text)                 | yes      |                                                    |
-| `org_id`         | id (text)                 | yes      | refers to `organisations`                          |
-| `version`        | integer                   | yes      | default 1                                          |
-| `created_at`     | time (epoch milliseconds) | yes      |                                                    |
-| `updated_at`     | time (epoch milliseconds) | yes      |                                                    |
-| `deleted_at`     | time (epoch milliseconds) |          |                                                    |
-| `created_by`     | text                      |          |                                                    |
-| `updated_by`     | text                      |          |                                                    |
-| `gstin`          | text                      |          |                                                    |
-| `legal_name`     | text                      | yes      |                                                    |
-| `trade_name`     | text                      |          |                                                    |
-| `address`        | JSON                      |          |                                                    |
-| `state_code`     | text                      | yes      |                                                    |
-| `pan`            | text                      |          |                                                    |
-| `scheme`         | text                      | yes      | one of `regular`, `composition`; default "regular" |
-| `fy_start_month` | integer                   | yes      | default 4                                          |
-| `preset`         | text                      |          |                                                    |
-| `settings_json`  | JSON                      |          |                                                    |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `gstin` | text |  |  |
+| `legal_name` | text | yes |  |
+| `trade_name` | text |  |  |
+| `address` | JSON |  |  |
+| `state_code` | text | yes |  |
+| `pan` | text |  |  |
+| `scheme` | text | yes | one of `regular`, `composition`; default "regular" |
+| `fy_start_month` | integer | yes | default 4 |
+| `preset` | text |  |  |
+| `settings_json` | JSON |  |  |
 
 ### `memberships`
 
@@ -108,19 +106,19 @@ Which user belongs to which business, with a role. Not in a business export.
 
 Kind: belongs to an organisation. In a backup only.
 
-| Column        | Type                      | Required | Notes                                                          |
-| ------------- | ------------------------- | -------- | -------------------------------------------------------------- |
-| `id`          | id (text)                 | yes      |                                                                |
-| `org_id`      | id (text)                 | yes      | refers to `organisations`                                      |
-| `version`     | integer                   | yes      | default 1                                                      |
-| `created_at`  | time (epoch milliseconds) | yes      |                                                                |
-| `updated_at`  | time (epoch milliseconds) | yes      |                                                                |
-| `deleted_at`  | time (epoch milliseconds) |          |                                                                |
-| `created_by`  | text                      |          |                                                                |
-| `updated_by`  | text                      |          |                                                                |
-| `user_id`     | id (text)                 | yes      | refers to `users`                                              |
-| `business_id` | id (text)                 |          | refers to `businesses`                                         |
-| `role`        | text                      | yes      | one of `owner`, `admin`, `accountant`, `staff`, `ca`, `viewer` |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `user_id` | id (text) | yes | refers to `users` |
+| `business_id` | id (text) |  | refers to `businesses` |
+| `role` | text | yes | one of `owner`, `admin`, `accountant`, `staff`, `ca`, `viewer` |
 
 ### `devices`
 
@@ -128,187 +126,187 @@ The devices that use the business. Not in a business export.
 
 Kind: belongs to a business. In a backup only.
 
-| Column             | Type                      | Required | Notes                                |
-| ------------------ | ------------------------- | -------- | ------------------------------------ |
-| `id`               | id (text)                 | yes      |                                      |
-| `org_id`           | id (text)                 | yes      | refers to `organisations`            |
-| `business_id`      | id (text)                 | yes      | refers to `businesses`               |
-| `version`          | integer                   | yes      | default 1                            |
-| `created_at`       | time (epoch milliseconds) | yes      |                                      |
-| `updated_at`       | time (epoch milliseconds) | yes      |                                      |
-| `deleted_at`       | time (epoch milliseconds) |          |                                      |
-| `created_by`       | text                      |          |                                      |
-| `updated_by`       | text                      |          |                                      |
-| `name`             | text                      | yes      |                                      |
-| `platform`         | text                      |          |                                      |
-| `last_seen_at`     | time (epoch milliseconds) |          |                                      |
-| `kind`             | text                      | yes      | one of `sync`, `lan`; default "sync" |
-| `role`             | text                      |          | one of `full`, `counter`, `view`     |
-| `token_hash`       | text                      |          |                                      |
-| `token_issued_at`  | time (epoch milliseconds) |          |                                      |
-| `prev_token_hash`  | text                      |          |                                      |
-| `prev_valid_until` | time (epoch milliseconds) |          |                                      |
-| `revoked_at`       | time (epoch milliseconds) |          |                                      |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `name` | text | yes |  |
+| `platform` | text |  |  |
+| `last_seen_at` | time (epoch milliseconds) |  |  |
+| `kind` | text | yes | one of `sync`, `lan`; default "sync" |
+| `role` | text |  | one of `full`, `counter`, `view` |
+| `token_hash` | text |  |  |
+| `token_issued_at` | time (epoch milliseconds) |  |  |
+| `prev_token_hash` | text |  |  |
+| `prev_valid_until` | time (epoch milliseconds) |  |  |
+| `revoked_at` | time (epoch milliseconds) |  |  |
 
 ### `business_accounts`
 
 Kind: belongs to a business. In a business export.
 
-| Column              | Type                      | Required | Notes                                  |
-| ------------------- | ------------------------- | -------- | -------------------------------------- |
-| `id`                | id (text)                 | yes      |                                        |
-| `org_id`            | id (text)                 | yes      | refers to `organisations`              |
-| `business_id`       | id (text)                 | yes      | refers to `businesses`                 |
-| `version`           | integer                   | yes      | default 1                              |
-| `created_at`        | time (epoch milliseconds) | yes      |                                        |
-| `updated_at`        | time (epoch milliseconds) | yes      |                                        |
-| `deleted_at`        | time (epoch milliseconds) |          |                                        |
-| `created_by`        | text                      |          |                                        |
-| `updated_by`        | text                      |          |                                        |
-| `kind`              | text                      | yes      | one of `bank`, `upi`, `cash`, `wallet` |
-| `name`              | text                      | yes      |                                        |
-| `holder_name`       | text                      |          |                                        |
-| `account_no`        | text                      |          |                                        |
-| `ifsc`              | text                      |          |                                        |
-| `account_type`      | text                      |          |                                        |
-| `upi_id`            | text                      |          |                                        |
-| `is_default`        | true or false             | yes      | default false                          |
-| `show_on_documents` | true or false             | yes      | default true                           |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `kind` | text | yes | one of `bank`, `upi`, `cash`, `wallet` |
+| `name` | text | yes |  |
+| `holder_name` | text |  |  |
+| `account_no` | text |  |  |
+| `ifsc` | text |  |  |
+| `account_type` | text |  |  |
+| `upi_id` | text |  |  |
+| `is_default` | true or false | yes | default false |
+| `show_on_documents` | true or false | yes | default true |
 
 ### `units`
 
 Kind: belongs to a business. In a business export.
 
-| Column        | Type                      | Required | Notes                     |
-| ------------- | ------------------------- | -------- | ------------------------- |
-| `id`          | id (text)                 | yes      |                           |
-| `org_id`      | id (text)                 | yes      | refers to `organisations` |
-| `business_id` | id (text)                 | yes      | refers to `businesses`    |
-| `version`     | integer                   | yes      | default 1                 |
-| `created_at`  | time (epoch milliseconds) | yes      |                           |
-| `updated_at`  | time (epoch milliseconds) | yes      |                           |
-| `deleted_at`  | time (epoch milliseconds) |          |                           |
-| `created_by`  | text                      |          |                           |
-| `updated_by`  | text                      |          |                           |
-| `code`        | text                      | yes      |                           |
-| `name`        | text                      | yes      |                           |
-| `is_custom`   | true or false             | yes      | default false             |
-| `uqc`         | text                      |          |                           |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `code` | text | yes |  |
+| `name` | text | yes |  |
+| `is_custom` | true or false | yes | default false |
+| `uqc` | text |  |  |
 
 ### `parties`
 
 Kind: belongs to a business. In a business export.
 
-| Column                   | Type                                    | Required | Notes                                     |
-| ------------------------ | --------------------------------------- | -------- | ----------------------------------------- |
-| `id`                     | id (text)                               | yes      |                                           |
-| `org_id`                 | id (text)                               | yes      | refers to `organisations`                 |
-| `business_id`            | id (text)                               | yes      | refers to `businesses`                    |
-| `version`                | integer                                 | yes      | default 1                                 |
-| `created_at`             | time (epoch milliseconds)               | yes      |                                           |
-| `updated_at`             | time (epoch milliseconds)               | yes      |                                           |
-| `deleted_at`             | time (epoch milliseconds)               |          |                                           |
-| `created_by`             | text                                    |          |                                           |
-| `updated_by`             | text                                    |          |                                           |
-| `type`                   | text                                    | yes      | one of `customer`, `supplier`, `both`     |
-| `name`                   | text                                    | yes      |                                           |
-| `name_latin`             | text                                    |          |                                           |
-| `language`               | text                                    |          | one of `en`, `hi`, `ta`, `bn`, `gu`, `mr` |
-| `trade_name`             | text                                    |          |                                           |
-| `gstin`                  | text                                    |          |                                           |
-| `pan`                    | text                                    |          |                                           |
-| `phone`                  | text                                    |          |                                           |
-| `email`                  | text                                    |          |                                           |
-| `state_code`             | text                                    |          |                                           |
-| `addresses_json`         | JSON                                    |          |                                           |
-| `contacts_json`          | JSON                                    |          |                                           |
-| `credit_days`            | integer                                 | yes      | default 0                                 |
-| `opening_balance_paise`  | integer (paise, micro-units or a count) | yes      | default 0                                 |
-| `opening_balance_date`   | date (`YYYY-MM-DD`)                     |          |                                           |
-| `credit_limit_paise`     | integer (paise, micro-units or a count) | yes      | default 0                                 |
-| `city`                   | text                                    |          |                                           |
-| `country`                | text                                    | yes      | default "India"                           |
-| `notes`                  | text                                    |          |                                           |
-| `tags_json`              | JSON                                    |          |                                           |
-| `is_sez`                 | true or false                           | yes      | default false                             |
-| `is_export`              | true or false                           | yes      | default false                             |
-| `is_unregistered`        | true or false                           | yes      | default false                             |
-| `is_composition`         | true or false                           | yes      | default false                             |
-| `deductee_type`          | text                                    |          | one of `company`, `non_company`           |
-| `tds_section`            | text                                    |          |                                           |
-| `tds_category`           | text                                    |          | one of `individual_huf`, `other`          |
-| `tds_kind`               | text                                    |          | one of `professional`, `technical`        |
-| `tcs_nature`             | text                                    |          |                                           |
-| `lower_cert_no`          | text                                    |          |                                           |
-| `lower_cert_rate_bp`     | integer                                 |          |                                           |
-| `lower_cert_from`        | date (`YYYY-MM-DD`)                     |          |                                           |
-| `lower_cert_to`          | date (`YYYY-MM-DD`)                     |          |                                           |
-| `lower_cert_limit_paise` | integer (paise, micro-units or a count) |          |                                           |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `type` | text | yes | one of `customer`, `supplier`, `both` |
+| `name` | text | yes |  |
+| `name_latin` | text |  |  |
+| `language` | text |  | one of `en`, `hi`, `ta`, `bn`, `gu`, `mr` |
+| `trade_name` | text |  |  |
+| `gstin` | text |  |  |
+| `pan` | text |  |  |
+| `phone` | text |  |  |
+| `email` | text |  |  |
+| `state_code` | text |  |  |
+| `addresses_json` | JSON |  |  |
+| `contacts_json` | JSON |  |  |
+| `credit_days` | integer | yes | default 0 |
+| `opening_balance_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `opening_balance_date` | date (`YYYY-MM-DD`) |  |  |
+| `credit_limit_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `city` | text |  |  |
+| `country` | text | yes | default "India" |
+| `notes` | text |  |  |
+| `tags_json` | JSON |  |  |
+| `is_sez` | true or false | yes | default false |
+| `is_export` | true or false | yes | default false |
+| `is_unregistered` | true or false | yes | default false |
+| `is_composition` | true or false | yes | default false |
+| `deductee_type` | text |  | one of `company`, `non_company` |
+| `tds_section` | text |  |  |
+| `tds_category` | text |  | one of `individual_huf`, `other` |
+| `tds_kind` | text |  | one of `professional`, `technical` |
+| `tcs_nature` | text |  |  |
+| `lower_cert_no` | text |  |  |
+| `lower_cert_rate_bp` | integer |  |  |
+| `lower_cert_from` | date (`YYYY-MM-DD`) |  |  |
+| `lower_cert_to` | date (`YYYY-MM-DD`) |  |  |
+| `lower_cert_limit_paise` | integer (paise, micro-units or a count) |  |  |
 
 ### `items`
 
 Kind: belongs to a business. In a business export.
 
-| Column                      | Type                                    | Required | Notes                                            |
-| --------------------------- | --------------------------------------- | -------- | ------------------------------------------------ |
-| `id`                        | id (text)                               | yes      |                                                  |
-| `org_id`                    | id (text)                               | yes      | refers to `organisations`                        |
-| `business_id`               | id (text)                               | yes      | refers to `businesses`                           |
-| `version`                   | integer                                 | yes      | default 1                                        |
-| `created_at`                | time (epoch milliseconds)               | yes      |                                                  |
-| `updated_at`                | time (epoch milliseconds)               | yes      |                                                  |
-| `deleted_at`                | time (epoch milliseconds)               |          |                                                  |
-| `created_by`                | text                                    |          |                                                  |
-| `updated_by`                | text                                    |          |                                                  |
-| `kind`                      | text                                    | yes      | one of `goods`, `service`; default "goods"       |
-| `name`                      | text                                    | yes      |                                                  |
-| `name_latin`                | text                                    |          |                                                  |
-| `description`               | text                                    |          |                                                  |
-| `sku`                       | text                                    |          |                                                  |
-| `barcode`                   | text                                    |          |                                                  |
-| `hsn`                       | text                                    |          |                                                  |
-| `unit_id`                   | id (text)                               |          | refers to `units`                                |
-| `secondary_unit_id`         | id (text)                               |          | refers to `units`                                |
-| `secondary_factor_micros`   | integer (paise, micro-units or a count) |          |                                                  |
-| `sale_rate_paise`           | integer (paise, micro-units or a count) | yes      | default 0                                        |
-| `purchase_rate_paise`       | integer (paise, micro-units or a count) | yes      | default 0                                        |
-| `mrp_paise`                 | integer (paise, micro-units or a count) |          |                                                  |
-| `tax_inclusive`             | true or false                           | yes      | default false                                    |
-| `gst_rate_bp`               | integer                                 | yes      | default 0                                        |
-| `cess_bp`                   | integer                                 | yes      | default 0                                        |
-| `gst_rate_overridden`       | true or false                           | yes      | default false                                    |
-| `track_stock`               | true or false                           | yes      | default false                                    |
-| `tracking_mode`             | text                                    | yes      | one of `none`, `batch`, `serial`; default "none" |
-| `expiry_required`           | true or false                           | yes      | default false                                    |
-| `default_godown_id`         | id (text)                               |          | refers to `godowns`                              |
-| `min_stock_micros`          | integer (paise, micro-units or a count) | yes      | default 0                                        |
-| `opening_stock_micros`      | integer (paise, micro-units or a count) | yes      | default 0                                        |
-| `opening_stock_value_paise` | integer (paise, micro-units or a count) | yes      | default 0                                        |
-| `images_json`               | JSON                                    |          |                                                  |
-| `tags_json`                 | JSON                                    |          |                                                  |
-| `is_active`                 | true or false                           | yes      | default true                                     |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `kind` | text | yes | one of `goods`, `service`; default "goods" |
+| `name` | text | yes |  |
+| `name_latin` | text |  |  |
+| `description` | text |  |  |
+| `sku` | text |  |  |
+| `barcode` | text |  |  |
+| `hsn` | text |  |  |
+| `unit_id` | id (text) |  | refers to `units` |
+| `secondary_unit_id` | id (text) |  | refers to `units` |
+| `secondary_factor_micros` | integer (paise, micro-units or a count) |  |  |
+| `sale_rate_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `purchase_rate_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `mrp_paise` | integer (paise, micro-units or a count) |  |  |
+| `tax_inclusive` | true or false | yes | default false |
+| `gst_rate_bp` | integer | yes | default 0 |
+| `cess_bp` | integer | yes | default 0 |
+| `gst_rate_overridden` | true or false | yes | default false |
+| `track_stock` | true or false | yes | default false |
+| `tracking_mode` | text | yes | one of `none`, `batch`, `serial`; default "none" |
+| `expiry_required` | true or false | yes | default false |
+| `default_godown_id` | id (text) |  | refers to `godowns` |
+| `min_stock_micros` | integer (paise, micro-units or a count) | yes | default 0 |
+| `opening_stock_micros` | integer (paise, micro-units or a count) | yes | default 0 |
+| `opening_stock_value_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `images_json` | JSON |  |  |
+| `tags_json` | JSON |  |  |
+| `is_active` | true or false | yes | default true |
 
 ### `item_variants`
 
 Kind: belongs to a business. In a business export.
 
-| Column            | Type                                    | Required | Notes                     |
-| ----------------- | --------------------------------------- | -------- | ------------------------- |
-| `id`              | id (text)                               | yes      |                           |
-| `org_id`          | id (text)                               | yes      | refers to `organisations` |
-| `business_id`     | id (text)                               | yes      | refers to `businesses`    |
-| `version`         | integer                                 | yes      | default 1                 |
-| `created_at`      | time (epoch milliseconds)               | yes      |                           |
-| `updated_at`      | time (epoch milliseconds)               | yes      |                           |
-| `deleted_at`      | time (epoch milliseconds)               |          |                           |
-| `created_by`      | text                                    |          |                           |
-| `updated_by`      | text                                    |          |                           |
-| `item_id`         | id (text)                               | yes      | refers to `items`         |
-| `name`            | text                                    | yes      |                           |
-| `sku`             | text                                    |          |                           |
-| `barcode`         | text                                    |          |                           |
-| `sale_rate_paise` | integer (paise, micro-units or a count) |          |                           |
-| `attrs_json`      | JSON                                    |          |                           |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `item_id` | id (text) | yes | refers to `items` |
+| `name` | text | yes |  |
+| `sku` | text |  |  |
+| `barcode` | text |  |  |
+| `sale_rate_paise` | integer (paise, micro-units or a count) |  |  |
+| `attrs_json` | JSON |  |  |
 
 ### `hsn_master`
 
@@ -316,20 +314,20 @@ The HSN and SAC code list that ships with the app. Not in a business export.
 
 Kind: shared data. In a backup only.
 
-| Column           | Type                      | Required | Notes     |
-| ---------------- | ------------------------- | -------- | --------- |
-| `id`             | id (text)                 | yes      |           |
-| `version`        | integer                   | yes      | default 1 |
-| `created_at`     | time (epoch milliseconds) | yes      |           |
-| `updated_at`     | time (epoch milliseconds) | yes      |           |
-| `deleted_at`     | time (epoch milliseconds) |          |           |
-| `code`           | text                      | yes      |           |
-| `description`    | text                      | yes      |           |
-| `rate_bp`        | integer                   | yes      | default 0 |
-| `cess_bp`        | integer                   | yes      | default 0 |
-| `effective_from` | date (`YYYY-MM-DD`)       | yes      |           |
-| `effective_to`   | date (`YYYY-MM-DD`)       |          |           |
-| `source_version` | text                      |          |           |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `code` | text | yes |  |
+| `description` | text | yes |  |
+| `rate_bp` | integer | yes | default 0 |
+| `cess_bp` | integer | yes | default 0 |
+| `effective_from` | date (`YYYY-MM-DD`) | yes |  |
+| `effective_to` | date (`YYYY-MM-DD`) |  |  |
+| `source_version` | text |  |  |
 
 ### `rate_master_versions`
 
@@ -337,66 +335,66 @@ Versions of that list. Not in a business export.
 
 Kind: shared data. In a backup only.
 
-| Column           | Type                      | Required | Notes |
-| ---------------- | ------------------------- | -------- | ----- |
-| `id`             | id (text)                 | yes      |       |
-| `version`        | text                      | yes      |       |
-| `created_at`     | time (epoch milliseconds) | yes      |       |
-| `updated_at`     | time (epoch milliseconds) | yes      |       |
-| `deleted_at`     | time (epoch milliseconds) |          |       |
-| `effective_from` | date (`YYYY-MM-DD`)       | yes      |       |
-| `source`         | text                      |          |       |
-| `notes`          | text                      |          |       |
-| `published_at`   | time (epoch milliseconds) |          |       |
-| `as_of`          | date (`YYYY-MM-DD`)       |          |       |
-| `row_count`      | integer                   |          |       |
-| `sha256`         | text                      |          |       |
-| `imported_at`    | time (epoch milliseconds) |          |       |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `version` | text | yes |  |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `effective_from` | date (`YYYY-MM-DD`) | yes |  |
+| `source` | text |  |  |
+| `notes` | text |  |  |
+| `published_at` | time (epoch milliseconds) |  |  |
+| `as_of` | date (`YYYY-MM-DD`) |  |  |
+| `row_count` | integer |  |  |
+| `sha256` | text |  |  |
+| `imported_at` | time (epoch milliseconds) |  |  |
 
 ### `hsn_embeddings`
 
 Kind: shared data. In a backup only.
 
-| Column        | Type                      | Required | Notes     |
-| ------------- | ------------------------- | -------- | --------- |
-| `id`          | id (text)                 | yes      |           |
-| `version`     | integer                   | yes      | default 1 |
-| `created_at`  | time (epoch milliseconds) | yes      |           |
-| `updated_at`  | time (epoch milliseconds) | yes      |           |
-| `deleted_at`  | time (epoch milliseconds) |          |           |
-| `code`        | text                      | yes      |           |
-| `model`       | text                      | yes      |           |
-| `dims`        | integer                   | yes      |           |
-| `vector_json` | JSON                      | yes      |           |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `code` | text | yes |  |
+| `model` | text | yes |  |
+| `dims` | integer | yes |  |
+| `vector_json` | JSON | yes |  |
 
 ### `number_series`
 
 Kind: belongs to a business. In a business export.
 
-| Column                 | Type                      | Required | Notes                              |
-| ---------------------- | ------------------------- | -------- | ---------------------------------- |
-| `id`                   | id (text)                 | yes      |                                    |
-| `org_id`               | id (text)                 | yes      | refers to `organisations`          |
-| `business_id`          | id (text)                 | yes      | refers to `businesses`             |
-| `version`              | integer                   | yes      | default 1                          |
-| `created_at`           | time (epoch milliseconds) | yes      |                                    |
-| `updated_at`           | time (epoch milliseconds) | yes      |                                    |
-| `deleted_at`           | time (epoch milliseconds) |          |                                    |
-| `created_by`           | text                      |          |                                    |
-| `updated_by`           | text                      |          |                                    |
-| `document_type`        | text                      | yes      |                                    |
-| `name`                 | text                      |          |                                    |
-| `series_key`           | text                      |          |                                    |
-| `is_default`           | true or false             | yes      | default false                      |
-| `shell_default`        | text                      |          | one of `books`, `shop`             |
-| `start_number`         | integer                   | yes      | default 1                          |
-| `prefix`               | text                      | yes      | default ""                         |
-| `suffix`               | text                      | yes      | default ""                         |
-| `padding`              | integer                   | yes      | default 4                          |
-| `reset`                | text                      | yes      | one of `fy`, `never`; default "fy" |
-| `fy`                   | text                      |          |                                    |
-| `next_number`          | integer                   | yes      | default 1                          |
-| `reserved_ranges_json` | JSON                      |          |                                    |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `document_type` | text | yes |  |
+| `name` | text |  |  |
+| `series_key` | text |  |  |
+| `is_default` | true or false | yes | default false |
+| `shell_default` | text |  | one of `books`, `shop` |
+| `start_number` | integer | yes | default 1 |
+| `prefix` | text | yes | default "" |
+| `suffix` | text | yes | default "" |
+| `padding` | integer | yes | default 4 |
+| `reset` | text | yes | one of `fy`, `never`; default "fy" |
+| `fy` | text |  |  |
+| `next_number` | integer | yes | default 1 |
+| `reserved_ranges_json` | JSON |  |  |
 
 ### `number_reservations`
 
@@ -404,23 +402,23 @@ Number ranges handed to a device. Not in a business export.
 
 Kind: belongs to a business. In a backup only.
 
-| Column        | Type                      | Required | Notes                                                 |
-| ------------- | ------------------------- | -------- | ----------------------------------------------------- |
-| `id`          | id (text)                 | yes      |                                                       |
-| `org_id`      | id (text)                 | yes      | refers to `organisations`                             |
-| `business_id` | id (text)                 | yes      | refers to `businesses`                                |
-| `version`     | integer                   | yes      | default 1                                             |
-| `created_at`  | time (epoch milliseconds) | yes      |                                                       |
-| `updated_at`  | time (epoch milliseconds) | yes      |                                                       |
-| `deleted_at`  | time (epoch milliseconds) |          |                                                       |
-| `created_by`  | text                      |          |                                                       |
-| `updated_by`  | text                      |          |                                                       |
-| `series_id`   | id (text)                 | yes      | refers to `number_series`                             |
-| `device_id`   | text                      |          |                                                       |
-| `from_number` | integer                   | yes      |                                                       |
-| `to_number`   | integer                   | yes      |                                                       |
-| `used`        | integer                   | yes      | default 0                                             |
-| `status`      | text                      | yes      | one of `active`, `used`, `released`; default "active" |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `series_id` | id (text) | yes | refers to `number_series` |
+| `device_id` | text |  |  |
+| `from_number` | integer | yes |  |
+| `to_number` | integer | yes |  |
+| `used` | integer | yes | default 0 |
+| `status` | text | yes | one of `active`, `used`, `released`; default "active" |
 
 ### `documents`
 
@@ -428,54 +426,54 @@ Invoices, bills, notes, quotations and the rest. In the JSON export each documen
 
 Kind: belongs to a business. In a business export.
 
-| Column                  | Type                                    | Required | Notes                                                                                                                                                                                                  |
-| ----------------------- | --------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `id`                    | id (text)                               | yes      |                                                                                                                                                                                                        |
-| `org_id`                | id (text)                               | yes      | refers to `organisations`                                                                                                                                                                              |
-| `business_id`           | id (text)                               | yes      | refers to `businesses`                                                                                                                                                                                 |
-| `version`               | integer                                 | yes      | default 1                                                                                                                                                                                              |
-| `created_at`            | time (epoch milliseconds)               | yes      |                                                                                                                                                                                                        |
-| `updated_at`            | time (epoch milliseconds)               | yes      |                                                                                                                                                                                                        |
-| `deleted_at`            | time (epoch milliseconds)               |          |                                                                                                                                                                                                        |
-| `created_by`            | text                                    |          |                                                                                                                                                                                                        |
-| `updated_by`            | text                                    |          |                                                                                                                                                                                                        |
-| `type`                  | text                                    | yes      | one of `tax_invoice`, `bill_of_supply`, `proforma`, `quotation`, `credit_note`, `debit_note`, `delivery_challan`, `receipt_voucher`, `purchase_bill`, `purchase_return`, `expense`, `rcm_self_invoice` |
-| `status`                | text                                    | yes      | one of `draft`, `issued`, `cancelled`; default "draft"                                                                                                                                                 |
-| `number`                | text                                    |          |                                                                                                                                                                                                        |
-| `series_id`             | id (text)                               |          | refers to `number_series`                                                                                                                                                                              |
-| `date`                  | date (`YYYY-MM-DD`)                     | yes      |                                                                                                                                                                                                        |
-| `due_date`              | date (`YYYY-MM-DD`)                     |          |                                                                                                                                                                                                        |
-| `party_id`              | id (text)                               |          | refers to `parties`                                                                                                                                                                                    |
-| `party_name`            | text                                    |          |                                                                                                                                                                                                        |
-| `place_of_supply_state` | text                                    |          |                                                                                                                                                                                                        |
-| `supply_type`           | text                                    | yes      | one of `intra`, `inter`, `export`, `sez`; default "intra"                                                                                                                                              |
-| `reverse_charge`        | true or false                           | yes      | default false                                                                                                                                                                                          |
-| `currency`              | text                                    | yes      | default "INR"                                                                                                                                                                                          |
-| `fx_rate_micros`        | integer (paise, micro-units or a count) | yes      | default 1000000                                                                                                                                                                                        |
-| `total_taxable_paise`   | integer (paise, micro-units or a count) | yes      | default 0                                                                                                                                                                                              |
-| `total_cgst_paise`      | integer (paise, micro-units or a count) | yes      | default 0                                                                                                                                                                                              |
-| `total_sgst_paise`      | integer (paise, micro-units or a count) | yes      | default 0                                                                                                                                                                                              |
-| `total_igst_paise`      | integer (paise, micro-units or a count) | yes      | default 0                                                                                                                                                                                              |
-| `total_utgst_paise`     | integer (paise, micro-units or a count) | yes      | default 0                                                                                                                                                                                              |
-| `total_cess_paise`      | integer (paise, micro-units or a count) | yes      | default 0                                                                                                                                                                                              |
-| `tcs_paise`             | integer (paise, micro-units or a count) | yes      | default 0                                                                                                                                                                                              |
-| `tds_paise`             | integer (paise, micro-units or a count) | yes      | default 0                                                                                                                                                                                              |
-| `round_off_paise`       | integer (paise, micro-units or a count) | yes      | default 0                                                                                                                                                                                              |
-| `total_paise`           | integer (paise, micro-units or a count) | yes      | default 0                                                                                                                                                                                              |
-| `notes`                 | text                                    |          |                                                                                                                                                                                                        |
-| `terms`                 | text                                    |          |                                                                                                                                                                                                        |
-| `template_id`           | id (text)                               |          | refers to `templates`                                                                                                                                                                                  |
-| `irn`                   | text                                    |          |                                                                                                                                                                                                        |
-| `irn_ack_no`            | text                                    |          |                                                                                                                                                                                                        |
-| `irn_ack_date`          | text                                    |          |                                                                                                                                                                                                        |
-| `irn_signed_qr`         | text                                    |          |                                                                                                                                                                                                        |
-| `eway_bill_no`          | text                                    |          |                                                                                                                                                                                                        |
-| `eway_valid_until`      | time (epoch milliseconds)               |          |                                                                                                                                                                                                        |
-| `cancelled_at`          | time (epoch milliseconds)               |          |                                                                                                                                                                                                        |
-| `cancel_reason`         | text                                    |          |                                                                                                                                                                                                        |
-| `revision`              | integer                                 | yes      | default 1                                                                                                                                                                                              |
-| `source_document_id`    | id (text)                               |          | refers to `documents`                                                                                                                                                                                  |
-| `metadata_json`         | JSON                                    |          |                                                                                                                                                                                                        |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `type` | text | yes | one of `tax_invoice`, `bill_of_supply`, `proforma`, `quotation`, `credit_note`, `debit_note`, `delivery_challan`, `receipt_voucher`, `purchase_bill`, `purchase_return`, `expense`, `rcm_self_invoice` |
+| `status` | text | yes | one of `draft`, `issued`, `cancelled`; default "draft" |
+| `number` | text |  |  |
+| `series_id` | id (text) |  | refers to `number_series` |
+| `date` | date (`YYYY-MM-DD`) | yes |  |
+| `due_date` | date (`YYYY-MM-DD`) |  |  |
+| `party_id` | id (text) |  | refers to `parties` |
+| `party_name` | text |  |  |
+| `place_of_supply_state` | text |  |  |
+| `supply_type` | text | yes | one of `intra`, `inter`, `export`, `sez`; default "intra" |
+| `reverse_charge` | true or false | yes | default false |
+| `currency` | text | yes | default "INR" |
+| `fx_rate_micros` | integer (paise, micro-units or a count) | yes | default 1000000 |
+| `total_taxable_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `total_cgst_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `total_sgst_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `total_igst_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `total_utgst_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `total_cess_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `tcs_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `tds_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `round_off_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `total_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `notes` | text |  |  |
+| `terms` | text |  |  |
+| `template_id` | id (text) |  | refers to `templates` |
+| `irn` | text |  |  |
+| `irn_ack_no` | text |  |  |
+| `irn_ack_date` | text |  |  |
+| `irn_signed_qr` | text |  |  |
+| `eway_bill_no` | text |  |  |
+| `eway_valid_until` | time (epoch milliseconds) |  |  |
+| `cancelled_at` | time (epoch milliseconds) |  |  |
+| `cancel_reason` | text |  |  |
+| `revision` | integer | yes | default 1 |
+| `source_document_id` | id (text) |  | refers to `documents` |
+| `metadata_json` | JSON |  |  |
 
 ### `document_lines`
 
@@ -483,46 +481,46 @@ The lines of a document. In the JSON export they sit inside their document as `l
 
 Kind: belongs to a business. In a business export.
 
-| Column               | Type                                    | Required | Notes                                                                 |
-| -------------------- | --------------------------------------- | -------- | --------------------------------------------------------------------- |
-| `id`                 | id (text)                               | yes      |                                                                       |
-| `org_id`             | id (text)                               | yes      | refers to `organisations`                                             |
-| `business_id`        | id (text)                               | yes      | refers to `businesses`                                                |
-| `version`            | integer                                 | yes      | default 1                                                             |
-| `created_at`         | time (epoch milliseconds)               | yes      |                                                                       |
-| `updated_at`         | time (epoch milliseconds)               | yes      |                                                                       |
-| `deleted_at`         | time (epoch milliseconds)               |          |                                                                       |
-| `created_by`         | text                                    |          |                                                                       |
-| `updated_by`         | text                                    |          |                                                                       |
-| `document_id`        | id (text)                               | yes      | refers to `documents`                                                 |
-| `line_no`            | integer                                 | yes      |                                                                       |
-| `item_id`            | id (text)                               |          | refers to `items`                                                     |
-| `description`        | text                                    |          |                                                                       |
-| `hsn`                | text                                    |          |                                                                       |
-| `qty_micros`         | integer (paise, micro-units or a count) | yes      | default 1000000                                                       |
-| `unit_id`            | id (text)                               |          | refers to `units`                                                     |
-| `rate_paise`         | integer (paise, micro-units or a count) | yes      | default 0                                                             |
-| `discount_mode`      | text                                    | yes      | one of `none`, `percent`, `amount`, `per_unit`; default "none"        |
-| `discount_value`     | integer (paise, micro-units or a count) | yes      | default 0                                                             |
-| `gst_rate_bp`        | integer                                 | yes      | default 0                                                             |
-| `price_includes_tax` | true or false                           | yes      | default false                                                         |
-| `taxability`         | text                                    | yes      | one of `taxable`, `exempt`, `nil_rated`, `non_gst`; default "taxable" |
-| `note`               | text                                    |          |                                                                       |
-| `taxable_paise`      | integer (paise, micro-units or a count) | yes      | default 0                                                             |
-| `cgst_bp`            | integer                                 | yes      | default 0                                                             |
-| `sgst_bp`            | integer                                 | yes      | default 0                                                             |
-| `igst_bp`            | integer                                 | yes      | default 0                                                             |
-| `utgst_bp`           | integer                                 | yes      | default 0                                                             |
-| `cess_bp`            | integer                                 | yes      | default 0                                                             |
-| `cgst_paise`         | integer (paise, micro-units or a count) | yes      | default 0                                                             |
-| `sgst_paise`         | integer (paise, micro-units or a count) | yes      | default 0                                                             |
-| `igst_paise`         | integer (paise, micro-units or a count) | yes      | default 0                                                             |
-| `utgst_paise`        | integer (paise, micro-units or a count) | yes      | default 0                                                             |
-| `cess_paise`         | integer (paise, micro-units or a count) | yes      | default 0                                                             |
-| `total_paise`        | integer (paise, micro-units or a count) | yes      | default 0                                                             |
-| `batch_id`           | id (text)                               |          | refers to `batches`                                                   |
-| `serials_json`       | JSON                                    |          |                                                                       |
-| `godown_id`          | id (text)                               |          | refers to `godowns`                                                   |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `document_id` | id (text) | yes | refers to `documents` |
+| `line_no` | integer | yes |  |
+| `item_id` | id (text) |  | refers to `items` |
+| `description` | text |  |  |
+| `hsn` | text |  |  |
+| `qty_micros` | integer (paise, micro-units or a count) | yes | default 1000000 |
+| `unit_id` | id (text) |  | refers to `units` |
+| `rate_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `discount_mode` | text | yes | one of `none`, `percent`, `amount`, `per_unit`; default "none" |
+| `discount_value` | integer (paise, micro-units or a count) | yes | default 0 |
+| `gst_rate_bp` | integer | yes | default 0 |
+| `price_includes_tax` | true or false | yes | default false |
+| `taxability` | text | yes | one of `taxable`, `exempt`, `nil_rated`, `non_gst`; default "taxable" |
+| `note` | text |  |  |
+| `taxable_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `cgst_bp` | integer | yes | default 0 |
+| `sgst_bp` | integer | yes | default 0 |
+| `igst_bp` | integer | yes | default 0 |
+| `utgst_bp` | integer | yes | default 0 |
+| `cess_bp` | integer | yes | default 0 |
+| `cgst_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `sgst_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `igst_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `utgst_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `cess_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `total_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `batch_id` | id (text) |  | refers to `batches` |
+| `serials_json` | JSON |  |  |
+| `godown_id` | id (text) |  | refers to `godowns` |
 
 ### `payments`
 
@@ -530,29 +528,29 @@ Money received or paid. In the JSON export each payment carries its `allocations
 
 Kind: belongs to a business. In a business export.
 
-| Column         | Type                                    | Required | Notes                                                                  |
-| -------------- | --------------------------------------- | -------- | ---------------------------------------------------------------------- |
-| `id`           | id (text)                               | yes      |                                                                        |
-| `org_id`       | id (text)                               | yes      | refers to `organisations`                                              |
-| `business_id`  | id (text)                               | yes      | refers to `businesses`                                                 |
-| `version`      | integer                                 | yes      | default 1                                                              |
-| `created_at`   | time (epoch milliseconds)               | yes      |                                                                        |
-| `updated_at`   | time (epoch milliseconds)               | yes      |                                                                        |
-| `deleted_at`   | time (epoch milliseconds)               |          |                                                                        |
-| `created_by`   | text                                    |          |                                                                        |
-| `updated_by`   | text                                    |          |                                                                        |
-| `date`         | date (`YYYY-MM-DD`)                     | yes      |                                                                        |
-| `direction`    | text                                    | yes      | one of `received`, `made`; default "received"                          |
-| `mode`         | text                                    | yes      | one of `cash`, `upi`, `card`, `bank`, `cheque`, `other`, `adjustment`  |
-| `account_id`   | id (text)                               |          | refers to `business_accounts`                                          |
-| `party_id`     | id (text)                               |          | refers to `parties`                                                    |
-| `amount_paise` | integer (paise, micro-units or a count) | yes      |                                                                        |
-| `reference`    | text                                    |          |                                                                        |
-| `cheque_date`  | date (`YYYY-MM-DD`)                     |          |                                                                        |
-| `notes`        | text                                    |          |                                                                        |
-| `tcs_paise`    | integer (paise, micro-units or a count) | yes      | default 0                                                              |
-| `voucher_id`   | id (text)                               |          | refers to `documents`                                                  |
-| `status`       | text                                    | yes      | one of `pending`, `cleared`, `bounced`, `cancelled`; default "cleared" |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `date` | date (`YYYY-MM-DD`) | yes |  |
+| `direction` | text | yes | one of `received`, `made`; default "received" |
+| `mode` | text | yes | one of `cash`, `upi`, `card`, `bank`, `cheque`, `other`, `adjustment` |
+| `account_id` | id (text) |  | refers to `business_accounts` |
+| `party_id` | id (text) |  | refers to `parties` |
+| `amount_paise` | integer (paise, micro-units or a count) | yes |  |
+| `reference` | text |  |  |
+| `cheque_date` | date (`YYYY-MM-DD`) |  |  |
+| `notes` | text |  |  |
+| `tcs_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `voucher_id` | id (text) |  | refers to `documents` |
+| `status` | text | yes | one of `pending`, `cleared`, `bounced`, `cancelled`; default "cleared" |
 
 ### `payment_allocations`
 
@@ -560,640 +558,752 @@ What a payment (or applied credit) settles. In the JSON export they sit inside t
 
 Kind: belongs to a business. In a business export.
 
-| Column               | Type                                    | Required | Notes                                                                        |
-| -------------------- | --------------------------------------- | -------- | ---------------------------------------------------------------------------- |
-| `id`                 | id (text)                               | yes      |                                                                              |
-| `org_id`             | id (text)                               | yes      | refers to `organisations`                                                    |
-| `business_id`        | id (text)                               | yes      | refers to `businesses`                                                       |
-| `version`            | integer                                 | yes      | default 1                                                                    |
-| `created_at`         | time (epoch milliseconds)               | yes      |                                                                              |
-| `updated_at`         | time (epoch milliseconds)               | yes      |                                                                              |
-| `deleted_at`         | time (epoch milliseconds)               |          |                                                                              |
-| `created_by`         | text                                    |          |                                                                              |
-| `updated_by`         | text                                    |          |                                                                              |
-| `payment_id`         | id (text)                               |          | refers to `payments`                                                         |
-| `document_id`        | id (text)                               | yes      | refers to `documents`                                                        |
-| `amount_paise`       | integer (paise, micro-units or a count) | yes      |                                                                              |
-| `kind`               | text                                    | yes      | one of `payment`, `credit_applied`, `write_off`, `refund`; default "payment" |
-| `source_document_id` | id (text)                               |          | refers to `documents`                                                        |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `payment_id` | id (text) |  | refers to `payments` |
+| `document_id` | id (text) | yes | refers to `documents` |
+| `amount_paise` | integer (paise, micro-units or a count) | yes |  |
+| `kind` | text | yes | one of `payment`, `credit_applied`, `write_off`, `refund`; default "payment" |
+| `source_document_id` | id (text) |  | refers to `documents` |
 
 ### `gst_filings`
 
 Kind: belongs to a business. In a business export.
 
-| Column           | Type                      | Required | Notes                                                        |
-| ---------------- | ------------------------- | -------- | ------------------------------------------------------------ |
-| `id`             | id (text)                 | yes      |                                                              |
-| `org_id`         | id (text)                 | yes      | refers to `organisations`                                    |
-| `business_id`    | id (text)                 | yes      | refers to `businesses`                                       |
-| `version`        | integer                   | yes      | default 1                                                    |
-| `created_at`     | time (epoch milliseconds) | yes      |                                                              |
-| `updated_at`     | time (epoch milliseconds) | yes      |                                                              |
-| `deleted_at`     | time (epoch milliseconds) |          |                                                              |
-| `created_by`     | text                      |          |                                                              |
-| `updated_by`     | text                      |          |                                                              |
-| `return_type`    | text                      | yes      | one of `gstr1`, `gstr3b`                                     |
-| `period_fp`      | text                      | yes      |                                                              |
-| `period_from`    | date (`YYYY-MM-DD`)       | yes      |                                                              |
-| `period_to`      | date (`YYYY-MM-DD`)       | yes      |                                                              |
-| `status`         | text                      | yes      | one of `open`, `exported`, `pushed`, `filed`; default "open" |
-| `exported_at`    | time (epoch milliseconds) |          |                                                              |
-| `schema_version` | text                      |          |                                                              |
-| `arn`            | text                      |          |                                                              |
-| `filed_on`       | date (`YYYY-MM-DD`)       |          |                                                              |
-| `due_override`   | date (`YYYY-MM-DD`)       |          |                                                              |
-| `note`           | text                      |          |                                                              |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `return_type` | text | yes | one of `gstr1`, `gstr3b` |
+| `period_fp` | text | yes |  |
+| `period_from` | date (`YYYY-MM-DD`) | yes |  |
+| `period_to` | date (`YYYY-MM-DD`) | yes |  |
+| `status` | text | yes | one of `open`, `exported`, `pushed`, `filed`; default "open" |
+| `exported_at` | time (epoch milliseconds) |  |  |
+| `schema_version` | text |  |  |
+| `arn` | text |  |  |
+| `filed_on` | date (`YYYY-MM-DD`) |  |  |
+| `due_override` | date (`YYYY-MM-DD`) |  |  |
+| `note` | text |  |  |
 
 ### `tax_challans`
 
 Kind: belongs to a business. In a business export.
 
-| Column           | Type                                    | Required | Notes                         |
-| ---------------- | --------------------------------------- | -------- | ----------------------------- |
-| `id`             | id (text)                               | yes      |                               |
-| `org_id`         | id (text)                               | yes      | refers to `organisations`     |
-| `business_id`    | id (text)                               | yes      | refers to `businesses`        |
-| `version`        | integer                                 | yes      | default 1                     |
-| `created_at`     | time (epoch milliseconds)               | yes      |                               |
-| `updated_at`     | time (epoch milliseconds)               | yes      |                               |
-| `deleted_at`     | time (epoch milliseconds)               |          |                               |
-| `created_by`     | text                                    |          |                               |
-| `updated_by`     | text                                    |          |                               |
-| `kind`           | text                                    | yes      | one of `tds`, `tcs`           |
-| `fy`             | text                                    | yes      |                               |
-| `quarter`        | text                                    | yes      | one of `Q1`, `Q2`, `Q3`, `Q4` |
-| `section`        | text                                    |          |                               |
-| `bsr_code`       | text                                    | yes      |                               |
-| `deposit_date`   | date (`YYYY-MM-DD`)                     | yes      |                               |
-| `serial`         | text                                    | yes      |                               |
-| `tax_paise`      | integer (paise, micro-units or a count) | yes      | default 0                     |
-| `interest_paise` | integer (paise, micro-units or a count) | yes      | default 0                     |
-| `fee_paise`      | integer (paise, micro-units or a count) | yes      | default 0                     |
-| `note`           | text                                    |          |                               |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `kind` | text | yes | one of `tds`, `tcs` |
+| `fy` | text | yes |  |
+| `quarter` | text | yes | one of `Q1`, `Q2`, `Q3`, `Q4` |
+| `section` | text |  |  |
+| `bsr_code` | text | yes |  |
+| `deposit_date` | date (`YYYY-MM-DD`) | yes |  |
+| `serial` | text | yes |  |
+| `tax_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `interest_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `fee_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `note` | text |  |  |
 
 ### `tax_deductions`
 
 Kind: belongs to a business. In a business export.
 
-| Column        | Type                                    | Required | Notes                         |
-| ------------- | --------------------------------------- | -------- | ----------------------------- |
-| `id`          | id (text)                               | yes      |                               |
-| `org_id`      | id (text)                               | yes      | refers to `organisations`     |
-| `business_id` | id (text)                               | yes      | refers to `businesses`        |
-| `version`     | integer                                 | yes      | default 1                     |
-| `created_at`  | time (epoch milliseconds)               | yes      |                               |
-| `updated_at`  | time (epoch milliseconds)               | yes      |                               |
-| `deleted_at`  | time (epoch milliseconds)               |          |                               |
-| `created_by`  | text                                    |          |                               |
-| `updated_by`  | text                                    |          |                               |
-| `kind`        | text                                    | yes      | one of `tds`, `tcs`           |
-| `party_id`    | id (text)                               | yes      | refers to `parties`           |
-| `document_id` | id (text)                               |          | refers to `documents`         |
-| `section`     | text                                    | yes      |                               |
-| `nature`      | text                                    |          |                               |
-| `date`        | date (`YYYY-MM-DD`)                     | yes      |                               |
-| `fy`          | text                                    | yes      |                               |
-| `quarter`     | text                                    | yes      | one of `Q1`, `Q2`, `Q3`, `Q4` |
-| `base_paise`  | integer (paise, micro-units or a count) | yes      | default 0                     |
-| `rate_bp`     | integer                                 | yes      | default 0                     |
-| `tax_paise`   | integer (paise, micro-units or a count) | yes      | default 0                     |
-| `no_pan`      | true or false                           | yes      | default false                 |
-| `lower_cert`  | true or false                           | yes      | default false                 |
-| `challan_id`  | id (text)                               |          | refers to `tax_challans`      |
-| `note`        | text                                    |          |                               |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `kind` | text | yes | one of `tds`, `tcs` |
+| `party_id` | id (text) | yes | refers to `parties` |
+| `document_id` | id (text) |  | refers to `documents` |
+| `section` | text | yes |  |
+| `nature` | text |  |  |
+| `date` | date (`YYYY-MM-DD`) | yes |  |
+| `fy` | text | yes |  |
+| `quarter` | text | yes | one of `Q1`, `Q2`, `Q3`, `Q4` |
+| `base_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `rate_bp` | integer | yes | default 0 |
+| `tax_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `no_pan` | true or false | yes | default false |
+| `lower_cert` | true or false | yes | default false |
+| `challan_id` | id (text) |  | refers to `tax_challans` |
+| `note` | text |  |  |
 
 ### `tds_receivable`
 
 Kind: belongs to a business. In a business export.
 
-| Column             | Type                                    | Required | Notes                                                                    |
-| ------------------ | --------------------------------------- | -------- | ------------------------------------------------------------------------ |
-| `id`               | id (text)                               | yes      |                                                                          |
-| `org_id`           | id (text)                               | yes      | refers to `organisations`                                                |
-| `business_id`      | id (text)                               | yes      | refers to `businesses`                                                   |
-| `version`          | integer                                 | yes      | default 1                                                                |
-| `created_at`       | time (epoch milliseconds)               | yes      |                                                                          |
-| `updated_at`       | time (epoch milliseconds)               | yes      |                                                                          |
-| `deleted_at`       | time (epoch milliseconds)               |          |                                                                          |
-| `created_by`       | text                                    |          |                                                                          |
-| `updated_by`       | text                                    |          |                                                                          |
-| `party_id`         | id (text)                               | yes      | refers to `parties`                                                      |
-| `fy`               | text                                    | yes      |                                                                          |
-| `quarter`          | text                                    | yes      | one of `Q1`, `Q2`, `Q3`, `Q4`                                            |
-| `section`          | text                                    | yes      |                                                                          |
-| `date`             | date (`YYYY-MM-DD`)                     | yes      |                                                                          |
-| `gross_paise`      | integer (paise, micro-units or a count) | yes      | default 0                                                                |
-| `tds_paise`        | integer (paise, micro-units or a count) | yes      | default 0                                                                |
-| `certificate_no`   | text                                    |          |                                                                          |
-| `certificate_date` | date (`YYYY-MM-DD`)                     |          |                                                                          |
-| `status`           | text                                    | yes      | one of `expected`, `certificate_received`, `claimed`; default "expected" |
-| `note`             | text                                    |          |                                                                          |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `party_id` | id (text) | yes | refers to `parties` |
+| `fy` | text | yes |  |
+| `quarter` | text | yes | one of `Q1`, `Q2`, `Q3`, `Q4` |
+| `section` | text | yes |  |
+| `date` | date (`YYYY-MM-DD`) | yes |  |
+| `gross_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `tds_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `certificate_no` | text |  |  |
+| `certificate_date` | date (`YYYY-MM-DD`) |  |  |
+| `status` | text | yes | one of `expected`, `certificate_received`, `claimed`; default "expected" |
+| `note` | text |  |  |
 
 ### `gst_adjustments`
 
 Kind: belongs to a business. In a business export.
 
-| Column        | Type                                    | Required | Notes                     |
-| ------------- | --------------------------------------- | -------- | ------------------------- |
-| `id`          | id (text)                               | yes      |                           |
-| `org_id`      | id (text)                               | yes      | refers to `organisations` |
-| `business_id` | id (text)                               | yes      | refers to `businesses`    |
-| `version`     | integer                                 | yes      | default 1                 |
-| `created_at`  | time (epoch milliseconds)               | yes      |                           |
-| `updated_at`  | time (epoch milliseconds)               | yes      |                           |
-| `deleted_at`  | time (epoch milliseconds)               |          |                           |
-| `created_by`  | text                                    |          |                           |
-| `updated_by`  | text                                    |          |                           |
-| `period_fp`   | text                                    | yes      |                           |
-| `field`       | text                                    | yes      |                           |
-| `igst_paise`  | integer (paise, micro-units or a count) | yes      | default 0                 |
-| `cgst_paise`  | integer (paise, micro-units or a count) | yes      | default 0                 |
-| `sgst_paise`  | integer (paise, micro-units or a count) | yes      | default 0                 |
-| `cess_paise`  | integer (paise, micro-units or a count) | yes      | default 0                 |
-| `reason`      | text                                    | yes      |                           |
-| `source`      | text                                    |          |                           |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `period_fp` | text | yes |  |
+| `field` | text | yes |  |
+| `igst_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `cgst_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `sgst_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `cess_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `reason` | text | yes |  |
+| `source` | text |  |  |
 
 ### `gstr2b_imports`
 
 Kind: belongs to a business. In a business export.
 
-| Column           | Type                      | Required | Notes                     |
-| ---------------- | ------------------------- | -------- | ------------------------- |
-| `id`             | id (text)                 | yes      |                           |
-| `org_id`         | id (text)                 | yes      | refers to `organisations` |
-| `business_id`    | id (text)                 | yes      | refers to `businesses`    |
-| `version`        | integer                   | yes      | default 1                 |
-| `created_at`     | time (epoch milliseconds) | yes      |                           |
-| `updated_at`     | time (epoch milliseconds) | yes      |                           |
-| `deleted_at`     | time (epoch milliseconds) |          |                           |
-| `created_by`     | text                      |          |                           |
-| `updated_by`     | text                      |          |                           |
-| `period_fp`      | text                      | yes      |                           |
-| `gstin`          | text                      | yes      |                           |
-| `source`         | text                      | yes      | one of `json`, `xlsx`     |
-| `parser_version` | text                      |          |                           |
-| `file_hash`      | text                      |          |                           |
-| `entry_count`    | integer                   | yes      | default 0                 |
-| `problems_json`  | JSON                      |          |                           |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `period_fp` | text | yes |  |
+| `gstin` | text | yes |  |
+| `source` | text | yes | one of `json`, `xlsx` |
+| `parser_version` | text |  |  |
+| `file_hash` | text |  |  |
+| `entry_count` | integer | yes | default 0 |
+| `problems_json` | JSON |  |  |
 
 ### `gstr2b_entries`
 
 Kind: belongs to a business. In a business export.
 
-| Column            | Type                                    | Required | Notes                                         |
-| ----------------- | --------------------------------------- | -------- | --------------------------------------------- |
-| `id`              | id (text)                               | yes      |                                               |
-| `org_id`          | id (text)                               | yes      | refers to `organisations`                     |
-| `business_id`     | id (text)                               | yes      | refers to `businesses`                        |
-| `version`         | integer                                 | yes      | default 1                                     |
-| `created_at`      | time (epoch milliseconds)               | yes      |                                               |
-| `updated_at`      | time (epoch milliseconds)               | yes      |                                               |
-| `deleted_at`      | time (epoch milliseconds)               |          |                                               |
-| `created_by`      | text                                    |          |                                               |
-| `updated_by`      | text                                    |          |                                               |
-| `import_id`       | id (text)                               | yes      | refers to `gstr2b_imports`                    |
-| `period_fp`       | text                                    | yes      |                                               |
-| `supplier_gstin`  | text                                    | yes      |                                               |
-| `supplier_name`   | text                                    |          |                                               |
-| `doc_type`        | text                                    | yes      | one of `invoice`, `credit_note`, `debit_note` |
-| `number`          | text                                    | yes      |                                               |
-| `number_key`      | text                                    | yes      |                                               |
-| `date`            | date (`YYYY-MM-DD`)                     | yes      |                                               |
-| `taxable_paise`   | integer (paise, micro-units or a count) | yes      | default 0                                     |
-| `igst_paise`      | integer (paise, micro-units or a count) | yes      | default 0                                     |
-| `cgst_paise`      | integer (paise, micro-units or a count) | yes      | default 0                                     |
-| `sgst_paise`      | integer (paise, micro-units or a count) | yes      | default 0                                     |
-| `cess_paise`      | integer (paise, micro-units or a count) | yes      | default 0                                     |
-| `itc_available`   | text                                    |          |                                               |
-| `reason`          | text                                    |          |                                               |
-| `supplier_period` | text                                    |          |                                               |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `import_id` | id (text) | yes | refers to `gstr2b_imports` |
+| `period_fp` | text | yes |  |
+| `supplier_gstin` | text | yes |  |
+| `supplier_name` | text |  |  |
+| `doc_type` | text | yes | one of `invoice`, `credit_note`, `debit_note` |
+| `number` | text | yes |  |
+| `number_key` | text | yes |  |
+| `date` | date (`YYYY-MM-DD`) | yes |  |
+| `taxable_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `igst_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `cgst_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `sgst_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `cess_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `itc_available` | text |  |  |
+| `reason` | text |  |  |
+| `supplier_period` | text |  |  |
 
 ### `gstr2b_decisions`
 
 Kind: belongs to a business. In a business export.
 
-| Column               | Type                      | Required | Notes                                                 |
-| -------------------- | ------------------------- | -------- | ----------------------------------------------------- |
-| `id`                 | id (text)                 | yes      |                                                       |
-| `org_id`             | id (text)                 | yes      | refers to `organisations`                             |
-| `business_id`        | id (text)                 | yes      | refers to `businesses`                                |
-| `version`            | integer                   | yes      | default 1                                             |
-| `created_at`         | time (epoch milliseconds) | yes      |                                                       |
-| `updated_at`         | time (epoch milliseconds) | yes      |                                                       |
-| `deleted_at`         | time (epoch milliseconds) |          |                                                       |
-| `created_by`         | text                      |          |                                                       |
-| `updated_by`         | text                      |          |                                                       |
-| `period_fp`          | text                      | yes      |                                                       |
-| `side`               | text                      | yes      | one of `entry`, `bill`                                |
-| `ref_key`            | text                      | yes      |                                                       |
-| `decision`           | text                      | yes      | one of `accept`, `link`, `supplier_to_file`, `ignore` |
-| `linked_document_id` | id (text)                 |          | refers to `documents`                                 |
-| `note`               | text                      |          |                                                       |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `period_fp` | text | yes |  |
+| `side` | text | yes | one of `entry`, `bill` |
+| `ref_key` | text | yes |  |
+| `decision` | text | yes | one of `accept`, `link`, `supplier_to_file`, `ignore` |
+| `linked_document_id` | id (text) |  | refers to `documents` |
+| `note` | text |  |  |
 
 ### `gst_issue_acks`
 
 Kind: belongs to a business. In a business export.
 
-| Column        | Type                      | Required | Notes                     |
-| ------------- | ------------------------- | -------- | ------------------------- |
-| `id`          | id (text)                 | yes      |                           |
-| `org_id`      | id (text)                 | yes      | refers to `organisations` |
-| `business_id` | id (text)                 | yes      | refers to `businesses`    |
-| `version`     | integer                   | yes      | default 1                 |
-| `created_at`  | time (epoch milliseconds) | yes      |                           |
-| `updated_at`  | time (epoch milliseconds) | yes      |                           |
-| `deleted_at`  | time (epoch milliseconds) |          |                           |
-| `created_by`  | text                      |          |                           |
-| `updated_by`  | text                      |          |                           |
-| `period_fp`   | text                      | yes      |                           |
-| `issue_key`   | text                      | yes      |                           |
-| `reason`      | text                      | yes      |                           |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `period_fp` | text | yes |  |
+| `issue_key` | text | yes |  |
+| `reason` | text | yes |  |
 
 ### `einvoices`
 
 Kind: belongs to a business. In a business export.
 
-| Column           | Type                      | Required | Notes                                          |
-| ---------------- | ------------------------- | -------- | ---------------------------------------------- |
-| `id`             | id (text)                 | yes      |                                                |
-| `org_id`         | id (text)                 | yes      | refers to `organisations`                      |
-| `business_id`    | id (text)                 | yes      | refers to `businesses`                         |
-| `version`        | integer                   | yes      | default 1                                      |
-| `created_at`     | time (epoch milliseconds) | yes      |                                                |
-| `updated_at`     | time (epoch milliseconds) | yes      |                                                |
-| `deleted_at`     | time (epoch milliseconds) |          |                                                |
-| `created_by`     | text                      |          |                                                |
-| `updated_by`     | text                      |          |                                                |
-| `document_id`    | id (text)                 | yes      | refers to `documents`                          |
-| `irn`            | text                      | yes      |                                                |
-| `ack_no`         | text                      |          |                                                |
-| `ack_date`       | text                      |          |                                                |
-| `signed_invoice` | text                      |          |                                                |
-| `signed_qr`      | text                      |          |                                                |
-| `status`         | text                      | yes      | one of `active`, `cancelled`; default "active" |
-| `recovered`      | true or false             | yes      | default false                                  |
-| `cancel_reason`  | text                      |          |                                                |
-| `cancel_remarks` | text                      |          |                                                |
-| `cancelled_at`   | text                      |          |                                                |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `document_id` | id (text) | yes | refers to `documents` |
+| `irn` | text | yes |  |
+| `ack_no` | text |  |  |
+| `ack_date` | text |  |  |
+| `signed_invoice` | text |  |  |
+| `signed_qr` | text |  |  |
+| `status` | text | yes | one of `active`, `cancelled`; default "active" |
+| `recovered` | true or false | yes | default false |
+| `cancel_reason` | text |  |  |
+| `cancel_remarks` | text |  |  |
+| `cancelled_at` | text |  |  |
 
 ### `ewaybills`
 
 Kind: belongs to a business. In a business export.
 
-| Column           | Type                      | Required | Notes                                          |
-| ---------------- | ------------------------- | -------- | ---------------------------------------------- |
-| `id`             | id (text)                 | yes      |                                                |
-| `org_id`         | id (text)                 | yes      | refers to `organisations`                      |
-| `business_id`    | id (text)                 | yes      | refers to `businesses`                         |
-| `version`        | integer                   | yes      | default 1                                      |
-| `created_at`     | time (epoch milliseconds) | yes      |                                                |
-| `updated_at`     | time (epoch milliseconds) | yes      |                                                |
-| `deleted_at`     | time (epoch milliseconds) |          |                                                |
-| `created_by`     | text                      |          |                                                |
-| `updated_by`     | text                      |          |                                                |
-| `document_id`    | id (text)                 |          | refers to `documents`                          |
-| `ewb_no`         | text                      | yes      |                                                |
-| `generated_at`   | text                      | yes      |                                                |
-| `valid_until`    | text                      |          |                                                |
-| `status`         | text                      | yes      | one of `active`, `cancelled`; default "active" |
-| `distance_km`    | integer                   |          |                                                |
-| `trans_mode`     | text                      |          |                                                |
-| `vehicle_no`     | text                      |          |                                                |
-| `transporter_id` | text                      |          |                                                |
-| `from_place`     | text                      |          |                                                |
-| `from_state`     | text                      |          |                                                |
-| `from_pincode`   | text                      |          |                                                |
-| `cancel_reason`  | text                      |          |                                                |
-| `cancelled_at`   | text                      |          |                                                |
-| `history_json`   | JSON                      |          |                                                |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `document_id` | id (text) |  | refers to `documents` |
+| `ewb_no` | text | yes |  |
+| `generated_at` | text | yes |  |
+| `valid_until` | text |  |  |
+| `status` | text | yes | one of `active`, `cancelled`; default "active" |
+| `distance_km` | integer |  |  |
+| `trans_mode` | text |  |  |
+| `vehicle_no` | text |  |  |
+| `transporter_id` | text |  |  |
+| `from_place` | text |  |  |
+| `from_state` | text |  |  |
+| `from_pincode` | text |  |  |
+| `cancel_reason` | text |  |  |
+| `cancelled_at` | text |  |  |
+| `history_json` | JSON |  |  |
 
 ### `gsp_jobs`
 
 Kind: belongs to a business. In a business export.
 
-| Column            | Type                      | Required | Notes                                                                        |
-| ----------------- | ------------------------- | -------- | ---------------------------------------------------------------------------- |
-| `id`              | id (text)                 | yes      |                                                                              |
-| `org_id`          | id (text)                 | yes      | refers to `organisations`                                                    |
-| `business_id`     | id (text)                 | yes      | refers to `businesses`                                                       |
-| `version`         | integer                   | yes      | default 1                                                                    |
-| `created_at`      | time (epoch milliseconds) | yes      |                                                                              |
-| `updated_at`      | time (epoch milliseconds) | yes      |                                                                              |
-| `deleted_at`      | time (epoch milliseconds) |          |                                                                              |
-| `created_by`      | text                      |          |                                                                              |
-| `updated_by`      | text                      |          |                                                                              |
-| `kind`            | text                      | yes      | one of `irn`, `irn_cancel`, `ewb`, `ewb_cancel`, `ewb_extend`, `ewb_vehicle` |
-| `document_id`     | id (text)                 |          | refers to `documents`                                                        |
-| `ewaybill_id`     | id (text)                 |          | refers to `ewaybills`                                                        |
-| `idempotency_key` | text                      | yes      |                                                                              |
-| `payload_json`    | JSON                      |          |                                                                              |
-| `args_json`       | JSON                      |          |                                                                              |
-| `doc_revision`    | integer                   |          |                                                                              |
-| `status`          | text                      | yes      | one of `queued`, `running`, `done`, `failed`, `stopped`; default "queued"    |
-| `attempts`        | integer                   | yes      | default 0                                                                    |
-| `next_at`         | time (epoch milliseconds) |          |                                                                              |
-| `last_code`       | text                      |          |                                                                              |
-| `last_message`    | text                      |          |                                                                              |
-| `result_json`     | JSON                      |          |                                                                              |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `kind` | text | yes | one of `irn`, `irn_cancel`, `ewb`, `ewb_cancel`, `ewb_extend`, `ewb_vehicle` |
+| `document_id` | id (text) |  | refers to `documents` |
+| `ewaybill_id` | id (text) |  | refers to `ewaybills` |
+| `idempotency_key` | text | yes |  |
+| `payload_json` | JSON |  |  |
+| `args_json` | JSON |  |  |
+| `doc_revision` | integer |  |  |
+| `status` | text | yes | one of `queued`, `running`, `done`, `failed`, `stopped`; default "queued" |
+| `attempts` | integer | yes | default 0 |
+| `next_at` | time (epoch milliseconds) |  |  |
+| `last_code` | text |  |  |
+| `last_message` | text |  |  |
+| `result_json` | JSON |  |  |
 
 ### `gsp_log`
 
 Kind: belongs to a business. In a business export.
 
-| Column          | Type                      | Required | Notes                     |
-| --------------- | ------------------------- | -------- | ------------------------- |
-| `id`            | id (text)                 | yes      |                           |
-| `org_id`        | id (text)                 | yes      | refers to `organisations` |
-| `business_id`   | id (text)                 | yes      | refers to `businesses`    |
-| `version`       | integer                   | yes      | default 1                 |
-| `created_at`    | time (epoch milliseconds) | yes      |                           |
-| `updated_at`    | time (epoch milliseconds) | yes      |                           |
-| `deleted_at`    | time (epoch milliseconds) |          |                           |
-| `created_by`    | text                      |          |                           |
-| `updated_by`    | text                      |          |                           |
-| `job_id`        | id (text)                 |          | refers to `gsp_jobs`      |
-| `document_id`   | id (text)                 |          | refers to `documents`     |
-| `portal`        | text                      | yes      |                           |
-| `action`        | text                      | yes      |                           |
-| `request_json`  | JSON                      |          |                           |
-| `response_json` | JSON                      |          |                           |
-| `ok`            | true or false             | yes      | default false             |
-| `code`          | text                      |          |                           |
-| `message`       | text                      |          |                           |
-| `ms`            | integer                   |          |                           |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `job_id` | id (text) |  | refers to `gsp_jobs` |
+| `document_id` | id (text) |  | refers to `documents` |
+| `portal` | text | yes |  |
+| `action` | text | yes |  |
+| `request_json` | JSON |  |  |
+| `response_json` | JSON |  |  |
+| `ok` | true or false | yes | default false |
+| `code` | text |  |  |
+| `message` | text |  |  |
+| `ms` | integer |  |  |
 
 ### `ledger_accounts`
 
 Kind: belongs to a business. In a business export.
 
-| Column                | Type                      | Required | Notes                                                      |
-| --------------------- | ------------------------- | -------- | ---------------------------------------------------------- |
-| `id`                  | id (text)                 | yes      |                                                            |
-| `org_id`              | id (text)                 | yes      | refers to `organisations`                                  |
-| `business_id`         | id (text)                 | yes      | refers to `businesses`                                     |
-| `version`             | integer                   | yes      | default 1                                                  |
-| `created_at`          | time (epoch milliseconds) | yes      |                                                            |
-| `updated_at`          | time (epoch milliseconds) | yes      |                                                            |
-| `deleted_at`          | time (epoch milliseconds) |          |                                                            |
-| `created_by`          | text                      |          |                                                            |
-| `updated_by`          | text                      |          |                                                            |
-| `code`                | text                      | yes      |                                                            |
-| `name`                | text                      | yes      |                                                            |
-| `type`                | text                      | yes      | one of `asset`, `liability`, `income`, `expense`, `equity` |
-| `parent_id`           | id (text)                 |          | refers to `ledger_accounts`                                |
-| `is_system`           | true or false             | yes      | default false                                              |
-| `sub_group`           | text                      |          |                                                            |
-| `tally_name`          | text                      |          |                                                            |
-| `business_account_id` | id (text)                 |          | refers to `business_accounts`                              |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `code` | text | yes |  |
+| `name` | text | yes |  |
+| `type` | text | yes | one of `asset`, `liability`, `income`, `expense`, `equity` |
+| `parent_id` | id (text) |  | refers to `ledger_accounts` |
+| `is_system` | true or false | yes | default false |
+| `sub_group` | text |  |  |
+| `tally_name` | text |  |  |
+| `business_account_id` | id (text) |  | refers to `business_accounts` |
 
 ### `recurring_journals`
 
 Kind: belongs to a business. In a business export.
 
-| Column             | Type                      | Required | Notes                                                      |
-| ------------------ | ------------------------- | -------- | ---------------------------------------------------------- |
-| `id`               | id (text)                 | yes      |                                                            |
-| `org_id`           | id (text)                 | yes      | refers to `organisations`                                  |
-| `business_id`      | id (text)                 | yes      | refers to `businesses`                                     |
-| `version`          | integer                   | yes      | default 1                                                  |
-| `created_at`       | time (epoch milliseconds) | yes      |                                                            |
-| `updated_at`       | time (epoch milliseconds) | yes      |                                                            |
-| `deleted_at`       | time (epoch milliseconds) |          |                                                            |
-| `created_by`       | text                      |          |                                                            |
-| `updated_by`       | text                      |          |                                                            |
-| `name`             | text                      | yes      |                                                            |
-| `every`            | text                      | yes      | one of `monthly`, `quarterly`, `yearly`; default "monthly" |
-| `day`              | integer                   | yes      | default 1                                                  |
-| `next_date`        | date (`YYYY-MM-DD`)       | yes      |                                                            |
-| `end_date`         | date (`YYYY-MM-DD`)       |          |                                                            |
-| `lines_json`       | JSON                      |          |                                                            |
-| `narration`        | text                      |          |                                                            |
-| `active`           | true or false             | yes      | default true                                               |
-| `last_posted_date` | date (`YYYY-MM-DD`)       |          |                                                            |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `name` | text | yes |  |
+| `every` | text | yes | one of `monthly`, `quarterly`, `yearly`; default "monthly" |
+| `day` | integer | yes | default 1 |
+| `next_date` | date (`YYYY-MM-DD`) | yes |  |
+| `end_date` | date (`YYYY-MM-DD`) |  |  |
+| `lines_json` | JSON |  |  |
+| `narration` | text |  |  |
+| `active` | true or false | yes | default true |
+| `last_posted_date` | date (`YYYY-MM-DD`) |  |  |
 
 ### `journal_vouchers`
 
 Kind: belongs to a business. In a business export.
 
-| Column         | Type                                    | Required | Notes                                                                                                   |
-| -------------- | --------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------- |
-| `id`           | id (text)                               | yes      |                                                                                                         |
-| `org_id`       | id (text)                               | yes      | refers to `organisations`                                                                               |
-| `business_id`  | id (text)                               | yes      | refers to `businesses`                                                                                  |
-| `version`      | integer                                 | yes      | default 1                                                                                               |
-| `created_at`   | time (epoch milliseconds)               | yes      |                                                                                                         |
-| `updated_at`   | time (epoch milliseconds)               | yes      |                                                                                                         |
-| `deleted_at`   | time (epoch milliseconds)               |          |                                                                                                         |
-| `created_by`   | text                                    |          |                                                                                                         |
-| `updated_by`   | text                                    |          |                                                                                                         |
-| `number`       | text                                    | yes      |                                                                                                         |
-| `date`         | date (`YYYY-MM-DD`)                     | yes      |                                                                                                         |
-| `kind`         | text                                    | yes      | one of `journal`, `contra`, `opening`, `closing`, `reversal`, `recurring`, `reclass`; default "journal" |
-| `narration`    | text                                    |          |                                                                                                         |
-| `status`       | text                                    | yes      | one of `posted`, `reversed`; default "posted"                                                           |
-| `reversed_by`  | id (text)                               |          | refers to `journal_vouchers`                                                                            |
-| `reverses`     | id (text)                               |          | refers to `journal_vouchers`                                                                            |
-| `recurring_id` | id (text)                               |          | refers to `recurring_journals`                                                                          |
-| `total_paise`  | integer (paise, micro-units or a count) | yes      | default 0                                                                                               |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `number` | text | yes |  |
+| `date` | date (`YYYY-MM-DD`) | yes |  |
+| `kind` | text | yes | one of `journal`, `contra`, `opening`, `closing`, `reversal`, `recurring`, `reclass`; default "journal" |
+| `narration` | text |  |  |
+| `status` | text | yes | one of `posted`, `reversed`; default "posted" |
+| `reversed_by` | id (text) |  | refers to `journal_vouchers` |
+| `reverses` | id (text) |  | refers to `journal_vouchers` |
+| `recurring_id` | id (text) |  | refers to `recurring_journals` |
+| `total_paise` | integer (paise, micro-units or a count) | yes | default 0 |
 
 ### `ledger_entries`
 
 Kind: belongs to a business. In a business export.
 
-| Column         | Type                                    | Required | Notes                        |
-| -------------- | --------------------------------------- | -------- | ---------------------------- |
-| `id`           | id (text)                               | yes      |                              |
-| `org_id`       | id (text)                               | yes      | refers to `organisations`    |
-| `business_id`  | id (text)                               | yes      | refers to `businesses`       |
-| `version`      | integer                                 | yes      | default 1                    |
-| `created_at`   | time (epoch milliseconds)               | yes      |                              |
-| `updated_at`   | time (epoch milliseconds)               | yes      |                              |
-| `deleted_at`   | time (epoch milliseconds)               |          |                              |
-| `created_by`   | text                                    |          |                              |
-| `updated_by`   | text                                    |          |                              |
-| `document_id`  | id (text)                               |          | refers to `documents`        |
-| `payment_id`   | id (text)                               |          | refers to `payments`         |
-| `voucher_id`   | id (text)                               |          | refers to `journal_vouchers` |
-| `party_id`     | id (text)                               |          | refers to `parties`          |
-| `account_id`   | id (text)                               | yes      | refers to `ledger_accounts`  |
-| `debit_paise`  | integer (paise, micro-units or a count) | yes      | default 0                    |
-| `credit_paise` | integer (paise, micro-units or a count) | yes      | default 0                    |
-| `date`         | date (`YYYY-MM-DD`)                     | yes      |                              |
-| `narration`    | text                                    |          |                              |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `document_id` | id (text) |  | refers to `documents` |
+| `payment_id` | id (text) |  | refers to `payments` |
+| `voucher_id` | id (text) |  | refers to `journal_vouchers` |
+| `party_id` | id (text) |  | refers to `parties` |
+| `account_id` | id (text) | yes | refers to `ledger_accounts` |
+| `debit_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `credit_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `date` | date (`YYYY-MM-DD`) | yes |  |
+| `narration` | text |  |  |
 
 ### `fiscal_years`
 
 Kind: belongs to a business. In a business export.
 
-| Column               | Type                      | Required | Notes                                   |
-| -------------------- | ------------------------- | -------- | --------------------------------------- |
-| `id`                 | id (text)                 | yes      |                                         |
-| `org_id`             | id (text)                 | yes      | refers to `organisations`               |
-| `business_id`        | id (text)                 | yes      | refers to `businesses`                  |
-| `version`            | integer                   | yes      | default 1                               |
-| `created_at`         | time (epoch milliseconds) | yes      |                                         |
-| `updated_at`         | time (epoch milliseconds) | yes      |                                         |
-| `deleted_at`         | time (epoch milliseconds) |          |                                         |
-| `created_by`         | text                      |          |                                         |
-| `updated_by`         | text                      |          |                                         |
-| `fy_start`           | date (`YYYY-MM-DD`)       | yes      |                                         |
-| `fy_end`             | date (`YYYY-MM-DD`)       | yes      |                                         |
-| `status`             | text                      | yes      | one of `open`, `closed`; default "open" |
-| `closing_voucher_id` | id (text)                 |          | refers to `journal_vouchers`            |
-| `closed_at`          | time (epoch milliseconds) |          |                                         |
-| `closed_by`          | text                      |          |                                         |
-| `reopened_at`        | time (epoch milliseconds) |          |                                         |
-| `reopened_by`        | text                      |          |                                         |
-| `reopen_reason`      | text                      |          |                                         |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `fy_start` | date (`YYYY-MM-DD`) | yes |  |
+| `fy_end` | date (`YYYY-MM-DD`) | yes |  |
+| `status` | text | yes | one of `open`, `closed`; default "open" |
+| `closing_voucher_id` | id (text) |  | refers to `journal_vouchers` |
+| `closed_at` | time (epoch milliseconds) |  |  |
+| `closed_by` | text |  |  |
+| `reopened_at` | time (epoch milliseconds) |  |  |
+| `reopened_by` | text |  |  |
+| `reopen_reason` | text |  |  |
 
 ### `reminders`
 
 Kind: belongs to a business. In a business export.
 
-| Column         | Type                                    | Required | Notes                                               |
-| -------------- | --------------------------------------- | -------- | --------------------------------------------------- |
-| `id`           | id (text)                               | yes      |                                                     |
-| `org_id`       | id (text)                               | yes      | refers to `organisations`                           |
-| `business_id`  | id (text)                               | yes      | refers to `businesses`                              |
-| `version`      | integer                                 | yes      | default 1                                           |
-| `created_at`   | time (epoch milliseconds)               | yes      |                                                     |
-| `updated_at`   | time (epoch milliseconds)               | yes      |                                                     |
-| `deleted_at`   | time (epoch milliseconds)               |          |                                                     |
-| `created_by`   | text                                    |          |                                                     |
-| `updated_by`   | text                                    |          |                                                     |
-| `party_id`     | id (text)                               | yes      | refers to `parties`                                 |
-| `channel`      | text                                    | yes      | one of `whatsapp`, `email`, `sms`, `call`, `manual` |
-| `message`      | text                                    |          |                                                     |
-| `amount_paise` | integer (paise, micro-units or a count) | yes      | default 0                                           |
-| `sent_at`      | time (epoch milliseconds)               | yes      |                                                     |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `party_id` | id (text) | yes | refers to `parties` |
+| `channel` | text | yes | one of `whatsapp`, `email`, `sms`, `call`, `manual` |
+| `message` | text |  |  |
+| `amount_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `sent_at` | time (epoch milliseconds) | yes |  |
 
 ### `godowns`
 
 Kind: belongs to a business. In a business export.
 
-| Column        | Type                      | Required | Notes                     |
-| ------------- | ------------------------- | -------- | ------------------------- |
-| `id`          | id (text)                 | yes      |                           |
-| `org_id`      | id (text)                 | yes      | refers to `organisations` |
-| `business_id` | id (text)                 | yes      | refers to `businesses`    |
-| `version`     | integer                   | yes      | default 1                 |
-| `created_at`  | time (epoch milliseconds) | yes      |                           |
-| `updated_at`  | time (epoch milliseconds) | yes      |                           |
-| `deleted_at`  | time (epoch milliseconds) |          |                           |
-| `created_by`  | text                      |          |                           |
-| `updated_by`  | text                      |          |                           |
-| `name`        | text                      | yes      |                           |
-| `is_default`  | true or false             | yes      | default false             |
-| `code`        | text                      |          |                           |
-| `address`     | text                      |          |                           |
-| `is_active`   | true or false             | yes      | default true              |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `name` | text | yes |  |
+| `is_default` | true or false | yes | default false |
+| `code` | text |  |  |
+| `address` | text |  |  |
+| `is_active` | true or false | yes | default true |
 
 ### `batches`
 
 Kind: belongs to a business. In a business export.
 
-| Column                | Type                                    | Required | Notes                     |
-| --------------------- | --------------------------------------- | -------- | ------------------------- |
-| `id`                  | id (text)                               | yes      |                           |
-| `org_id`              | id (text)                               | yes      | refers to `organisations` |
-| `business_id`         | id (text)                               | yes      | refers to `businesses`    |
-| `version`             | integer                                 | yes      | default 1                 |
-| `created_at`          | time (epoch milliseconds)               | yes      |                           |
-| `updated_at`          | time (epoch milliseconds)               | yes      |                           |
-| `deleted_at`          | time (epoch milliseconds)               |          |                           |
-| `created_by`          | text                                    |          |                           |
-| `updated_by`          | text                                    |          |                           |
-| `item_id`             | id (text)                               | yes      | refers to `items`         |
-| `batch_no`            | text                                    | yes      |                           |
-| `mfg_date`            | date (`YYYY-MM-DD`)                     |          |                           |
-| `expiry_date`         | date (`YYYY-MM-DD`)                     |          |                           |
-| `mrp_paise`           | integer (paise, micro-units or a count) |          |                           |
-| `purchase_rate_paise` | integer (paise, micro-units or a count) |          |                           |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `item_id` | id (text) | yes | refers to `items` |
+| `batch_no` | text | yes |  |
+| `mfg_date` | date (`YYYY-MM-DD`) |  |  |
+| `expiry_date` | date (`YYYY-MM-DD`) |  |  |
+| `mrp_paise` | integer (paise, micro-units or a count) |  |  |
+| `purchase_rate_paise` | integer (paise, micro-units or a count) |  |  |
 
 ### `serials`
 
 Kind: belongs to a business. In a business export.
 
-| Column             | Type                      | Required | Notes                                        |
-| ------------------ | ------------------------- | -------- | -------------------------------------------- |
-| `id`               | id (text)                 | yes      |                                              |
-| `org_id`           | id (text)                 | yes      | refers to `organisations`                    |
-| `business_id`      | id (text)                 | yes      | refers to `businesses`                       |
-| `version`          | integer                   | yes      | default 1                                    |
-| `created_at`       | time (epoch milliseconds) | yes      |                                              |
-| `updated_at`       | time (epoch milliseconds) | yes      |                                              |
-| `deleted_at`       | time (epoch milliseconds) |          |                                              |
-| `created_by`       | text                      |          |                                              |
-| `updated_by`       | text                      |          |                                              |
-| `item_id`          | id (text)                 | yes      | refers to `items`                            |
-| `serial_no`        | text                      | yes      |                                              |
-| `batch_id`         | id (text)                 |          | refers to `batches`                          |
-| `godown_id`        | id (text)                 |          | refers to `godowns`                          |
-| `status`           | text                      | yes      | one of `in_stock`, `out`; default "in_stock" |
-| `last_movement_id` | id (text)                 |          |                                              |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `item_id` | id (text) | yes | refers to `items` |
+| `serial_no` | text | yes |  |
+| `batch_id` | id (text) |  | refers to `batches` |
+| `godown_id` | id (text) |  | refers to `godowns` |
+| `status` | text | yes | one of `in_stock`, `out`; default "in_stock" |
+| `last_movement_id` | id (text) |  |  |
 
 ### `stock_transfers`
 
 Kind: belongs to a business. In a business export.
 
-| Column           | Type                      | Required | Notes                                                              |
-| ---------------- | ------------------------- | -------- | ------------------------------------------------------------------ |
-| `id`             | id (text)                 | yes      |                                                                    |
-| `org_id`         | id (text)                 | yes      | refers to `organisations`                                          |
-| `business_id`    | id (text)                 | yes      | refers to `businesses`                                             |
-| `version`        | integer                   | yes      | default 1                                                          |
-| `created_at`     | time (epoch milliseconds) | yes      |                                                                    |
-| `updated_at`     | time (epoch milliseconds) | yes      |                                                                    |
-| `deleted_at`     | time (epoch milliseconds) |          |                                                                    |
-| `created_by`     | text                      |          |                                                                    |
-| `updated_by`     | text                      |          |                                                                    |
-| `number`         | text                      |          |                                                                    |
-| `from_godown_id` | id (text)                 | yes      | refers to `godowns`                                                |
-| `to_godown_id`   | id (text)                 | yes      | refers to `godowns`                                                |
-| `status`         | text                      | yes      | one of `dispatched`, `received`, `cancelled`; default "dispatched" |
-| `date`           | date (`YYYY-MM-DD`)       | yes      |                                                                    |
-| `received_date`  | date (`YYYY-MM-DD`)       |          |                                                                    |
-| `note`           | text                      |          |                                                                    |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `number` | text |  |  |
+| `from_godown_id` | id (text) | yes | refers to `godowns` |
+| `to_godown_id` | id (text) | yes | refers to `godowns` |
+| `status` | text | yes | one of `dispatched`, `received`, `cancelled`; default "dispatched" |
+| `date` | date (`YYYY-MM-DD`) | yes |  |
+| `received_date` | date (`YYYY-MM-DD`) |  |  |
+| `note` | text |  |  |
 
 ### `stock_transfer_lines`
 
 Kind: belongs to a business. In a business export.
 
-| Column         | Type                                    | Required | Notes                       |
-| -------------- | --------------------------------------- | -------- | --------------------------- |
-| `id`           | id (text)                               | yes      |                             |
-| `org_id`       | id (text)                               | yes      | refers to `organisations`   |
-| `business_id`  | id (text)                               | yes      | refers to `businesses`      |
-| `version`      | integer                                 | yes      | default 1                   |
-| `created_at`   | time (epoch milliseconds)               | yes      |                             |
-| `updated_at`   | time (epoch milliseconds)               | yes      |                             |
-| `deleted_at`   | time (epoch milliseconds)               |          |                             |
-| `created_by`   | text                                    |          |                             |
-| `updated_by`   | text                                    |          |                             |
-| `transfer_id`  | id (text)                               | yes      | refers to `stock_transfers` |
-| `item_id`      | id (text)                               | yes      | refers to `items`           |
-| `batch_id`     | id (text)                               |          | refers to `batches`         |
-| `serials_json` | JSON                                    |          |                             |
-| `qty_micros`   | integer (paise, micro-units or a count) | yes      |                             |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `transfer_id` | id (text) | yes | refers to `stock_transfers` |
+| `item_id` | id (text) | yes | refers to `items` |
+| `batch_id` | id (text) |  | refers to `batches` |
+| `serials_json` | JSON |  |  |
+| `qty_micros` | integer (paise, micro-units or a count) | yes |  |
 
 ### `godown_levels`
 
 Kind: belongs to a business. In a business export.
 
-| Column             | Type                                    | Required | Notes                     |
-| ------------------ | --------------------------------------- | -------- | ------------------------- |
-| `id`               | id (text)                               | yes      |                           |
-| `org_id`           | id (text)                               | yes      | refers to `organisations` |
-| `business_id`      | id (text)                               | yes      | refers to `businesses`    |
-| `version`          | integer                                 | yes      | default 1                 |
-| `created_at`       | time (epoch milliseconds)               | yes      |                           |
-| `updated_at`       | time (epoch milliseconds)               | yes      |                           |
-| `deleted_at`       | time (epoch milliseconds)               |          |                           |
-| `created_by`       | text                                    |          |                           |
-| `updated_by`       | text                                    |          |                           |
-| `item_id`          | id (text)                               | yes      | refers to `items`         |
-| `godown_id`        | id (text)                               | yes      | refers to `godowns`       |
-| `min_stock_micros` | integer (paise, micro-units or a count) | yes      | default 0                 |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `item_id` | id (text) | yes | refers to `items` |
+| `godown_id` | id (text) | yes | refers to `godowns` |
+| `min_stock_micros` | integer (paise, micro-units or a count) | yes | default 0 |
+
+### `pos_counters`
+
+Kind: belongs to a business. In a business export.
+
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `name` | text | yes |  |
+| `series_key` | text |  |  |
+| `document_type` | text | yes | one of `tax_invoice`, `bill_of_supply`; default "tax_invoice" |
+| `is_active` | true or false | yes | default true |
+
+### `pos_shifts`
+
+Kind: belongs to a business. In a business export.
+
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `counter_id` | id (text) | yes | refers to `pos_counters` |
+| `cashier` | text |  |  |
+| `opened_at` | integer (paise, micro-units or a count) | yes |  |
+| `opening_float_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `status` | text | yes | one of `open`, `closed`; default "open" |
+| `closed_at` | integer (paise, micro-units or a count) |  |  |
+| `expected_cash_paise` | integer (paise, micro-units or a count) |  |  |
+| `counted_cash_paise` | integer (paise, micro-units or a count) |  |  |
+| `variance_paise` | integer (paise, micro-units or a count) |  |  |
+| `note` | text |  |  |
+
+### `pos_cash_movements`
+
+Kind: belongs to a business. In a business export.
+
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `shift_id` | id (text) | yes | refers to `pos_shifts` |
+| `kind` | text | yes | one of `in`, `out` |
+| `amount_paise` | integer (paise, micro-units or a count) | yes |  |
+| `reason` | text |  |  |
+
+### `pos_bills`
+
+Kind: belongs to a business. In a business export.
+
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `document_id` | id (text) | yes | refers to `documents` |
+| `shift_id` | id (text) | yes | refers to `pos_shifts` |
+| `counter_id` | id (text) | yes | refers to `pos_counters` |
+| `kind` | text | yes | one of `sale`, `return`; default "sale" |
+| `tenders_json` | JSON |  |  |
+| `change_paise` | integer (paise, micro-units or a count) | yes | default 0 |
+| `total_paise` | integer (paise, micro-units or a count) | yes |  |
+| `source_document_id` | id (text) |  | refers to `documents` |
+| `returned_json` | JSON |  |  |
+
+### `pos_held_bills`
+
+Kind: belongs to a business. In a business export.
+
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `counter_id` | id (text) | yes | refers to `pos_counters` |
+| `label` | text |  |  |
+| `party_id` | id (text) |  | refers to `parties` |
+| `cart_json` | JSON |  |  |
+| `total_paise` | integer (paise, micro-units or a count) | yes | default 0 |
 
 ### `stock_movements`
 
@@ -1201,52 +1311,52 @@ Stock in and out, one row each. An item's stock is the sum of its movements.
 
 Kind: belongs to a business. In a business export.
 
-| Column         | Type                                    | Required | Notes                                    |
-| -------------- | --------------------------------------- | -------- | ---------------------------------------- |
-| `id`           | id (text)                               | yes      |                                          |
-| `org_id`       | id (text)                               | yes      | refers to `organisations`                |
-| `business_id`  | id (text)                               | yes      | refers to `businesses`                   |
-| `version`      | integer                                 | yes      | default 1                                |
-| `created_at`   | time (epoch milliseconds)               | yes      |                                          |
-| `updated_at`   | time (epoch milliseconds)               | yes      |                                          |
-| `deleted_at`   | time (epoch milliseconds)               |          |                                          |
-| `created_by`   | text                                    |          |                                          |
-| `updated_by`   | text                                    |          |                                          |
-| `item_id`      | id (text)                               | yes      | refers to `items`                        |
-| `variant_id`   | id (text)                               |          | refers to `item_variants`                |
-| `godown_id`    | id (text)                               |          | refers to `godowns`                      |
-| `batch_id`     | id (text)                               |          | refers to `batches`                      |
-| `kind`         | text                                    | yes      | one of `in`, `out`, `adjust`, `transfer` |
-| `qty_micros`   | integer (paise, micro-units or a count) | yes      |                                          |
-| `rate_paise`   | integer (paise, micro-units or a count) |          |                                          |
-| `document_id`  | id (text)                               |          | refers to `documents`                    |
-| `date`         | date (`YYYY-MM-DD`)                     | yes      |                                          |
-| `note`         | text                                    |          |                                          |
-| `serials_json` | JSON                                    |          |                                          |
-| `cost_paise`   | integer (paise, micro-units or a count) |          |                                          |
-| `cost_fixed`   | true or false                           | yes      | default false                            |
-| `transfer_id`  | id (text)                               |          | refers to `stock_transfers`              |
-| `voucher_id`   | id (text)                               |          | refers to `journal_vouchers`             |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `item_id` | id (text) | yes | refers to `items` |
+| `variant_id` | id (text) |  | refers to `item_variants` |
+| `godown_id` | id (text) |  | refers to `godowns` |
+| `batch_id` | id (text) |  | refers to `batches` |
+| `kind` | text | yes | one of `in`, `out`, `adjust`, `transfer` |
+| `qty_micros` | integer (paise, micro-units or a count) | yes |  |
+| `rate_paise` | integer (paise, micro-units or a count) |  |  |
+| `document_id` | id (text) |  | refers to `documents` |
+| `date` | date (`YYYY-MM-DD`) | yes |  |
+| `note` | text |  |  |
+| `serials_json` | JSON |  |  |
+| `cost_paise` | integer (paise, micro-units or a count) |  |  |
+| `cost_fixed` | true or false | yes | default false |
+| `transfer_id` | id (text) |  | refers to `stock_transfers` |
+| `voucher_id` | id (text) |  | refers to `journal_vouchers` |
 
 ### `templates`
 
 Kind: belongs to a business. In a business export.
 
-| Column        | Type                      | Required | Notes                     |
-| ------------- | ------------------------- | -------- | ------------------------- |
-| `id`          | id (text)                 | yes      |                           |
-| `org_id`      | id (text)                 | yes      | refers to `organisations` |
-| `business_id` | id (text)                 | yes      | refers to `businesses`    |
-| `version`     | integer                   | yes      | default 1                 |
-| `created_at`  | time (epoch milliseconds) | yes      |                           |
-| `updated_at`  | time (epoch milliseconds) | yes      |                           |
-| `deleted_at`  | time (epoch milliseconds) |          |                           |
-| `created_by`  | text                      |          |                           |
-| `updated_by`  | text                      |          |                           |
-| `name`        | text                      | yes      |                           |
-| `kind`        | text                      | yes      | default "document"        |
-| `config_json` | JSON                      |          |                           |
-| `is_default`  | true or false             | yes      | default false             |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `name` | text | yes |  |
+| `kind` | text | yes | default "document" |
+| `config_json` | JSON |  |  |
+| `is_default` | true or false | yes | default false |
 
 ### `attachments`
 
@@ -1254,54 +1364,54 @@ File names and hashes. The files themselves are in the `attachments` folder of a
 
 Kind: belongs to a business. In a business export.
 
-| Column         | Type                                    | Required | Notes                     |
-| -------------- | --------------------------------------- | -------- | ------------------------- |
-| `id`           | id (text)                               | yes      |                           |
-| `org_id`       | id (text)                               | yes      | refers to `organisations` |
-| `business_id`  | id (text)                               | yes      | refers to `businesses`    |
-| `version`      | integer                                 | yes      | default 1                 |
-| `created_at`   | time (epoch milliseconds)               | yes      |                           |
-| `updated_at`   | time (epoch milliseconds)               | yes      |                           |
-| `deleted_at`   | time (epoch milliseconds)               |          |                           |
-| `created_by`   | text                                    |          |                           |
-| `updated_by`   | text                                    |          |                           |
-| `owner_table`  | text                                    | yes      |                           |
-| `owner_id`     | id (text)                               | yes      |                           |
-| `file_name`    | text                                    | yes      |                           |
-| `mime`         | text                                    |          |                           |
-| `size_bytes`   | integer (paise, micro-units or a count) | yes      | default 0                 |
-| `sha256`       | text                                    | yes      |                           |
-| `storage_path` | text                                    | yes      |                           |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `owner_table` | text | yes |  |
+| `owner_id` | id (text) | yes |  |
+| `file_name` | text | yes |  |
+| `mime` | text |  |  |
+| `size_bytes` | integer (paise, micro-units or a count) | yes | default 0 |
+| `sha256` | text | yes |  |
+| `storage_path` | text | yes |  |
 
 ### `review_items`
 
 Kind: belongs to a business. In a business export.
 
-| Column            | Type                      | Required | Notes                                                                  |
-| ----------------- | ------------------------- | -------- | ---------------------------------------------------------------------- |
-| `id`              | id (text)                 | yes      |                                                                        |
-| `org_id`          | id (text)                 | yes      | refers to `organisations`                                              |
-| `business_id`     | id (text)                 | yes      | refers to `businesses`                                                 |
-| `version`         | integer                   | yes      | default 1                                                              |
-| `created_at`      | time (epoch milliseconds) | yes      |                                                                        |
-| `updated_at`      | time (epoch milliseconds) | yes      |                                                                        |
-| `deleted_at`      | time (epoch milliseconds) |          |                                                                        |
-| `created_by`      | text                      |          |                                                                        |
-| `updated_by`      | text                      |          |                                                                        |
-| `kind`            | text                      | yes      |                                                                        |
-| `status`          | text                      | yes      | one of `pending`, `accepted`, `rejected`, `expired`; default "pending" |
-| `payload_json`    | JSON                      |          |                                                                        |
-| `suggestion_json` | JSON                      |          |                                                                        |
-| `diff_json`       | JSON                      |          |                                                                        |
-| `correction_json` | JSON                      |          |                                                                        |
-| `source`          | text                      |          |                                                                        |
-| `model`           | text                      |          |                                                                        |
-| `confidence`      | integer                   |          |                                                                        |
-| `accepted_by`     | text                      |          |                                                                        |
-| `accepted_at`     | time (epoch milliseconds) |          |                                                                        |
-| `snoozed_until`   | time (epoch milliseconds) |          |                                                                        |
-| `reject_reason`   | text                      |          |                                                                        |
-| `dedupe_key`      | text                      |          |                                                                        |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `kind` | text | yes |  |
+| `status` | text | yes | one of `pending`, `accepted`, `rejected`, `expired`; default "pending" |
+| `payload_json` | JSON |  |  |
+| `suggestion_json` | JSON |  |  |
+| `diff_json` | JSON |  |  |
+| `correction_json` | JSON |  |  |
+| `source` | text |  |  |
+| `model` | text |  |  |
+| `confidence` | integer |  |  |
+| `accepted_by` | text |  |  |
+| `accepted_at` | time (epoch milliseconds) |  |  |
+| `snoozed_until` | time (epoch milliseconds) |  |  |
+| `reject_reason` | text |  |  |
+| `dedupe_key` | text |  |  |
 
 ### `ai_calls`
 
@@ -1309,20 +1419,20 @@ A log of assistant requests. Not in a business export.
 
 Kind: belongs to a business. In a backup only.
 
-| Column          | Type                      | Required | Notes                     |
-| --------------- | ------------------------- | -------- | ------------------------- |
-| `id`            | id (text)                 | yes      |                           |
-| `org_id`        | id (text)                 | yes      | refers to `organisations` |
-| `business_id`   | id (text)                 | yes      | refers to `businesses`    |
-| `created_at`    | time (epoch milliseconds) | yes      |                           |
-| `feature`       | text                      | yes      |                           |
-| `capability`    | text                      | yes      |                           |
-| `provider`      | text                      | yes      |                           |
-| `model`         | text                      |          |                           |
-| `input_tokens`  | integer                   |          |                           |
-| `output_tokens` | integer                   |          |                           |
-| `latency_ms`    | integer                   | yes      | default 0                 |
-| `outcome`       | text                      | yes      |                           |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `feature` | text | yes |  |
+| `capability` | text | yes |  |
+| `provider` | text | yes |  |
+| `model` | text |  |  |
+| `input_tokens` | integer |  |  |
+| `output_tokens` | integer |  |  |
+| `latency_ms` | integer | yes | default 0 |
+| `outcome` | text | yes |  |
 
 ### `audit_log`
 
@@ -1330,39 +1440,39 @@ Who changed what, and when. In a backup; in a business export only when asked fo
 
 Kind: belongs to a business. In a backup only.
 
-| Column        | Type                      | Required | Notes                                             |
-| ------------- | ------------------------- | -------- | ------------------------------------------------- |
-| `id`          | id (text)                 | yes      |                                                   |
-| `org_id`      | id (text)                 | yes      | refers to `organisations`                         |
-| `business_id` | id (text)                 | yes      | refers to `businesses`                            |
-| `created_at`  | time (epoch milliseconds) | yes      |                                                   |
-| `table_name`  | text                      | yes      |                                                   |
-| `row_id`      | id (text)                 | yes      |                                                   |
-| `action`      | text                      | yes      | one of `insert`, `update`, `soft_delete`, `purge` |
-| `before_json` | JSON                      |          |                                                   |
-| `after_json`  | JSON                      |          |                                                   |
-| `actor`       | text                      | yes      |                                                   |
-| `device_id`   | text                      |          |                                                   |
-| `at`          | time (epoch milliseconds) | yes      |                                                   |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `table_name` | text | yes |  |
+| `row_id` | id (text) | yes |  |
+| `action` | text | yes | one of `insert`, `update`, `soft_delete`, `purge` |
+| `before_json` | JSON |  |  |
+| `after_json` | JSON |  |  |
+| `actor` | text | yes |  |
+| `device_id` | text |  |  |
+| `at` | time (epoch milliseconds) | yes |  |
 
 ### `import_mappings`
 
 Kind: belongs to a business. In a business export.
 
-| Column         | Type                      | Required | Notes                     |
-| -------------- | ------------------------- | -------- | ------------------------- |
-| `id`           | id (text)                 | yes      |                           |
-| `org_id`       | id (text)                 | yes      | refers to `organisations` |
-| `business_id`  | id (text)                 | yes      | refers to `businesses`    |
-| `version`      | integer                   | yes      | default 1                 |
-| `created_at`   | time (epoch milliseconds) | yes      |                           |
-| `updated_at`   | time (epoch milliseconds) | yes      |                           |
-| `deleted_at`   | time (epoch milliseconds) |          |                           |
-| `created_by`   | text                      |          |                           |
-| `updated_by`   | text                      |          |                           |
-| `entity`       | text                      | yes      | one of `items`, `parties` |
-| `signature`    | text                      | yes      |                           |
-| `mapping_json` | JSON                      |          |                           |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `entity` | text | yes | one of `items`, `parties` |
+| `signature` | text | yes |  |
+| `mapping_json` | JSON |  |  |
 
 ### `settings`
 
@@ -1370,20 +1480,20 @@ Settings by key. Rows whose key marks a secret (tokens, credentials, PINs) are n
 
 Kind: belongs to a business. In a business export.
 
-| Column        | Type                      | Required | Notes                                                          |
-| ------------- | ------------------------- | -------- | -------------------------------------------------------------- |
-| `id`          | id (text)                 | yes      |                                                                |
-| `org_id`      | id (text)                 | yes      | refers to `organisations`                                      |
-| `business_id` | id (text)                 | yes      | refers to `businesses`                                         |
-| `version`     | integer                   | yes      | default 1                                                      |
-| `created_at`  | time (epoch milliseconds) | yes      |                                                                |
-| `updated_at`  | time (epoch milliseconds) | yes      |                                                                |
-| `deleted_at`  | time (epoch milliseconds) |          |                                                                |
-| `created_by`  | text                      |          |                                                                |
-| `updated_by`  | text                      |          |                                                                |
-| `key`         | text                      | yes      |                                                                |
-| `value_json`  | JSON                      |          |                                                                |
-| `scope`       | text                      | yes      | one of `business`, `org`, `user`, `device`; default "business" |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `business_id` | id (text) | yes | refers to `businesses` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `key` | text | yes |  |
+| `value_json` | JSON |  |  |
+| `scope` | text | yes | one of `business`, `org`, `user`, `device`; default "business" |
 
 ### `sync_state`
 
@@ -1391,16 +1501,16 @@ Sync bookkeeping. Not in a business export.
 
 Kind: belongs to an organisation. In a backup only.
 
-| Column           | Type                      | Required | Notes                     |
-| ---------------- | ------------------------- | -------- | ------------------------- |
-| `id`             | id (text)                 | yes      |                           |
-| `org_id`         | id (text)                 | yes      | refers to `organisations` |
-| `version`        | integer                   | yes      | default 1                 |
-| `created_at`     | time (epoch milliseconds) | yes      |                           |
-| `updated_at`     | time (epoch milliseconds) | yes      |                           |
-| `deleted_at`     | time (epoch milliseconds) |          |                           |
-| `created_by`     | text                      |          |                           |
-| `updated_by`     | text                      |          |                           |
-| `device_id`      | id (text)                 |          |                           |
-| `cursor`         | text                      |          |                           |
-| `last_synced_at` | time (epoch milliseconds) |          |                           |
+| Column | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | id (text) | yes |  |
+| `org_id` | id (text) | yes | refers to `organisations` |
+| `version` | integer | yes | default 1 |
+| `created_at` | time (epoch milliseconds) | yes |  |
+| `updated_at` | time (epoch milliseconds) | yes |  |
+| `deleted_at` | time (epoch milliseconds) |  |  |
+| `created_by` | text |  |  |
+| `updated_by` | text |  |  |
+| `device_id` | id (text) |  |  |
+| `cursor` | text |  |  |
+| `last_synced_at` | time (epoch milliseconds) |  |  |

@@ -31,6 +31,7 @@ export * from './repositories/inventory';
 export * from './repositories/godowns';
 export * from './repositories/batches';
 export * from './repositories/valuation';
+export * from './repositories/pos';
 export * from './repositories/stock-ledger';
 export * from './backup';
 export * from './repositories/trash';

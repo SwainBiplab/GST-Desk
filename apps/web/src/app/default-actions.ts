@@ -38,6 +38,7 @@ const KEYWORDS: Record<PageId, string[]> = {
     'chart',
     'year end',
   ],
+  pos: ['pos', 'counter', 'till', 'barcode', 'scan', 'shift', 'z report', 'retail'],
   stock: ['stock', 'godown', 'warehouse', 'batch', 'serial', 'transfer', 'valuation', 'expiry'],
   gst: ['gst', 'gstr', 'gstr1', 'gstr3b', 'filing', 'return', 'file'],
   caboard: ['ca', 'board', 'filing board', 'heatmap'],

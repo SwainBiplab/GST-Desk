@@ -29,6 +29,7 @@ export * from './documents/richtext';
 export * from './documents/rows';
 export * from './reports';
 export * from './inventory';
+export * from './pos';
 export * from './stock/valuation';
 export * from './stock/picking';
 export * from './backup';

@@ -35,10 +35,19 @@ export const TABLES_INVENTORY = [
   'stock_transfer_lines',
   'godown_levels',
 ] as const;
+/** The counter tables (prompt 52): their guards are in `9011_extras_pos`. */
+export const TABLES_POS = [
+  'pos_counters',
+  'pos_shifts',
+  'pos_cash_movements',
+  'pos_bills',
+  'pos_held_bills',
+] as const;
 const later = (t: string) =>
   (TABLES_AFTER_V1 as readonly string[]).includes(t) ||
   (TABLES_LEDGER as readonly string[]).includes(t) ||
   (TABLES_INVENTORY as readonly string[]).includes(t) ||
+  (TABLES_POS as readonly string[]).includes(t) ||
   (TABLES_AI as readonly string[]).includes(t) ||
   (TABLES_TAX as readonly string[]).includes(t) ||
   (TABLES_RECON as readonly string[]).includes(t) ||
@@ -260,6 +269,7 @@ export const taxExtrasSql = (dialect: Dialect): string => guardsSql(dialect, TAB
 export const ledgerExtrasSql = (dialect: Dialect): string => guardsSql(dialect, TABLES_LEDGER);
 export const inventoryExtrasSql = (dialect: Dialect): string =>
   guardsSql(dialect, TABLES_INVENTORY);
+export const posExtrasSql = (dialect: Dialect): string => guardsSql(dialect, TABLES_POS);
 
 /**
  * SQLite drops a table's triggers when a migration rebuilds it (0011 rebuilt `number_reservations` to drop a
