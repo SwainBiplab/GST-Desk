@@ -23,14 +23,14 @@
   "devDependencies": {
     "@gst/config": "workspace:*",
     "@types/node": "^26.6.6",
-    "@vitest/coverage-v8": "^5.1.0",
+    "@vitest/coverage-v8": "^5.1.1",
     "eslint": "^9.39.0",
     "tsx": "^4.23.15",
     "typescript": "~6.0.0",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.1"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^1.6.0",
+    "@anthropic-ai/sdk": "^1.11.0",
     "@gst/db": "workspace:*",
     "@gst/domain": "workspace:*",
     "@gst/i18n": "workspace:*",

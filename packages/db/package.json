@@ -29,16 +29,16 @@
     "@gst/gsp": "workspace:*",
     "@gst/print": "workspace:*",
     "@types/node": "^26.6.6",
-    "@vitest/coverage-v8": "^5.1.0",
+    "@vitest/coverage-v8": "^5.1.1",
     "drizzle-kit": "^0.31.11",
     "eslint": "^9.39.0",
-    "fast-check": "^4.10.2",
+    "fast-check": "^4.10.3",
     "tsx": "^4.23.15",
     "typescript": "~6.0.0",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.1"
   },
   "dependencies": {
-    "@electric-sql/pglite": "^0.5.15",
+    "@electric-sql/pglite": "^0.5.17",
     "@gst/domain": "workspace:*",
     "@gst/interop": "workspace:*",
     "@libsql/client": "^0.18.0",
